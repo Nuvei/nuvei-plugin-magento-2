@@ -3,13 +3,9 @@
 namespace Nuvei\Checkout\Model\Request\Payment;
 
 use Magento\Framework\Exception\PaymentException;
-//use Magento\Sales\Model\Order\Payment\Transaction as OrderTransaction;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\AbstractResponse;
 use Nuvei\Checkout\Model\Payment;
-
-//use Nuvei\Checkout\Model\Request\AbstractPayment;
-//use Nuvei\Checkout\Model\RequestInterface;
 
 /**
  * Nuvei Checkout refund payment request model.
@@ -18,12 +14,7 @@ class Refund extends \Nuvei\Checkout\Model\Request\AbstractPayment implements \N
 {
     protected $readerWriter;
 
-    /**
-     * @var TransactionRepositoryInterface
-     */
-//    private $transactionRepository;
     private $request;
-    
     private $amount;
 
     /**
@@ -40,31 +31,22 @@ class Refund extends \Nuvei\Checkout\Model\Request\AbstractPayment implements \N
      * @param float                             $amount
      */
     public function __construct(
-        //        \Nuvei\Checkout\Model\Logger $logger,
         \Nuvei\Checkout\Model\Config $config,
         \Nuvei\Checkout\Lib\Http\Client\Curl $curl,
-        //        \Nuvei\Checkout\Model\Request\Factory $requestFactory,
-        //        \Nuvei\Checkout\Model\Request\Payment\Factory $paymentRequestFactory,
         \Nuvei\Checkout\Model\Response\Factory $responseFactory,
         \Magento\Sales\Model\Order\Payment $orderPayment,
-        //        \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository,
         \Magento\Framework\App\Request\Http $request,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         $amount = 0.0
     ) {
         parent::__construct(
-//            $logger,
             $config,
             $curl,
-            //            $requestFactory,
-            //            $paymentRequestFactory,
             $responseFactory,
             $orderPayment,
-            $readerWriter,
-            //            $amount
+            $readerWriter
         );
 
-//        $this->transactionRepository    = $transactionRepository;
         $this->request      = $request;
         $this->readerWriter = $readerWriter;
         $this->amount       = $amount;
@@ -169,11 +151,6 @@ class Refund extends \Nuvei\Checkout\Model\Request\AbstractPayment implements \N
         ];
 
         $params = array_merge_recursive($params, parent::getParams());
-
-//        $this->logger->updateRequest(
-//            $this->getRequestId(),
-//            ['increment_id' => $order->getIncrementId(),]
-//        );
 
         return $params;
     }

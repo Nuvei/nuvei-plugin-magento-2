@@ -2,6 +2,11 @@
 
 ---
 
+# 1.1.1
+```
+    * Fix for the bug with the Refunds.
+```
+
 # 1.1.0
 ```
 	* Added ReaderWriter class, to read and save files for the plugin.
