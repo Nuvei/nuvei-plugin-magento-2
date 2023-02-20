@@ -2,6 +2,12 @@
 
 ---
 
+## System requirements
+Magento v2.3.x
+PHP 7.4
+
+---
+
 ## Install manually under app/code
 This is Plugin for Magento version 2.3 and above.
 Download & place the contents of this repository under {YOUR-MAGENTO2-ROOT-DIR}/app/code/Nuvei/Checkout  
@@ -19,7 +25,7 @@ php bin/magento cache:flush
 
 https://www.nuvei.com/
 
-© 2007 - 2022 Nuvei
+© 2007 - 2023 Nuvei
 All rights reserved.
 
 ![Nuvei Logo](https://github.com/SafeChargeInternational/nuvei_checkout_magento/blob/master/view/frontend/web/images/logo-dark.svg)
