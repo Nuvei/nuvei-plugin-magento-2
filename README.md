@@ -9,7 +9,6 @@ PHP 7.4
 ---
 
 ## Install manually under app/code
-This is Plugin for Magento version 2.3 and above.
 Download & place the contents of this repository under {YOUR-MAGENTO2-ROOT-DIR}/app/code/Nuvei/Checkout  
 Then, run the following commands under your Magento 2 root dir:
 ```
