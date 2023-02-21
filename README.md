@@ -4,7 +4,7 @@
 
 ## System requirements
 Magento v2.3.x
-PHP 7.4
+PHP 7.2 to 7.4
 
 ---
 
