@@ -9,7 +9,7 @@ use Magento\Sales\Model\Order;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
 
-class AddNuveiData implements DataPatchInterface
+class NuveiPatch111 implements DataPatchInterface
 {
     /** @var ModuleDataSetupInterface */
     private $moduleDataSetup;
@@ -121,7 +121,7 @@ class AddNuveiData implements DataPatchInterface
                 'input'                     => 'select',
                 'visible'                   => true,
                 'required'                  => false,
-                'user_defined'              => false,
+                'user_defined'              => true,
                 'default'                   => '',
                 'searchable'                => false,
                 'filterable'                => false,
@@ -338,7 +338,7 @@ class AddNuveiData implements DataPatchInterface
      */
     public static function getVersion()
     {
-        return '1.1.0';
+        return '1.1.1';
     }
     
     /**
