@@ -124,7 +124,9 @@ function nuveiAfterSdkResponse(resp) {
 
 	// on Declined
 	if(resp.result == 'DECLINED') {
-        if (resp.hasOwnProperty('errorDescription') && 'Insufficient funds' == resp.errorDescription) {
+        if (resp.hasOwnProperty('errorDescription')
+            && 'insufficient funds' == resp.errorDescription.toLowerCase
+        ) {
             if(!alert(jQuery.mage.__('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.'))) {
                 jQuery('body').trigger('processStop');
                 return;
