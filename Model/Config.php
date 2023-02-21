@@ -121,12 +121,6 @@ class Config
     private $remoteIp;
     private $customerSession;
     private $cookie;
-//    private $productObj;
-//    private $productRepository;
-//    private $configurable;
-//    private $eavAttribute;
-//    private $fileSystem;
-    
     private $clientUniqueIdPostfix = '_sandbox_apm'; // postfix for Sandbox APM payments
 
     /**
@@ -152,11 +146,6 @@ class Config
         \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteIp,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Stdlib\CookieManagerInterface $cookie
-        //        \Magento\Catalog\Model\Product $productObj
-        //        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
-        //        \Magento\ConfigurableProduct\Model\Product\Type\Configurable $configurable
-        //        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
-        //        ,\Magento\Framework\Filesystem\DriverInterface $fileSystem
     ) {
         $this->scopeConfig      = $scopeConfig;
         $this->storeManager     = $storeManager;
@@ -174,11 +163,6 @@ class Config
         $this->formKey              = $formKey;
         $this->directory            = $directory;
         $this->cookie               = $cookie;
-//        $this->productObj           = $productObj;
-//        $this->productRepository    = $productRepository;
-//        $this->configurable         = $configurable;
-//        $this->eavAttribute         = $eavAttribute;
-//        $this->fileSystem           = $fileSystem;
     }
 
     /**
@@ -385,11 +369,6 @@ class Config
         return $this->getConfigValue('merchant_site_id');
     }
     
-//    public function getMerchantApplePayLabel()
-//    {
-//        return $this->getConfigValue('apple_pay_label', 'basic');
-//    }
-
     /**
      * Return merchant secret key.
      *
@@ -546,21 +525,6 @@ class Config
     {
         return $this->productMetadata->getVersion();
     }
-
-    /**
-     * Return full endpoint;
-     *
-     * @return string
-     */
-//    public function getEndpoint()
-//    {
-//        $endpoint = AbstractRequest::LIVE_ENDPOINT;
-//        if ($this->isTestModeEnabled() === true) {
-//            $endpoint = AbstractRequest::TEST_ENDPOINT;
-//        }
-//
-//        return $endpoint . 'purchase.do';
-//    }
 
     /**
      * @return string
@@ -827,7 +791,6 @@ class Config
     public function setQuotePaymentMethod($method)
     {
         $quote = $this->checkoutSession->getQuote();
-//        $quote->getPayment()->setMethod($method);
         $quote->setPaymentMethod($method);
         $quote->getPayment()->importData(['method' => $method]);
         $quote->save();
