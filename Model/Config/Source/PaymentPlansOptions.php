@@ -18,6 +18,13 @@ class PaymentPlansOptions extends \Magento\Eav\Model\Entity\Attribute\Source\Abs
     
     public function getAllOptions()
     {
+        $this->readerWriter->createLog('getAllOptions()');
+        
+        if (!empty($this->_options)) {
+            $this->readerWriter->createLog($this->_options, 'The _options are not empty');
+            return $this->_options;
+        }
+        
         $this->_options[] = [
             'label' => __('No Plan'),
             'value' => 1 // need to be greater than 0
@@ -44,6 +51,7 @@ class PaymentPlansOptions extends \Magento\Eav\Model\Entity\Attribute\Source\Abs
         }
         # json version END
 
+        $this->readerWriter->createLog($this->_options, 'getAllOptions');
         return $this->_options;
     }
 }

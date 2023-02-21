@@ -45,6 +45,8 @@ class ReadPlans extends \Magento\Backend\Block\Template
             $plans[$data['planId']] = $data;
         }
         
+        $this->readerWriter->createLog($plans);
+        
         return json_encode($plans);
     }
 }
