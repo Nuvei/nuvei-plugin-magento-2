@@ -63,20 +63,12 @@ class PaymentsPlans
                     return $return_arr;
                 }
                 
-                // if there are more than 1 products in the Cart we assume there are no product with a Plan
-//                if (count($items) > 1) {
-//                    $this->readerWriter->createLog('getProductPlanData() - the Items in the Cart are more than 1. '
-//                        . 'We assume there is no Product with a plan amongs them.');
-//                    return $return_arr;
-//                }
-                
                 foreach($items as $item) {
                     $item = current($items);
 
                     if (!is_object($item)) {
                         $this->readerWriter->createLog('getProductPlanData() Error - '
                             . 'the Item in the Cart is not an Object.');
-//                        return $return_arr;
                             continue;
                     }
 
@@ -89,7 +81,6 @@ class PaymentsPlans
                     if (empty($options['info_buyRequest'])
                         || !is_array($options['info_buyRequest'])
                     ) {
-//                        return $return_arr;
                             continue;
                     }
 
@@ -106,7 +97,6 @@ class PaymentsPlans
                         );
 
                         if (!is_object($nuvei_sub_enabled)) {
-//                            return $return_arr;
                             continue;
                         }
                     }
@@ -128,13 +118,11 @@ class PaymentsPlans
                         );
 
                         if (!is_object($nuvei_sub_enabled)) {
-//                            return $return_arr;
                             continue;
                         }
                     }
 
                     if (!empty($product) && 0 != $product_id) {
-    //                        $plan_data[$product_id]     = $this->buildPlanDetailsArray($product);
                         $plan_data                  = $this->buildPlanDetailsArray($product);
                         $items_data[$product_id]    = [
                             'quantity'  => $item->getQty(),
@@ -149,7 +137,6 @@ class PaymentsPlans
                         );
 
                         // return plan details only if the subscription is enabled
-    //                        if (!empty($plan_data[$product_id])) {
                         if (!empty($plan_data)) {
                             $return_arr = [
                                 'subs_data'     => $plan_data,
@@ -170,11 +157,9 @@ class PaymentsPlans
                     );
 
                     if (!is_object($nuvei_sub_enabled)) {
-//                        return $return_arr;
                         continue;
                     }
 
-//                    $plan_data[$options['info_buyRequest']['product']] = $this->buildPlanDetailsArray($product);
                     $plan_data                  = $this->buildPlanDetailsArray($product);
                     $items_data[$item->getId()] = [
                         'quantity'  => $item->getQty(),
@@ -183,16 +168,12 @@ class PaymentsPlans
                     
                     $plan_data['recurringAmount'] *= $items_data[$item->getId()]['quantity'];
 
-//                    if (!empty($plan_data[$options['info_buyRequest']['product']])) {
                     if (!empty($plan_data)) {
-//                        $return_arr = [
                         return [
                             'subs_data'     => $plan_data,
                             'items_data'    => $items_data,
                         ];
                     }
-
-//                    return $return_arr;
                 }
                 
                 return $return_arr;
@@ -233,15 +214,7 @@ class PaymentsPlans
 
             $parent     = $this->productRepository->getById($product_id);
             $product    = $this->configurable->getProductByAttributes($prod_options, $parent);
-            
-//            $nuvei_sub_enabled  = $product->getCustomAttribute('nuvei_sub_enabled');
-//
-//            $this->readerWriter->createLog(
-//                $product->getCustomAttribute('nuvei_sub_enabled'),
-//                'getProductPlanData get nuvei_sub_enabled on simple product'
-//            );
-
-            $plan_data = $this->buildPlanDetailsArray($product);
+            $plan_data  = $this->buildPlanDetailsArray($product);
             
             $this->readerWriter->createLog(
                 $plan_data,

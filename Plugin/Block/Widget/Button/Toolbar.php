@@ -6,18 +6,15 @@ use Nuvei\Checkout\Model\Payment;
 
 class Toolbar
 {
-//    private $config;
     private $orderRepository;
     private $request;
     private $readerWriter;
     
     public function __construct(
-        //        \Nuvei\Checkout\Model\Config $config,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\App\RequestInterface $request,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter
     ) {
-//        $this->config           = $config;
         $this->orderRepository  = $orderRepository;
         $this->request          = $request;
         $this->readerWriter     = $readerWriter;
@@ -62,10 +59,6 @@ class Toolbar
                 }
             }
             
-//            $payment_method        = $orderPayment->getAdditionalInformation(
-//                Payment::TRANSACTION_PAYMENT_METHOD
-//            );
-            
             // Examples
             //        $buttonList->update('order_edit', 'class', 'edit');
             //
@@ -76,8 +69,6 @@ class Toolbar
             //                'class' => 'review'
             //            ]
             //        );
-            
-//            $this->readerWriter->createLog($buttonList->getItems(), 'buttonList');
             
             // the plugin does not support reorder from the admin
             $buttonList->remove('order_reorder');
@@ -105,19 +96,6 @@ class Toolbar
             ) {
                 $buttonList->remove('void_payment');
             }
-//            elseif (!isset($buttonList->getItems()[0]['void_payment'])) {
-//                // workaround in case of missing Void button on Sale transaction
-//                $message = __('Are you sure you want to void the payment?');
-//                $url = $context->getUrl('sales/*/voidPayment', ['order_id' => $orderId]);
-//
-//                $buttonList->add(
-//                    'void_payment',
-//                    [
-//                        'label' => __('Void'),
-//                        'onclick' => "confirmSetLocation('{$message}', '{$url}')"
-//                    ]
-//                );
-//            }
             
             if (isset($buttonList->getItems()[0]['void_payment'])) {
                 $message    = __('Are you sure you want to void the payment?');

@@ -9,7 +9,6 @@ class View extends \Magento\Backend\Block\Widget\Form\Container
 {
     private $request;
     private $invoice;
-//    private $config;
     private $orderRepo;
     private $searchCriteriaBuilder;
     private $readerWriter;
@@ -17,14 +16,12 @@ class View extends \Magento\Backend\Block\Widget\Form\Container
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         Invoice $invoice,
-        //        \Nuvei\Checkout\Model\Config $config,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter
     ) {
         $this->request                  = $request;
         $this->invoice                  = $invoice;
-//        $this->config                   = $config;
         $this->orderRepo                = $orderRepo;
         $this->searchCriteriaBuilder    = $searchCriteriaBuilder;
         $this->readerWriter             = $readerWriter;
@@ -60,10 +57,6 @@ class View extends \Magento\Backend\Block\Widget\Form\Container
                     }
                 }
             }
-
-//            $payment_method    = $orderPayment->getAdditionalInformation(
-//                Payment::TRANSACTION_PAYMENT_METHOD
-//            );
 
             if ($orderPayment->getMethod() === Payment::METHOD_CODE) {
                 if (!in_array($payment_method, Payment::PAYMETNS_SUPPORT_REFUND)

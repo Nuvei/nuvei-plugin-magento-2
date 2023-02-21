@@ -13,12 +13,6 @@ use Nuvei\Checkout\Model\Payment;
  */
 class Status extends Column
 {
-    /**
-     * @var string[]
-     */
-//    protected $statuses;
-    
-//    private $config;
     private $collection;
 
     /**
@@ -34,14 +28,11 @@ class Status extends Column
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
         CollectionFactory $collectionFactory,
-        //        \Nuvei\Checkout\Model\Config $config,
         \Magento\Sales\Model\Order $collection,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         array $components = [],
         array $data = []
     ) {
-//        $this->statuses     = $collectionFactory->create()->toOptionHash();
-//        $this->config       = $config;
         $this->collection   = $collection;
         $this->readerWriter = $readerWriter;
         
