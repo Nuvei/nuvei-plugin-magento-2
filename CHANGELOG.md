@@ -2,6 +2,11 @@
 
 ---
 
+# 3.0.1
+```
+    * Use new Sandbox endpoint.
+```
+
 # 3.0.0
 ```
     * Added Magento 2 REST API support.

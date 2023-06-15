@@ -14,7 +14,7 @@ abstract class AbstractRequest
      * Payment gateway endpoints.
      */
     const LIVE_ENDPOINT = 'https://secure.safecharge.com/ppp/';
-    const TEST_ENDPOINT = 'https://ppp-test.safecharge.com/ppp/';
+    const TEST_ENDPOINT = 'https://ppp-test.nuvei.com/ppp/';
 
     /**
      * Payment gateway methods.
