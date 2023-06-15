@@ -39,7 +39,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $items_data     = [];
     private $subs_data      = [];
     private $requestParams  = [];
-//    private $is_rebilling   = false;
     private $isUserLogged   = null;
     private $quoteId        = '';
 

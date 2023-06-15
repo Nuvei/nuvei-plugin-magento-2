@@ -5,6 +5,7 @@
 # 3.0.1
 ```
     * Use new Sandbox endpoint.
+    * Display plugin version into the plugin settings.
 ```
 
 # 3.0.0

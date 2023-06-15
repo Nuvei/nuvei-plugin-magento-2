@@ -382,7 +382,19 @@
                          <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                      </field>-->
                     
-					<field id="notifyURL"
+					<field id="getPlans"
+						   translate="label"
+						   type="button"
+						   sortOrder="110"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" >
+						<label>Get Payment Plans</label>
+						<frontend_model>Nuvei\Checkout\Block\System\Config\Button</frontend_model>
+						<comment model="Nuvei\Checkout\Block\System\Config\ShowLastDownloadTime" />
+					</field>
+                    
+                    <field id="notifyURL"
 						   translate="label"
 						   type="label"
 						   sortOrder="120"
@@ -392,17 +404,16 @@
 						<label>Site Notify URL</label>
 						<comment model="Nuvei\Checkout\Block\System\Config\GetNotifyUrl" />
 					</field>
-
-					<field id="getPlans"
+                    
+                    <field id="pluginVersion"
 						   translate="label"
-						   type="button"
+						   type="label"
 						   sortOrder="130"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
-						<label>Get Payment Plans</label>
-						<frontend_model>Nuvei\Checkout\Block\System\Config\Button</frontend_model>
-						<comment model="Nuvei\Checkout\Block\System\Config\ShowLastDownloadTime" />
+						<label>Plugin version</label>
+						<comment model="Nuvei\Checkout\Block\System\Config\GetPluginVersion" />
 					</field>
 				</group>
 					

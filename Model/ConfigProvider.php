@@ -143,14 +143,8 @@ class ConfigProvider extends CcGenericConfigProvider
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
-//                    'getMerchantPaymentMethodsUrl' => $this->urlBuilder
-//                        ->getUrl('nuvei_checkout/payment/GetMerchantPaymentMethods'),
-                    
                     'cartUrl'                   => $this->urlBuilder->getUrl('checkout/cart/'),
-//                    'redirectUrl'               => $this->urlBuilder->getUrl('nuvei_checkout/payment/redirect'),
-//                    'paymentApmUrl'             => $this->urlBuilder->getUrl('nuvei_checkout/payment/apm'),
                     'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
-//                    'successUrl'                => $this->moduleConfig->getCallbackSuccessUrl(),
 //                    'checkoutLogoUrl'           => $checkout_logo,
                     'loadingImg'                => $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif"),
                     'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),

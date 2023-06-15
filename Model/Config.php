@@ -469,22 +469,26 @@ class Config
 
     public function getSourcePlatformField()
     {
-        $text = '';
-        
-        try {
-            $module_data = $this->moduleList->getOne(self::MODULE_NAME);
-            
-            if (!is_array($module_data) || empty($module_data['setup_version'])) {
-                $text = 'Magento Plugin';
-            }
-            else {
-                $text = 'Magento Plugin ' . $module_data['setup_version'];
-            }
-        } catch (\Exception $ex) {
-            $text = 'Magento Checkout Plugin';
-        }
+        $plugin_v   = $this->getModuleVersion();
+        $text       = 'Magento Plugin' . (empty($plugin_v) ? '' : ' ' . $plugin_v);
         
         return $text . '; Magento v' . $this->getMagentoVersion();
+    }
+    
+    /**
+     * Get the version for the current plugin.
+     * 
+     * @return string
+     */
+    public function getModuleVersion()
+    {
+        $module_data = $this->moduleList->getOne(self::MODULE_NAME);
+
+        if (!empty($module_data['setup_version'])) {
+            return $module_data['setup_version'];
+        }
+        
+        return '';
     }
     
     public function getMagentoVersion()
