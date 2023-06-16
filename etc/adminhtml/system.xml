@@ -247,7 +247,7 @@
 						<config_path>payment/nuvei/specificcountry</config_path>
 					</field>
                     
-                    <field id="use_dev_sdk"
+<!--                    <field id="use_dev_sdk"
 						   translate="label"
 						   type="select"
 						   sortOrder="25"
@@ -258,8 +258,20 @@
 						<label>Use Dev SDK version</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/use_dev_sdk</config_path>
-					</field>
+					</field>-->
 					
+					<field id="sdk_theme"
+						   translate="label"
+						   type="select"
+						   sortOrder="25"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0">
+						<label>SimplyConnect theme</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\SdkTheme</source_model>
+						<!--<config_path>payment/nuvei/use_dcc</config_path>-->
+					</field>
+                    
 					<field id="use_dcc"
 						   translate="label"
 						   type="select"

@@ -6,6 +6,8 @@
 ```
     * Use new Sandbox endpoint.
     * Display plugin version into the plugin settings.
+    * Removed plugin setting "Use Dev SDK version".
+    * Added SimplyConnect themes.
 ```
 
 # 3.0.0

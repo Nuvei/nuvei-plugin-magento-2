@@ -33,7 +33,7 @@
                 <!-- Advanced Configuration. -->
 				<allowspecific>0</allowspecific>
                 <specificcountry/>
-                <use_dev_sdk>0</use_dev_sdk>
+                <!--<use_dev_sdk>0</use_dev_sdk>-->
                 <use_dcc>enable</use_dcc>
 				<use_upos>0</use_upos>
 				<pay_btn_text>amountButton</pay_btn_text>

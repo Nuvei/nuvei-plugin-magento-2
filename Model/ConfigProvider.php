@@ -150,7 +150,7 @@ class ConfigProvider extends CcGenericConfigProvider
                     'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),
                     'countryId'                 => $this->moduleConfig->getQuoteCountryCode(),
                     'isPaymentPlan'             => $isPaymentPlan,
-                    'useDevSdk'                 => $this->moduleConfig->getConfigValue('use_dev_sdk'),
+//                    'useDevSdk'                 => $this->moduleConfig->getConfigValue('use_dev_sdk'),
                     
                     // we will set some of the parameters in the JS file
                     'nuveiCheckoutParams' => [
@@ -167,6 +167,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'showUserPaymentOptions'    => $show_upo,
 //                        'pmBlacklist'               => $this->moduleConfig->getConfigValue('block_pms', 'advanced'),
 //                        'pmWhitelist'               => null,
+                        'blockCards'                => $blocked_cards,
                         'alwaysCollectCvv'          => true,
                         'fullName'                  => trim($billing_address['firstName'] . ' ' . $billing_address['lastName']),
                         'email'                     => $billing_address['email'],
@@ -177,7 +178,8 @@ class ConfigProvider extends CcGenericConfigProvider
                         'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
                         'maskCvv'                   => true,
                         'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
-                        'blockCards'                => $blocked_cards,
+                        'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'advanced'),
+                        'apmWindowType'             => 'redirect',
                     ],
                 ],
             ],
@@ -187,9 +189,9 @@ class ConfigProvider extends CcGenericConfigProvider
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = $blocked_pms;
         }
         
-        if (1 == $config['payment'][Payment::METHOD_CODE]['useDevSdk']) {
-            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['webSdkEnv'] = 'dev';
-        }
+//        if (1 == $config['payment'][Payment::METHOD_CODE]['useDevSdk']) {
+//            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['webSdkEnv'] = 'dev';
+//        }
         
         if ($isPaymentPlan) {
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = null;
