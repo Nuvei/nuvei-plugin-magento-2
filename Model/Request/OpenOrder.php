@@ -185,14 +185,14 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         }
         // /will we call updateOrder?
         
-        if ($callUpdateOrder) {
-            $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
-
-            $req_resp = $update_order_request
-                ->setOrderData($order_data)
-                ->setQuoteId($this->quoteId)
-                ->process();
-        }
+//        if ($callUpdateOrder) {
+//            $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
+//
+//            $req_resp = $update_order_request
+//                ->setOrderData($order_data)
+//                ->setQuoteId($this->quoteId)
+//                ->process();
+//        }
         // /will we call updateOrder?
         
         // if UpdateOrder fails - continue with OpenOrder
@@ -345,7 +345,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         }
         
         // auto_close_popup
-        if (1 == $this->config->getConfigValue('auto_close_popup')) {
+        if (1 == $this->config->getConfigValue('auto_close_popup')
+            && 'redirect' != $this->config->getConfigValue('apm_window_type', 'advanced')
+        ) {
             $params['urlDetails']['successUrl'] = $params['urlDetails']['pendingUrl']
                                                 = $params['urlDetails']['failureUrl']
                                                 = Config::NUVEI_SDK_AUTOCLOSE_URL;

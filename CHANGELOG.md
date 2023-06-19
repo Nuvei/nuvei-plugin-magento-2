@@ -8,6 +8,7 @@
     * Display plugin version into the plugin settings.
     * Removed plugin setting "Use Dev SDK version".
     * Added SimplyConnect themes.
+    * Added option to choose APMs window type.
 ```
 
 # 3.0.0

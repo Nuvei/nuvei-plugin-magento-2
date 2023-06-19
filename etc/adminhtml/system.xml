@@ -247,19 +247,6 @@
 						<config_path>payment/nuvei/specificcountry</config_path>
 					</field>
                     
-<!--                    <field id="use_dev_sdk"
-						   translate="label"
-						   type="select"
-						   sortOrder="25"
-						   showInDefault="1"
-						   showInWebsite="1"
-						   showInStore="0" 
-						   canRestore="1">
-						<label>Use Dev SDK version</label>
-						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-						<config_path>payment/nuvei/use_dev_sdk</config_path>
-					</field>-->
-					
 					<field id="sdk_theme"
 						   translate="label"
 						   type="select"
@@ -269,7 +256,6 @@
 						   showInStore="0">
 						<label>SimplyConnect theme</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\SdkTheme</source_model>
-						<!--<config_path>payment/nuvei/use_dcc</config_path>-->
 					</field>
                     
 					<field id="use_dcc"
@@ -345,6 +331,18 @@
 						<config_path>payment/nuvei/auto_expand_pms</config_path>
 					</field>
                     
+                    <field id="apm_window_type"
+						   translate="label"
+						   type="select"
+						   sortOrder="82"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="0">
+						<label>APMs window type</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\ApmsWindowType</source_model>
+					</field>
+                    
 					<field id="auto_close_popup"
 						   translate="label"
 						   type="select"
@@ -356,6 +354,7 @@
 						<label>Auto close APM popup</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/auto_close_popup</config_path>
+                        <comment model="Nuvei\Checkout\Block\System\Config\AutoCloseApmPopupComment" />
 					</field>
 					
 					<field id="checkout_log_level"
@@ -371,7 +370,6 @@
 						<config_path>payment/nuvei/checkout_log_level</config_path>
 					</field>
 					
-					
 					<field id="checkout_transl"
 						   translate="label"
 						   type="textarea"
@@ -383,17 +381,6 @@
 						<comment model="Nuvei\Checkout\Block\System\Config\CheckoutTranslateComment" />
 					</field>
 					
-<!--                    <field id="show_checkout_logo"
-                            translate="label"
-                            type="select"
-                            sortOrder="110"
-                            showInDefault="1"
-                            showInWebsite="1"
-                            showInStore="0">
-                         <label>Show checkout logo</label>
-                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                     </field>-->
-                    
 					<field id="getPlans"
 						   translate="label"
 						   type="button"

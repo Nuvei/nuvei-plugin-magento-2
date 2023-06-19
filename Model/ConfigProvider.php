@@ -179,7 +179,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'maskCvv'                   => true,
                         'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
                         'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'advanced'),
-                        'apmWindowType'             => 'redirect',
+                        'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'advanced'),
                     ],
                 ],
             ],
