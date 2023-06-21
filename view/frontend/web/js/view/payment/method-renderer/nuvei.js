@@ -233,7 +233,14 @@ define(
 		}
 
         var self = null;
-		
+        
+        $.getScript(
+            "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js",
+            function( data, textStatus, jqxhr ) {
+                window.nuveiCheckoutSdk	= checkout;
+            }
+        );
+
         return Component.extend({
             defaults: {
                 template: 'Nuvei_Checkout/payment/nuvei',

@@ -1,15 +1,19 @@
 <!-- Nuvei - Reload and empty customerData cart -->
 <script>
     window.addEventListener('load', function () {
-        require([
-            'Magento_Customer/js/customer-data',
-            'domReady!'
-        ], function (customerData) {
-            var sections = ['cart'];
-            customerData.initStorage();
-            customerData.invalidate(sections);
-            customerData.reload(sections, true);
-        });
+        try {
+            require([
+                'Magento_Customer/js/customer-data',
+                'domReady!'
+            ], function (customerData) {
+                var sections = ['cart'];
+                customerData.initStorage();
+                customerData.invalidate(sections);
+                customerData.reload(sections, true);
+            });
+        } catch(e) {
+            console.log(e);
+        }
     });
 </script>
 <!--/ Nuvei - Reload and empty customerData cart -->

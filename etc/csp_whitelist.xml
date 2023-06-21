@@ -6,13 +6,38 @@
             <values>
                 <value id="devdocs-base" type="host"></value>
                 <value id="magento" type="host">https://magento.com</value>
-                <value id="nuvei-checkout-sdk" type="host">https://cdn.safecharge.com/</value>
-                <value id="nuvei-sdkmon" type="host"> https://sdkmon.safecharge.com/</value>
+                <value id="safecharge-checkout-sdk" type="host">https://cdn.safecharge.com</value>
+                <value id="safecharge-int-checkout-sdk" type="host">https://cdn-int.safecharge.com</value>
             </values>
         </policy>
-        <policy id="connect-src">
+        
+         <policy id="connect-src">
             <values>
                 <value id="devdocs" type="host"></value>
+                <value id="safecharge-sdkmon" type="host">https://sdkmon.safecharge.com</value>
+                <value id="safecharge-ppp-int" type="host">https://ppp-test.safecharge.com</value>
+                <value id="nuvei-ppp-int" type="host">https://ppp-test.nuvei.com</value>
+                <value id="safecharge-ppp" type="host">https://secure.safecharge.com</value>
+            </values>
+        </policy>
+        
+         <policy id="img-src">
+            <values>
+            	<value id="safecharge-int-checkout-sdk-img" type="host">https://cdn-int.safecharge.com</value>
+                <value id="safecharge-checkout-sdk-img" type="host">https://cdn.safecharge.com</value>
+                <value id="safecharge-ppp-img" type="host">https://secure.safecharge.com/</value>
+            </values>
+        </policy>
+        
+         <policy id="style-src">
+            <values>
+            	<value id="safecharge-checkout-sdk-style" type="host">https://cdn.safecharge.com</value>
+            </values>
+        </policy>
+        
+         <policy id="font-src">
+            <values>
+            	<value id="gstatic-font" type="host">https://fonts.gstatic.com</value>
             </values>
         </policy>
     </policies>
