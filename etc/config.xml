@@ -25,17 +25,19 @@
                 <sandbox_merchant_id backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <sandbox_merchant_site_id/>
                 <sandbox_merchant_secret_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+				<sdk>checkout</sdk>
+                <save_upos>true</save_upos>
+				<show_upos>1</show_upos>
 				<debug>3</debug>
                 <min_order_total/>
                 <max_order_total/>
                 <sort_order/>
+                <allowspecific>0</allowspecific>
+                <specificcountry/>
 
                 <!-- Advanced Configuration. -->
-				<allowspecific>0</allowspecific>
-                <specificcountry/>
                 <!--<use_dev_sdk>0</use_dev_sdk>-->
                 <use_dcc>enable</use_dcc>
-				<use_upos>0</use_upos>
 				<pay_btn_text>amountButton</pay_btn_text>
 				<auto_expand_pms>1</auto_expand_pms>
 				<auto_close_popup>1</auto_close_popup>

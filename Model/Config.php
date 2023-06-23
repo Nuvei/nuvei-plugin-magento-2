@@ -192,6 +192,11 @@ class Config
         return $this->directory->getPath('log');
     }
     
+    public function getUsedSdk()
+    {
+        return $this->getConfigValue('sdk');
+    }
+    
     /**
      * Function getSourceApplication
      * Get the value of one more parameter for the REST API
@@ -398,27 +403,14 @@ class Config
         return false;
     }
     
-    /**
-     * @return boolean
-     */
-//    public function canUseUpos($isRestApiCall = false)
-    public function canUseUpos()
+    public function canSaveUpos()
     {
-        if (1 == $this->getConfigValue('use_upos')) {
-            return true;
-        }
-        
-        return false;
-        
-//        if (1 == $this->getConfigValue('use_upos')) {
-//            if ($this->customerSession->isLoggedIn() || $isRestApiCall) {
-//                return true;
-//            }
-//            
-//            return false;
-//        }
-//        
-//        return false;
+        return $this->getConfigValue('save_upos');
+    }
+    
+    public function canShowUpos()
+    {
+        return $this->getConfigValue('show_upos');
     }
     
     public function isUserLogged()

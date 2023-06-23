@@ -13,21 +13,14 @@ use Nuvei\Checkout\Model\Config as ModuleConfig;
  */
 class ConfigProvider extends CcGenericConfigProvider
 {
-    /**
-     * @var Config
-     */
     private $moduleConfig;
-
-    /**
-     * @var UrlInterface
-     */
     private $urlBuilder;
-
     private $apmsRequest;
     private $scopeConfig;
     private $assetRepo;
     private $paymentsPlans;
     private $readerWriter;
+    private $locale;
 
     /**
      * ConfigProvider constructor.
@@ -90,62 +83,56 @@ class ConfigProvider extends CcGenericConfigProvider
             ];
         }
         
-        $locale = $this->scopeConfig->getValue(
+        $this->locale = $this->scopeConfig->getValue(
             'general/locale/code',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
         
-        # blocked_cards
-        $blocked_cards     = [];
-        $blocked_cards_str = $this->moduleConfig->getConfigValue('block_cards', 'advanced');
+        $used_sdk = $this->moduleConfig->getUsedSdk();
         
-        // clean the string from brakets and quotes
-        if (!empty($blocked_cards_str)) {
-            $blocked_cards_str = str_replace('],[', ';', $blocked_cards_str);
-            $blocked_cards_str = str_replace('[', '', $blocked_cards_str);
-            $blocked_cards_str = str_replace(']', '', $blocked_cards_str);
-            $blocked_cards_str = str_replace('"', '', $blocked_cards_str);
-            $blocked_cards_str = str_replace("'", '', $blocked_cards_str);
+        switch ($used_sdk) {
+            case 'checkout':
+                $config = $this->getCheckoutSdkConfig();
+                break;
+            
+            case 'web':
+                $config = $this->getWebSdkConfig();
+                break;
+            
+            default:
+                $config = [];
         }
         
-        if (!empty($blocked_cards_str)) {
-            $blockCards_sets = explode(';', $blocked_cards_str);
-
-            if (count($blockCards_sets) == 1) {
-                $blocked_cards = explode(',', current($blockCards_sets));
-            } else {
-                foreach ($blockCards_sets as $elements) {
-                    $blocked_cards[] = explode(',', $elements);
-                }
-            }
-        }
-        # blocked_cards END
+        // will be concatenated into a JS
+        $config['payment'][Payment::METHOD_CODE]['sdk'] = ucfirst($used_sdk);
         
-        $blocked_pms    = $this->moduleConfig->getConfigValue('block_pms', 'advanced');
-        $canUseUpos     = ($this->moduleConfig->canUseUpos() && $this->moduleConfig->isUserLogged()) ? true : false;
+        $this->readerWriter->createLog([$used_sdk, $config], 'get front end config');
         
+        return $config;
+    }
+    
+    private function getCheckoutSdkConfig()
+    {
+        $this->readerWriter->createLog('getCheckoutSdkConfig()');
+        
+        $blocked_cards      = $this->getBlockedCards();
+        $blocked_pms        = $this->moduleConfig->getConfigValue('block_pms', 'advanced');
+        $is_user_logged     = $this->moduleConfig->isUserLogged();
         $billing_address    = $this->moduleConfig->getQuoteBillingAddress();
         $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
-        $save_pm            = $show_upo
-                            = $canUseUpos;
+        $isPaymentPlan      = !empty($payment_plan_data) ? true : false;
+        $save_pm            = $this->moduleConfig->canSaveUpos();
+        $show_upos          = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
         
-        if (!empty($payment_plan_data)) {
+        if ($isPaymentPlan) {
             $save_pm = 'always';
         }
-        
-        $isPaymentPlan = !empty($payment_plan_data) ? true : false;
-        
-        // TODO - there is a problem getting this setting
-//        $checkout_logo = $this->moduleConfig->showCheckoutLogo()
-//            ? $this->assetRepo->getUrl("Nuvei_Checkout::images/nuvei.png") : '';
-//        $checkout_logo = '';
         
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
                     'cartUrl'                   => $this->urlBuilder->getUrl('checkout/cart/'),
                     'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
-//                    'checkoutLogoUrl'           => $checkout_logo,
                     'loadingImg'                => $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif"),
                     'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),
                     'countryId'                 => $this->moduleConfig->getQuoteCountryCode(),
@@ -164,7 +151,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
                         'strict'                    => false,
                         'savePM'                    => $save_pm,
-                        'showUserPaymentOptions'    => $show_upo,
+                        'showUserPaymentOptions'    => $show_upos,
 //                        'pmBlacklist'               => $this->moduleConfig->getConfigValue('block_pms', 'advanced'),
 //                        'pmWhitelist'               => null,
                         'blockCards'                => $blocked_cards,
@@ -173,7 +160,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'email'                     => $billing_address['email'],
                         'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
                         'showResponseMessage'       => false, // shows/hide the response popups
-                        'locale'                    => substr($locale, 0, 2),
+                        'locale'                    => substr($this->locale, 0, 2),
                         'autoOpenPM'                => (bool) $this->moduleConfig->getConfigValue('auto_expand_pms'),
                         'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
                         'maskCvv'                   => true,
@@ -203,8 +190,46 @@ class ConfigProvider extends CcGenericConfigProvider
                 = $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['email'];
         }
         
-        $this->readerWriter->createLog($config, 'config for the checkout');
-        
         return $config;
     }
+    
+    private function getWebSdkConfig()
+    {
+        
+    }
+    
+    /**
+     * Just a helper function.
+     * 
+     * @return array
+     */
+    private function getBlockedCards()
+    {
+        $blocked_cards     = [];
+        $blocked_cards_str = $this->moduleConfig->getConfigValue('block_cards', 'advanced');
+        
+        // clean the string from brakets and quotes
+        if (!empty($blocked_cards_str)) {
+            $blocked_cards_str = str_replace('],[', ';', $blocked_cards_str);
+            $blocked_cards_str = str_replace('[', '', $blocked_cards_str);
+            $blocked_cards_str = str_replace(']', '', $blocked_cards_str);
+            $blocked_cards_str = str_replace('"', '', $blocked_cards_str);
+            $blocked_cards_str = str_replace("'", '', $blocked_cards_str);
+        }
+        
+        if (!empty($blocked_cards_str)) {
+            $blockCards_sets = explode(';', $blocked_cards_str);
+
+            if (count($blockCards_sets) == 1) {
+                $blocked_cards = explode(',', current($blockCards_sets));
+            } else {
+                foreach ($blockCards_sets as $elements) {
+                    $blocked_cards[] = explode(',', $elements);
+                }
+            }
+        }
+        
+        return $blocked_cards;
+    }
+    
 }

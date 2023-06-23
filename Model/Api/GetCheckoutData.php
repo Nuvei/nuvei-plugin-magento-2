@@ -168,7 +168,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
         # 3. Optionally get merchant UPOs
         $upos = [];
         
-        if ($this->moduleConfig->canUseUpos() && $isUserLogged) {
+        if ($this->moduleConfig->canShowUpos() && $isUserLogged) {
             $request    = $this->requestFactory->create(AbstractRequest::GET_UPOS_METHOD);
             $upos   = $request
                 ->setEmail($billingAddress['email'])
@@ -269,9 +269,9 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $billingAddress     = $this->moduleConfig->getQuoteBillingAddress($quoteId);
         $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
         $isPaymentPlan      = false;
-        $canUseUpos         = ($this->moduleConfig->canUseUpos() && $isUserLogged) ? true : false;
-        $save_pm            = $show_upo
-                            = $canUseUpos;
+        $is_user_logged     = $this->moduleConfig->isUserLogged();
+        $save_pm            = $this->moduleConfig->canSaveUpos();
+        $show_upos          = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
         
         if (!empty($payment_plan_data)) {
             $save_pm        = 'always';
@@ -294,7 +294,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
                 'strict'                    => false,
                 'savePM'                    => $save_pm,
-                'showUserPaymentOptions'    => $show_upo,
+                'showUserPaymentOptions'    => $show_upos,
                 'alwaysCollectCvv'          => true,
                 'fullName'                  => trim($billingAddress['firstName'] . ' ' . $billingAddress['lastName']),
                 'email'                     => $billingAddress['email'],

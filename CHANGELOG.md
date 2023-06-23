@@ -2,6 +2,11 @@
 
 ---
 
+# 3.1.0
+```
+    * Add WebSDK as option to finish the payment.
+```
+
 # 3.0.1
 ```
     * Use new Sandbox endpoint.

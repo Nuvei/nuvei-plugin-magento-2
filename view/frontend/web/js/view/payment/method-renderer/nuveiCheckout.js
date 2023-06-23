@@ -243,7 +243,7 @@ define(
 
         return Component.extend({
             defaults: {
-                template: 'Nuvei_Checkout/payment/nuvei',
+                template: 'Nuvei_Checkout/payment/nuvei' + window.checkoutConfig.payment['nuvei'].sdk,
                 chosenApmMethod: '',
                 countryId: ''
             },

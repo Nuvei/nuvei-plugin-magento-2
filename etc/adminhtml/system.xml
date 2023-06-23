@@ -167,6 +167,46 @@
 						<config_path>payment/nuvei/sandbox_merchant_secret_key</config_path>
 					</field>
 					
+					<field id="sdk"
+						   translate="label"
+						   type="select"
+						   sortOrder="120"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+                           canRestore="1" >
+						<label>Select payment SDK</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\Sdk</source_model>
+						<config_path>payment/nuvei/sdk</config_path>
+                        <comment>You can configure only the desired SDK configuration groupe below.</comment>
+					</field>
+                    
+                    <field id="save_upos"
+						   translate="label"
+						   type="select"
+						   sortOrder="122"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="1">
+						<label>Save UPOs</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\SaveUpo</source_model>
+						<config_path>payment/nuvei/save_upos</config_path>
+					</field>
+                    
+                    <field id="show_upos"
+						   translate="label"
+						   type="select"
+						   sortOrder="124"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="1">
+						<label>Show UPOs</label>
+						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						<config_path>payment/nuvei/show_upos</config_path>
+					</field>
+                    
 					<field id="debug"
 						   translate="label"
 						   type="select"
@@ -212,20 +252,11 @@
 						<frontend_class>validate-number</frontend_class>
 						<config_path>payment/nuvei/sort_order</config_path>
 					</field>
-				</group>
-				
-				<group id="advanced_configuration"
-                       translate="label"
-                       showInDefault="1"
-                       showInWebsite="1"
-                       showInStore="1"
-                       sortOrder="20">
-					<label>Advanced Configuration</label>
-					
-					<field id="allowspecific"
+                    
+                    <field id="allowspecific"
 						   translate="label"
 						   type="allowspecific"
-						   sortOrder="10"
+						   sortOrder="170"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0"
@@ -238,7 +269,7 @@
 					<field id="specificcountry"
 						   translate="label"
 						   type="multiselect"
-						   sortOrder="20"
+						   sortOrder="180"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
@@ -246,7 +277,16 @@
 						<source_model>Magento\Directory\Model\Config\Source\Country</source_model>
 						<config_path>payment/nuvei/specificcountry</config_path>
 					</field>
-                    
+				</group>
+				
+				<group id="checkour_configuration"
+                       translate="label"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1"
+                       sortOrder="20">
+					<label>SimplyConnect Configuration</label>
+					
 					<field id="sdk_theme"
 						   translate="label"
 						   type="select"
@@ -290,19 +330,6 @@
 						   showInStore="0" >
 						<label>Block Payment methods</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\GetMerchantPaymentMethods</source_model>
-					</field>
-					
-					<field id="use_upos"
-						   translate="label"
-						   type="select"
-						   sortOrder="60"
-						   showInDefault="1"
-						   showInWebsite="1"
-						   showInStore="0" 
-						   canRestore="1">
-						<label>Use UPOs</label>
-						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-						<config_path>payment/nuvei/use_upos</config_path>
 					</field>
 					
 					<field id="pay_btn_text"
@@ -380,11 +407,52 @@
 						<label>Checkout translations</label>
 						<comment model="Nuvei\Checkout\Block\System\Config\CheckoutTranslateComment" />
 					</field>
+				</group>
 					
-					<field id="getPlans"
+                <group id="web_sdk_configuration"
+                       translate="label"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1"
+                       sortOrder="20">
+					<label>WebSDK Configuration</label>
+                    
+<!--                    <field id="web_save_upos"
+						   translate="label"
+						   type="select"
+						   sortOrder="10"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="1">
+						<label>Save UPOs</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\SaveUpo</source_model>
+						<config_path>payment/nuvei/save_upos</config_path>
+					</field>-->
+                    
+                    <field id="apple_pay_label"
+					   translate="label"
+					   type="text"
+					   sortOrder="20"
+					   showInDefault="1"
+					   showInWebsite="1"
+					   showInStore="0">
+					<label>Apple Pay Label</label>
+				</field>
+                </group>
+                
+                <group id="help_tools"
+                       translate="label"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1"
+                       sortOrder="30">
+					<label>Help Tools</label>
+                    
+                    <field id="getPlans"
 						   translate="label"
 						   type="button"
-						   sortOrder="110"
+						   sortOrder="10"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
@@ -396,7 +464,7 @@
                     <field id="notifyURL"
 						   translate="label"
 						   type="label"
-						   sortOrder="120"
+						   sortOrder="20"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
@@ -407,27 +475,14 @@
                     <field id="pluginVersion"
 						   translate="label"
 						   type="label"
-						   sortOrder="130"
+						   sortOrder="30"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
 						<label>Plugin version</label>
 						<comment model="Nuvei\Checkout\Block\System\Config\GetPluginVersion" />
 					</field>
-				</group>
-					
-<!--				<field id="save_order_before_success"
-					   translate="label"
-					   type="select"
-					   sortOrder="105"
-					   showInDefault="1"
-					   showInWebsite="1"
-					   showInStore="0"
-					   canRestore="1">
-					<label>Save Order before Success page</label>
-					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-					<config_path>payment/nuvei/save_order_before_success</config_path>
-				</field>-->
+                </group>
             </group>
         </section>
     </system>

@@ -315,11 +315,11 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->config->getConfigValue('payment_action'),
 
             'urlDetails'        => [
+                'notificationUrl'   => $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId),
+                'backUrl'           => $this->config->getBackUrl(),
                 'successUrl'        => $this->config->getCallbackSuccessUrl($this->quoteId),
                 'failureUrl'        => $this->config->getCallbackErrorUrl($this->quoteId),
                 'pendingUrl'        => $this->config->getCallbackPendingUrl($this->quoteId),
-                'backUrl'           => $this->config->getBackUrl(),
-                'notificationUrl'   => $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId),
             ],
 
             'merchantDetails'    => [
@@ -338,7 +338,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         ];
         
         // send userTokenId and save UPO
-        if ($this->config->canUseUpos()) {
+        if ('false' != $this->config->canSaveUpos()) {
             if (true === $this->isUserLogged || $this->config->isUserLogged()) {
                 $params['userTokenId'] = $params['billingAddress']['email'];
             }
