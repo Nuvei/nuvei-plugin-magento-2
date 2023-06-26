@@ -21,6 +21,7 @@ class ConfigProvider extends CcGenericConfigProvider
     private $paymentsPlans;
     private $readerWriter;
     private $locale;
+    private $config;
 
     /**
      * ConfigProvider constructor.
@@ -195,7 +196,46 @@ class ConfigProvider extends CcGenericConfigProvider
     
     private function getWebSdkConfig()
     {
+        $this->readerWriter->createLog('getWebSdkConfig()');
         
+        $config = [
+            'payment' => [
+                Payment::METHOD_CODE => [
+                    'getMerchantPaymentMethodsUrl' => $this->urlBuilder
+                        ->getUrl('nuvei_checkout/payment/GetMerchantPaymentMethods'),
+                    
+                    'redirectUrl'               => $this->urlBuilder->getUrl('nuvei_checkout/payment/redirect'),
+                    'paymentApmUrl'             => $this->urlBuilder->getUrl('nuvei_checkout/payment/apm'),
+                    'getUPOsUrl'                => $this->urlBuilder->getUrl('nuvei_checkout/payment/GetUpos'),
+                    'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
+                    'getRemoveUpoUrl'           => $this->urlBuilder->getUrl('nuvei_checkout/payment/DeleteUpo'),
+//                    'checkoutLogoUrl'           => $checkout_logo,
+                    'checkoutApplePayBtn'       => $this->assetRepo->getUrl("Nuvei_Checkout::images/ApplePay-Button.png"),
+                    
+                    'countryId'                 => $this->moduleConfig->getQuoteCountryCode(),
+//                    'updateQuotePM'             => $this->urlBuilder->getUrl('nuvei_payments/payment/UpdateQuotePaymentMethod'),
+                    'showUpos'                  => ($this->moduleConfig->canShowUpos() && $this->moduleConfig->isUserLogged()),
+                    'saveUpos'                  => $this->moduleConfig->canSaveUpos(),
+//                    'useUPOs'                   => $this->moduleConfig->canUseUpos(),
+//                    'submitUserTokenForGuest'   => ($this->moduleConfig->allowGuestsSubscr()
+//                        && !empty($this->moduleConfig->getProductPlanData())) ? 1 : 0,
+                    // we need this for the WebSDK
+                    'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
+                    'merchantId'                => $this->moduleConfig->getMerchantId(),
+                    'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),
+                    'locale'                    => substr($this->locale, 0, 2),
+                    'webMasterId'               => $this->moduleConfig->getSourcePlatformField(),
+                    'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
+                    'userTokenId'               => $this->moduleConfig->getQuoteBillingAddress()['email'],
+                    'applePayLabel'             => $this->moduleConfig->getMerchantApplePayLabel(),
+                    'currencyCode'              => $this->moduleConfig->getQuoteBaseCurrency(), 
+                    'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'advanced'),
+//                    'total'                   => (string) number_format($this->cart->getQuote()->getGrandTotal(), 2, '.', ''),
+                ],
+            ],
+        ];
+        
+        return $config;
     }
     
     /**

@@ -212,16 +212,16 @@ define(
     [
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-        'Magento_Paypal/js/action/set-payment-method',
+//        'Magento_Paypal/js/action/set-payment-method',
         'ko',
         'Magento_Checkout/js/model/quote',
-        'mage/translate',
-		'mage/validation'
+        'mage/translate'//,
+//		'mage/validation'
     ],
     function(
         $,
         Component,
-        setPaymentMethodAction,
+//        setPaymentMethodAction,
         ko,
         quote,
         mage
@@ -238,12 +238,13 @@ define(
             "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js",
             function( data, textStatus, jqxhr ) {
                 window.nuveiCheckoutSdk	= checkout;
+                $('#nuveiCheckoutCss').remove(); // remove the style, it is broken.
             }
         );
 
         return Component.extend({
             defaults: {
-                template: 'Nuvei_Checkout/payment/nuvei' + window.checkoutConfig.payment['nuvei'].sdk,
+                template: 'Nuvei_Checkout/payment/nuveiCheckout',
                 chosenApmMethod: '',
                 countryId: ''
             },

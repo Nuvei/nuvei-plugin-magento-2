@@ -1,0 +1,538 @@
+<!--
+/**
+ * Nuvei Payments payment template.
+ *
+ * @category Nuvei
+ * @package  Nuvei_Payments
+ */
+-->
+
+<style type="text/css">
+    .nuvei-apm-method-container{
+        border-top: 1px solid #cccccc;
+        padding:15px 0;
+    }
+    .nuvei-apm-method-label{
+        cursor: pointer;
+    }
+    .nuvei-apm-method-label-title{
+        display: inline-block;
+        height: 26px;
+        line-height: 26px;
+    }
+    .nuvei-apm-method-note{
+        padding: 12px 20px;
+        color: #555;
+        font-style: italic;
+    }
+    .nuvei-apm-method-icon{
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: contain;
+        display: inline-block;
+        width: 70px;
+        height: 26px;
+        line-height: 26px;
+        vertical-align: middle;
+        margin: 0 3px;
+    }
+
+    #nuvei_upos_title, #nuvei_apms_title { display: none; }
+
+    /* try to clean all styles */
+    #sc_apms *, #nuvei_upos * {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: 'arial' !important;
+        border: 0 !important;
+    }
+
+    input[type="radio"] {
+        -webkit-appearance: radio !important;
+    }
+    /* try to clean all styles END */
+
+    #sc_apms .nuvei-apm-method-container, #nuvei_upos .nuvei-apm-method-container {
+        position: relative !important;
+        border-top: 1px solid #cccccc !important;
+        padding: 15px 0 !important;
+    }
+
+    #sc_apms fieldset, #nuvei_upos fieldset {
+        margin-top: 20px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    #sc_apms .sc_fields, #sc_apms .field,
+    #nuvei_upos .sc_fields, #nuvei_upos .field {
+        border: 1px solid #cccccc !important;
+        display: block !important;
+    }
+
+    #sc_apms .field, #nuvei_upos .field {
+        margin-bottom: 10px !important;
+        margin-right: 5px !important;
+    }
+
+    #sc_apms .field input, #nuvei_upos .field input {
+        width: 100% !important;
+        height: 32px;
+        padding-left: 10px !important;
+        background-color: transparent !important;
+    }
+
+    #sc_apms .action.delete::before, #nuvei_upos .action.delete::before {
+        content: '\e604';
+    }
+
+    input#nuvei_cc_owner::placeholder {
+        color: grey !important;
+        font-size: 15px !important;
+        margin-left: 10px !important;
+    }
+
+    .SfcField {
+        border: 1px solid #c2c2c2 !important;
+    }
+
+    #sc_cards_fields_holder { position: relative; }
+
+    #sc_date_cvv_holder {
+        position: absolute;
+        right: 0px;
+        top: 0;
+    }
+
+    #sc_card_number, #sc_card_expiry, #sc_card_cvc, #nuvei_upos .sc_fields div {
+        padding-top: 7px !important;
+        padding-bottom: 1px !important;
+        padding-left: 9px !important;
+        padding-right: 9px !important;
+    }
+
+    #sc_apms #sc_card_number_holder {
+        width: 60% !important;
+        display: inline-block !important;
+    }
+
+    #sc_date_cvv_holder {
+        width: 38% !important;
+        /*float: right;*/
+    }
+
+    #sc_date_cvv_holder .sc_fields {
+        width: 46%;
+    }
+
+    #sc_apms #sc_date_cvv_holder .sc_fields:first-child {
+        display: inline-block !important;
+    }
+
+    #sc_date_cvv_holder .sc_fields:last-child {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    #sc_apms label, #nuvei_upos label {
+        width: 90% !important;
+    }
+
+    #sc_apms label img, #nuvei_upos label img {
+        max-height: 25px !important;
+        height: 100% !important;
+    }
+
+    .nuvei-apm-method-icon { width: auto !important; }
+
+    #sc_apms .nuvei-apm-method-note, #nuvei_upos .nuvei-apm-method-note {
+        font-style: italic !important;
+        margin-left: 10px !important;
+        margin-top: 10px !important;
+    }
+
+    #nuvei_save_upo_cont { display: none; }
+
+    .SfcField iframe {
+        height: 24px !important;
+    }
+
+    .sfcModal-dialog {
+        width: 50% !important;
+        margin: 0 auto !important;
+        margin-top: 10% !important;
+    }
+
+    .is-in {
+        z-index: 9999 !important;
+    }
+
+    #cc_error_msg, #sc_apms .sc_error, #nuvei_upos .sc_error {
+        display: none;
+        border: 1px solid #cccccc !important;
+    }
+
+    #sc_apms .field input::placeholder {
+        text-transform: capitalize;
+    }
+
+    #cc_error_msg .message.error, #sc_apms .sc_error .message.error, #nuvei_upos .sc_error .message.error {
+        padding: 8px 12px 8px 45px !important;
+        font-size: 15px !important;
+    }
+
+    #sc_apms .sc_error,  #nuvei_upos .sc_error{
+        margin-bottom: 10px !important;
+        margin-right: 5px !important;
+    }
+
+    #sc_apms .sc_error .message.error, #nuvei_upos .sc_error .message.error { padding-bottom: 11px !important; }
+    #sc_apms .sc_error .message.error div, #nuvei_upos .sc_error .message.error div { padding-top: 2px !important; }
+
+    @media screen and (max-width: 880px) {
+        #sc_apms #sc_card_number_holder {
+            width: auto !important;
+            display: block !important;
+            margin-right: 5px !important;
+        }
+
+        #sc_date_cvv_holder {
+            display: block !important;
+            width: 100% !important;
+            position: relative;
+        }
+
+        #sc_date_cvv_holder .sc_fields {
+            width: 48%;
+        }
+    }
+
+    @media screen and (max-width: 450px) {
+        #sc_date_cvv_holder .sc_fields {
+            width: 45%;
+        }
+    }
+</style>
+
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio" name="payment[method]" class="radio" data-bind="
+                    attr    : {
+                        'id': getCode()
+                    },
+                    value   : getCode(),
+                    checked : isChecked,
+                    click   : selectPaymentMethod,
+                    visible : isRadioButtonVisible()
+                " />
+        <label class="label" data-bind="attr: {'for': getCode()}">
+<!--			<img data-bind="attr: {
+					src		: getNuveiIconUrl(),
+					alt		: $t('Nuvei Logo'),
+					height	: '',
+					width	: '50'
+				}" class="payment-icon" onerror="this.style.display='none'" />-->
+            <span data-bind="text: getTitle()"></span>
+        </label>
+    </div>
+
+    <div class="payment-method-content">
+        <!-- ko foreach: getRegion('messages') -->
+			<!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+				<!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+		
+		<div class="sc_error" id="nuvei_general_error" style="display: none;">
+			<div class="message error">
+				<div data-bind="text: $t('General error.')"></div>
+			</div>
+		</div>
+		
+		<!-- ko if: applePayData -->
+			<div id="nuvei_apple_pay" data-bind="applePayData" style="display: none;">
+				<div class="nuvei-apm-method-container">
+					<input type="radio" 
+						   data-bind="
+								checkedValue: applePayData().paymentMethod,
+								checked: chosenApmMethod,
+								attr: {
+									'id': getCode() + '_' + applePayData().paymentMethod,
+									'name': getCode() + '_' + applePayData().paymentMethod
+								}" />
+					
+					<label class="label nuvei-apm-method-label" 
+						   data-bind="attr: {'for': getCode() + '_' + applePayData().paymentMethod}">
+
+						<span class="nuvei-apm-method-icon">
+							<img onerror="this.style.display='none'" data-bind="
+								attr: {
+									'src': applePayData().logoURL,
+									'alt' : $t('Apple Pay')
+								}" />
+						</span>
+
+						<span class="label nuvei-apm-method-label-title" data-bind="text: $t('Apple Pay')"></span>
+					</label>
+
+					<div id="nuvei_apple_pay_error" class="nuvei-apm-method-note" style="display: none; ">
+						<!-- ko i18n: "You can not use Apple Pay" --><!-- /ko -->
+					</div>
+					
+					<div>
+						<button id="nuvei_apple_pay_btn" 
+								type="button" 
+								class="action checkout" 
+								style="padding: 0; margin: 0; width: auto; height: auto; background: none; border: none; box-shadow: none; margin-top: 12px; display: none;">
+							<img onerror="this.style.display='none'" data-bind="
+								attr: {
+									'src': getApplePayBtnImg(),
+									'alt' : $t('Apple Pay')
+								}" />
+						</button>
+					</div>
+				</div>
+			</div>
+		<!--/ko-->
+
+		<h3 data-bind="text: $t('Choose from yours preferred payment methods')" id="nuvei_upos_title"></h3>
+		<div id="nuvei_upos" data-bind="foreach: upos">
+			<div class="nuvei-apm-method-container">
+				<input type="radio" 
+					data-bind="
+						checkedValue: $data.userPaymentOptionId,
+						checked: $parent.chosenApmMethod,
+						attr: {
+							'id': $parent.getCode() + '_' + $data.userPaymentOptionId,
+							'name': $parent.getCode() + '_payment_method',
+							'data-upo-name': $data.paymentMethodName
+						}" />
+				
+				<label class="label nuvei-apm-method-label" 
+					   data-bind="attr: {'for': $parent.getCode() + '_' + $data.userPaymentOptionId}">
+					
+					<span class="nuvei-apm-method-icon">
+						<img onerror="this.style.display='none'" data-bind="
+							attr: {
+								'src': $data.logoURL,
+								'alt' : $data.name
+							}" />
+					</span>
+                    
+					<span class="label nuvei-apm-method-label-title" data-bind="text: $data.store_label"></span>&nbsp;
+					
+					<span class="minicart-items">
+						<span class="secondary">
+							<a href="#" data-bind="attr: {
+											title: $t('Remove item'),
+											'data-upo-id': $data.userPaymentOptionId
+										}" 
+										class="action delete" 
+										click="function(data, event) { $parent.removeUpo($data.userPaymentOptionId); }">
+								
+								<span data-bind="i18n: 'Remove'"></span>
+							</a>
+						</span>
+					</span>
+                </label>
+				
+				<!-- ko if: ($parent.typeOfChosenPayMethod() === 'upo_cc' && $data.userPaymentOptionId === $parent.chosenApmMethod())-->
+					<fieldset data-bind="
+						attr: {
+							class: 'fieldset payment items ccard ' + $parent.getCode()
+						}">
+
+						<div class="" tabindex="1">
+							<div class="field number sc_fields" tabindex="1">
+								<div data-bind="attr: { id: 'sc_upo_' + $data.userPaymentOptionId + '_cvc'  }"></div>
+							</div>
+						</div>
+
+						<div class="sc_error">
+							<div class="message error">
+								<div data-bind="text: $t('Wrong CVC, please try again!')"></div>
+							</div>
+						</div>
+					</fieldset>
+				<!--/ko-->
+				
+				<!-- ko if: ($parent.typeOfChosenPayMethod() === 'upo_apm' && $data.userPaymentOptionId === $parent.chosenApmMethod())-->
+					<div class="nuvei-apm-method-note">
+						<!-- ko i18n: "Please click 'Place Order' in order to proceed" --><!-- /ko -->
+					</div>
+				<!-- /ko -->
+			</div>
+		</div>
+		
+		<h3 data-bind="text: $t('Choose from the payment options')" id="nuvei_apms_title"></h3>
+        <div id="sc_apms" data-bind="foreach: apmMethods">
+            <div class="nuvei-apm-method-container">
+                <input type="radio" 
+					   data-bind="
+							checkedValue: $data.paymentMethod,
+							checked: $parent.chosenApmMethod,
+							attr: {
+								'id': $parent.getCode() + '_' + $data.paymentMethod,
+								'name': $parent.getCode() + '_payment_method'
+							}" />
+                
+				<label class="label nuvei-apm-method-label" 
+					   data-bind="attr: {'for': $parent.getCode() + '_' + $data.paymentMethod}">
+					
+					<span class="nuvei-apm-method-icon">
+						<img onerror="this.style.display='none'" data-bind="
+							attr: {
+								'src': $data.logoURL,
+								'alt' : $data.paymentMethodDisplayName.message
+							}" />
+					</span>
+                    
+					<span class="label nuvei-apm-method-label-title" data-bind="text: $t($data.paymentMethodDisplayName.message)"></span>
+                </label>
+                
+                <!-- ko if: ($data.paymentMethod !== 'cc_card')-->
+					<!-- ko if: ($parent.chosenApmMethod() === $data.paymentMethod)-->
+						<!-- ko if: ($data.fields.length > 0) -->
+							<fieldset data-bind="
+								attr: {class: 'fieldset payment items ccard fields-' + $data.paymentMethod},
+								foreach: $data.fields"
+							>
+								<div class="field number">
+									<div class="control">
+										<input class="input-text" data-bind="attr: {
+											placeholder: caption[0].message,
+											type: type,
+											name:  name
+										}" required="" />
+									</div>
+								</div>
+                                
+                                <div class="sc_error" style="display: none;" data-bind="attr: { id: name }">
+                                    <div class="message error">
+                                        <div data-bind="text: caption[0].message + $t(' is mandatory field.')"></div>
+                                    </div>
+                                </div>
+							</fieldset>
+						<!--/ko-->
+						
+						<!-- ko if: ($data.fields.length == 0 && $data.paymentMethod !== 'ppp_ApplePay') -->
+							<div class="nuvei-apm-method-note">
+								<!-- ko i18n: "Please click 'Place Order' in order to proceed" --><!-- /ko -->
+							</div>
+						<!--/ko-->
+					<!--/ko-->
+                <!--/ko-->
+
+                <!-- ko if: ($data.paymentMethod === 'cc_card' && $parent.typeOfChosenPayMethod() === 'cc_card')-->
+					<fieldset data-bind="
+						attr: {
+							class: 'fieldset payment items ccard ' + $parent.getCode(),
+							id: $parent.getCode() + '_form_cc'
+						}
+						">
+						<!-- ko if: ($parent.isShowLegend())-->
+							<legend class="legend">
+								<span>
+									<!-- ko i18n: 'Credit Card Information' --><!-- /ko -->
+								</span>
+							</legend><br />
+						<!-- /ko -->
+
+						<div class="field number">
+							<div class="control">
+								<input type="text" name="payment[cc_owner]" class="input-text" value="" data-bind="
+									attr: {
+										id: $parent.getCode() + '_cc_owner',
+										title: $t('Credit Card Name'),
+										placeholder: $t('Name On Card'),
+										'data-container': $parent.getCode() + '-cc-owner',
+										'data-validate': JSON.stringify({
+											required :true
+										})
+									},
+									value: $parent.creditCardOwner,
+									valueUpdate: 'keyup'
+							   " />
+							</div>
+						</div>
+
+						<div id="cc_name_error_msg" class="sc_error">
+							<div class="message error">
+								<div data-bind="text: $t('Cardholder name is required')"></div>
+							</div>
+						</div>
+
+						<div class="" tabindex="1" id="sc_cards_fields_holder">
+							<div class="field number sc_fields" tabindex="1" id="sc_card_number_holder">
+								<div id="sc_card_number"></div>
+							</div>
+
+							<div id="cc_num_error_msg" class="sc_error">
+								<div class="message error">
+									<div data-bind="text: $t('Wrong Card number, please check it again!')"></div>
+								</div>
+							</div>
+
+							<div class="" tabindex="1" id="sc_date_cvv_holder">
+								<div class="field number sc_fields" tabindex="1">
+									<div id="sc_card_expiry"></div>
+								</div>
+
+								<div class="field number sc_fields" tabindex="1">
+									<div id="sc_card_cvc"></div>
+								</div>
+							</div>
+
+							<div id="cc_error_msg" class="sc_error">
+								<div class="message error">
+									<div data-bind="text: $t('Wrong date or CVC, please check them again!')"></div>
+								</div>
+							</div>
+						</div>
+					</fieldset>
+                <!--/ko-->
+            </div>
+        </div>
+		<hr/>
+		
+		<div id="nuvei_save_upo_cont">
+			<label>
+				<input type="checkbox" value="0" name="nuvei_save_upo" />&nbsp;
+				<span data-bind="i18n: 'Save the payment method as preferred.'"></span>
+			</label>
+			<hr/>
+		</div>
+			
+        <div class="payment-method-content">
+            <div class="checkout-agreements-block">
+                <!-- ko foreach: $parent.getRegion('before-place-order') -->
+					<!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
+            </div>
+            
+			<div class="actions-toolbar">
+                <div class="primary">
+                    <button id="nuvei_default_pay_btn" 
+							data-role="review-save" 
+							type="submit" 
+							class="action primary checkout" 
+							data-bind="
+								attr: {
+									title: $t('Place Order')
+								},
+								click: placeOrder,
+								css: {
+									disabled: !isPlaceOrderActionAllowed()
+								}">
+                        <span data-bind="i18n: 'Place Order'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
