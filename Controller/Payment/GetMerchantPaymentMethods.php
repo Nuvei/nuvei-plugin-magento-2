@@ -156,16 +156,25 @@ class GetMerchantPaymentMethods extends Action
                         ? $apm_data['paymentMethodDisplayName'][0]['message'] : '';
 
                     $label = '';
+                    
                     if ($upo_data['paymentMethodName'] == 'cc_card') {
                         if (!empty($upo_data['upoData']['ccCardNumber'])) {
                             $label = $upo_data['upoData']['ccCardNumber'];
                         }
-                    } elseif (!empty($upo_data['upoName'])) {
+                    }
+                    elseif (!empty($upo_data['upoName'])) {
                         $label = $upo_data['upoName'];
                     }
 
                     $upo_data['store_label'] = $label;
 
+                    // remove upoData for CC
+                    if ($upo_data['paymentMethodName'] == 'cc_card'
+                        && isset($upo_data['upoData'])
+                    ) {
+                        unset($upo_data['upoData']);
+                    }
+                    
                     $upos[] = $upo_data;
                     break;
                 }

@@ -21,7 +21,7 @@ class ConfigProvider extends CcGenericConfigProvider
     private $paymentsPlans;
     private $readerWriter;
     private $locale;
-    private $config;
+    private $config; // the config for the SDK
 
     /**
      * ConfigProvider constructor.
@@ -75,7 +75,7 @@ class ConfigProvider extends CcGenericConfigProvider
         if (!$this->moduleConfig->getConfigValue('active')) {
             $this->readerWriter->createLog('Mudule is not active');
             
-            return $config = [
+            return [
                 'payment' => [
                     Payment::METHOD_CODE => [
                         'isActive' => 0,
@@ -105,7 +105,10 @@ class ConfigProvider extends CcGenericConfigProvider
         }
         
         // will be concatenated into a JS
-        $config['payment'][Payment::METHOD_CODE]['sdk'] = ucfirst($used_sdk);
+        $config['payment'][Payment::METHOD_CODE]['sdk']         = ucfirst($used_sdk);
+        $config['payment'][Payment::METHOD_CODE]['isTestMode']  = $this->moduleConfig->isTestModeEnabled();
+        $config['payment'][Payment::METHOD_CODE]['countryId']   = $this->moduleConfig->getQuoteCountryCode();
+        $config['payment'][Payment::METHOD_CODE]['loadingImg']  = $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif");
         
         $this->readerWriter->createLog([$used_sdk, $config], 'get front end config');
         
@@ -134,9 +137,6 @@ class ConfigProvider extends CcGenericConfigProvider
                 Payment::METHOD_CODE => [
                     'cartUrl'                   => $this->urlBuilder->getUrl('checkout/cart/'),
                     'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
-                    'loadingImg'                => $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif"),
-                    'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),
-                    'countryId'                 => $this->moduleConfig->getQuoteCountryCode(),
                     'isPaymentPlan'             => $isPaymentPlan,
 //                    'useDevSdk'                 => $this->moduleConfig->getConfigValue('use_dev_sdk'),
                     
@@ -198,39 +198,40 @@ class ConfigProvider extends CcGenericConfigProvider
     {
         $this->readerWriter->createLog('getWebSdkConfig()');
         
+        $isUserLogged   = $this->moduleConfig->isUserLogged();
+        $saveUpos       = false;
+        $userTokenId    = '';
+        
+        if ($isUserLogged) {
+            $saveUpos = $this->moduleConfig->canSaveUpos();
+        }
+        
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
                     'getMerchantPaymentMethodsUrl' => $this->urlBuilder
                         ->getUrl('nuvei_checkout/payment/GetMerchantPaymentMethods'),
                     
-                    'redirectUrl'               => $this->urlBuilder->getUrl('nuvei_checkout/payment/redirect'),
-                    'paymentApmUrl'             => $this->urlBuilder->getUrl('nuvei_checkout/payment/apm'),
-                    'getUPOsUrl'                => $this->urlBuilder->getUrl('nuvei_checkout/payment/GetUpos'),
-                    'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
-                    'getRemoveUpoUrl'           => $this->urlBuilder->getUrl('nuvei_checkout/payment/DeleteUpo'),
-//                    'checkoutLogoUrl'           => $checkout_logo,
-                    'checkoutApplePayBtn'       => $this->assetRepo->getUrl("Nuvei_Checkout::images/ApplePay-Button.png"),
-                    
-                    'countryId'                 => $this->moduleConfig->getQuoteCountryCode(),
-//                    'updateQuotePM'             => $this->urlBuilder->getUrl('nuvei_payments/payment/UpdateQuotePaymentMethod'),
-                    'showUpos'                  => ($this->moduleConfig->canShowUpos() && $this->moduleConfig->isUserLogged()),
-                    'saveUpos'                  => $this->moduleConfig->canSaveUpos(),
-//                    'useUPOs'                   => $this->moduleConfig->canUseUpos(),
-//                    'submitUserTokenForGuest'   => ($this->moduleConfig->allowGuestsSubscr()
-//                        && !empty($this->moduleConfig->getProductPlanData())) ? 1 : 0,
+                    'successUrl'            => $this->moduleConfig->getCallbackSuccessUrl(),
+                    'errorUrl'              => $this->moduleConfig->getCallbackErrorUrl(),
+                    'redirectUrl'           => $this->urlBuilder->getUrl('nuvei_checkout/payment/redirect'),
+                    'paymentApmUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/apm'),
+                    'getUPOsUrl'            => $this->urlBuilder->getUrl('nuvei_checkout/payment/GetUpos'),
+                    'getUpdateOrderUrl'     => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
+                    'getRemoveUpoUrl'       => $this->urlBuilder->getUrl('nuvei_checkout/payment/DeleteUpo'),
+                    'checkoutApplePayBtn'   => $this->assetRepo->getUrl("Nuvei_Checkout::images/ApplePay-Button.png"),
+                    'showUpos'              => ($this->moduleConfig->canShowUpos() && $isUserLogged),
+                    'saveUpos'              => $saveUpos,
                     // we need this for the WebSDK
-                    'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
-                    'merchantId'                => $this->moduleConfig->getMerchantId(),
-                    'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),
-                    'locale'                    => substr($this->locale, 0, 2),
-                    'webMasterId'               => $this->moduleConfig->getSourcePlatformField(),
-                    'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
-                    'userTokenId'               => $this->moduleConfig->getQuoteBillingAddress()['email'],
-                    'applePayLabel'             => $this->moduleConfig->getMerchantApplePayLabel(),
-                    'currencyCode'              => $this->moduleConfig->getQuoteBaseCurrency(), 
-                    'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'advanced'),
-//                    'total'                   => (string) number_format($this->cart->getQuote()->getGrandTotal(), 2, '.', ''),
+                    'merchantSiteId'        => $this->moduleConfig->getMerchantSiteId(),
+                    'merchantId'            => $this->moduleConfig->getMerchantId(),
+                    'locale'                => substr($this->locale, 0, 2),
+                    'webMasterId'           => $this->moduleConfig->getSourcePlatformField(),
+                    'sourceApplication'     => $this->moduleConfig->getSourceApplication(),
+                    'userTokenId'           => $this->moduleConfig->getQuoteBillingAddress()['email'],
+                    'applePayLabel'         => $this->moduleConfig->getMerchantApplePayLabel(),
+                    'currencyCode'          => $this->moduleConfig->getQuoteBaseCurrency(), 
+                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type', 'advanced'),
                 ],
             ],
         ];

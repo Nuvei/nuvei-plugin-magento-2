@@ -8,15 +8,6 @@
 var nuveiAgreementsConfig   = window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
 
 /**
- * Get the code of the module.
- * 
- * @returns {String}
- */
-function nuveiGetCode() {
-	return 'nuvei';
-};
-
-/**
  * Validate checkout agreements
  *
  * @returns {Boolean}
@@ -186,28 +177,6 @@ function nuveiAfterSdkResponse(resp) {
 	return;
 };
 
-function nuveiShowLoader() {
-    console.log('nuveiShowLoader');
-    
-    if (jQuery('body').find('.loading-mask').length > 0) {
-        jQuery('body').trigger('processStart');
-        return;
-    }
-    
-    jQuery('.nuvei-loading-mask').css('display', 'block');
-}
-
-function nuveiHideLoader() {
-    console.log('nuveiHideLoader');
-    
-    if (jQuery('body').find('.loading-mask').length > 0) {
-        jQuery('body').trigger('processStop');
-        return;
-    }
-    
-    jQuery('.nuvei-loading-mask').css('display', 'none');
-}
-
 define(
     [
         'jquery',
@@ -275,11 +244,6 @@ define(
 					console.error(_error);
 				}
                 
-                // if loading mask does not exists add it
-                if (jQuery('body').find('.loading-mask').length < 1) {
-                    jQuery('body').append('<div class="nuvei-loading-mask" data-role="loader" style="display: none; z-index: 9999; bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; background: rgba(255,255,255,0.5);"><div class="loader"><img alt="Loading..." src="' + window.checkoutConfig.payment[nuveiGetCode()].loadingImg + '" style="bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; z-index: 100; max-width: 100%; height: auto; border: 0;"></div></div>');
-                }
-				
                 return self;
             },
             

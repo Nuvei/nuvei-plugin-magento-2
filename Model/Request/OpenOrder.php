@@ -40,6 +40,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $subs_data      = [];
     private $requestParams  = [];
     private $isUserLogged   = null;
+    private $saveUpo        = null;
     private $quoteId        = '';
 
     /**
@@ -261,6 +262,13 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         return $this;
     }
     
+    public function setSaveUpo($saveUpo = null)
+    {
+        $this->saveUpo = $saveUpo;
+        
+        return $this;
+    }
+    
     /**
      * {@inheritdoc}
      *
@@ -337,12 +345,20 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             ],
         ];
         
-        // send userTokenId and save UPO
-        if ('false' != $this->config->canSaveUpos()) {
-            if (true === $this->isUserLogged || $this->config->isUserLogged()) {
+        # send userTokenId and save UPO
+//        if ('false' != $this->config->canSaveUpos()) {
+//            if (true === $this->isUserLogged || $this->config->isUserLogged()) {
+//                    $params['userTokenId'] = $params['billingAddress']['email'];
+//            }
+//        }
+        // webSDK check
+        if (true === $this->isUserLogged || $this->config->isUserLogged()) {
+            if (1 == $this->saveUpo) {
                 $params['userTokenId'] = $params['billingAddress']['email'];
             }
         }
+        # /send userTokenId and save UPO
+            
         
         // auto_close_popup
         if (1 == $this->config->getConfigValue('auto_close_popup')

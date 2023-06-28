@@ -48,7 +48,6 @@ class Config
     
     const STORE_SUBS_DROPDOWN                   = 'nuvei_sub_store_dropdown';
     const STORE_SUBS_DROPDOWN_LABEL             = 'Nuvei Subscription Options';
-//    const STORE_SUBS_DROPDOWN_NAME              = 'nuvei_subscription_options';
     
     const NUVEI_SDK_AUTOCLOSE_URL               = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/autoclose.html';
     
@@ -56,7 +55,6 @@ class Config
     const NUVEI_REST_API_PLUGIN_METHODS         = [
         'get-web-sdk-data',
         'get-simply-connect-data',
-//        'cashier',
         'get-apm-redirect-url',
         'update-order'
     ];

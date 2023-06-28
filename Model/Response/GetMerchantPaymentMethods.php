@@ -124,7 +124,7 @@ class GetMerchantPaymentMethods extends AbstractResponse implements ResponseInte
                 && 1 == count($method['fields'])
                 && 'nettelerAccount' == $method['fields'][0]['name']
             ) {
-                $pm['fields'][0]['name'] = 'Neteller Account';
+//                $pm['fields'][0]['name'] = 'Neteller Account';
                 $pm['fields'][0]['type'] = 'email';
             }
             

@@ -74,9 +74,9 @@ define(
             invalid: 'invalid'
         };
 		
-        var checkoutConfig	= window.checkoutConfig,
+        var checkoutConfig      = window.checkoutConfig,
             agreementsConfig	= checkoutConfig ? checkoutConfig.checkoutAgreements : {},
-            agreementsInputPath	= '.payment-method._active div.checkout-agreements input';
+            agreementsInputPath = '.payment-method._active div.checkout-agreements input';
 		
         $(function() {
             $('body').on('change', '#nuvei_cc_owner', function(){
@@ -146,7 +146,9 @@ define(
             scBillingCountry: '',
 
             scPaymentMethod: '',
-			
+            
+            transactionId: 0,
+            
             initObservable: function() {
 				console.log('initObservable()')
 				
@@ -189,7 +191,7 @@ define(
                 } catch(ex) {
                     console.error('Nuvei initObservable Exception', ex);
                 }
-				
+                
                 return self;
             },
             
@@ -197,23 +199,54 @@ define(
                 return self;
             },
 
-            isShowLegend: function() {
-                return true;
-            },
-
+            // use it into the template
             getCode: function() {
-                return 'nuvei';
+                return nuveiGetCode();
             },
-
-            isActive: function() {
-                return true;
+            
+            // use it into the template
+            showUpos: function() {
+                return window.checkoutConfig.payment[nuveiGetCode()].showUpos;
             },
-
+            
+            savePm: function() {
+                var canSaveUpo = window.checkoutConfig.payment[nuveiGetCode()].saveUpos;
+                
+                // save UPO only for APM or CC
+                if (self.typeOfChosenPayMethod() != 'cc_card' && self.typeOfChosenPayMethod() != 'apm') {
+                    return false;
+                }
+                
+                if ('always' != canSaveUpo) {
+                    return true;
+                }
+                
+                if ($('body').find('#nuvei_save_upo_cont input').length > 0
+                    && $('body').find('#nuvei_save_upo_cont input').val() == 1
+                    && 'false' != canSaveUpo
+                ) {
+                    return true;
+                }
+                
+                return false;
+            },
+            
+            // use it into the template
+            showSaveUpos: function() {
+                var saveUpos = window.checkoutConfig.payment[nuveiGetCode()].saveUpos;
+                
+                if ('true' == saveUpos || 'force' == saveUpos) {
+                    return true;
+                }
+                
+                return false;
+            },
+            
             getData: function() {
                 var pmData = {
                     method : self.item.method,
                     additional_data : {
-                        chosen_apm_method : self.chosenApmMethod()
+                        chosen_apm_method: self.chosenApmMethod()
                     }
                 };
 				
@@ -221,18 +254,16 @@ define(
             },
 			
             setChosenApmMethod: function() {
-                self.writeLog('setChosenApmMethod()', self.chosenApmMethod());
+                console.log('setChosenApmMethod()', self.chosenApmMethod());
 
                 $('#nuvei_apple_pay_error, #nuvei_apple_pay_btn, #nuvei_general_error').hide();
 
                 // CC
                 if(self.chosenApmMethod() == 'cc_card') {
                     self.typeOfChosenPayMethod('cc_card');
-                    self.writeLog(self.typeOfChosenPayMethod());
+                    console.log(self.typeOfChosenPayMethod());
 
-                    if(window.checkoutConfig.payment[self.getCode()].saveUpos == 1) {
-                        $('body').find('#nuvei_save_upo_cont').show();
-                    }
+                    $('body').find('#nuvei_save_upo_cont').show();
 
                     return;
                 }
@@ -248,25 +279,20 @@ define(
 
                     $('body').find('#nuvei_save_upo_cont, #nuvei_apple_pay_error, #nuvei_default_pay_btn').hide();
                     $('#nuvei_apple_pay_btn').show();
-
                     return;
                 }
 
                 // APM
                 if(isNaN(self.chosenApmMethod()) && self.chosenApmMethod() != 'ppp_ApplePay') {
                     self.typeOfChosenPayMethod('apm');
-                    self.writeLog(self.typeOfChosenPayMethod());
-                    self.writeLog('show checkbox');
+                    console.log('show checkbox', self.typeOfChosenPayMethod());
 
-                    if(window.checkoutConfig.payment[self.getCode()].saveUpos == 1) {
-                        $('body').find('#nuvei_save_upo_cont').show();
-                    }
-                    
+                    $('body').find('#nuvei_save_upo_cont').show();
                     return;
                 }
 
                 // UPOs
-                self.writeLog('hide checkbox');
+                console.log('hide checkbox');
 
                 $('body').find('#nuvei_save_upo_cont').hide();
 
@@ -279,62 +305,35 @@ define(
                     self.typeOfChosenPayMethod('upo_apm');
                 }
 
-                self.writeLog(self.typeOfChosenPayMethod());
+                console.log(self.typeOfChosenPayMethod());
             },
 
-            getRedirectUrl: function() {
-                return window.checkoutConfig.payment[self.getCode()].redirectUrl;
-            },
-
-            getPaymentApmUrl: function() {
-                return window.checkoutConfig.payment[self.getCode()].paymentApmUrl;
-            },
-			
-            getUPOsUrl: function() {
-                return window.checkoutConfig.payment[self.getCode()].getUPOsUrl;
-            },
-			
-            getUpdateOrderUrl: function() {
-                return window.checkoutConfig.payment[self.getCode()].getUpdateOrderUrl;
-            },
-
-            getRemoveUpoUrl: function() {
-                return window.checkoutConfig.payment[self.getCode()].getRemoveUpoUrl;
-            },
-	    
-//            getUpdateQuotePM: function() {
-//                return window.checkoutConfig.payment[self.getCode()].updateQuotePM;
+//            getUPOsUrl: function() {
+//                return window.checkoutConfig.payment[nuveiGetCode()].getUPOsUrl;
 //            },
 			
-            getMerchantPaymentMethodsUrl: function() {
-                return window.checkoutConfig.payment[self.getCode()].getMerchantPaymentMethodsUrl;
-            },
-			
-//            getNuveiIconUrl: function() {
-//                return window.checkoutConfig.payment[self.getCode()].checkoutLogoUrl;
-//            },
-
+            // use it into the template
             getApplePayBtnImg: function() {
-                return window.checkoutConfig.payment[self.getCode()].checkoutApplePayBtn;
+                return window.checkoutConfig.payment[nuveiGetCode()].checkoutApplePayBtn;
             },
 			
             removeUpo: function(_upoId) {
-                self.writeLog('removeUpo', _upoId);
+                console.log('removeUpo', _upoId);
 				
                 if(confirm($.mage.__('Are you sure, you want to delete this Preferred payment method?'))) {
                     $.ajax({
                         dataType: "json",
-                                            type: 'post',
-                        url: self.getRemoveUpoUrl(),
+                        type: 'post',
+                        url: window.checkoutConfig.payment[nuveiGetCode()].getRemoveUpoUrl,
                         data: { upoId: _upoId },
                         cache: false,
                         showLoader: true
                     })
                     .done(function(res) {
-                        self.writeLog(res);
+                        console.log(res);
 
                         if (res && res.hasOwnProperty('success') && res.success == 1) {
-                            self.writeLog('success');
+                            console.log('success');
 
                             $('body')
                                 .find('#nuvei_upos input#nuvei_' + _upoId)
@@ -342,14 +341,14 @@ define(
                                 .remove();
                         }
                         else {
-                            self.writeLog(res, null, 'error');
+                            console.log(res, null, 'error');
                             self.isPlaceOrderActionAllowed(false);
                         }
 
                         $('.loading-mask').css('display', 'none');
                     })
                     .fail(function(e) {
-                        self.writeLog(e.responseText, null, 'error');
+                        console.log(e.responseText, null, 'error');
 
                         alert($.mage.__('Unexpected error, please try again later!'));
 
@@ -359,17 +358,17 @@ define(
             },
 			
             getApmMethods: function(billingAddress) {
-                self.writeLog('getApmMethods()');
+                console.log('getApmMethods()');
 				
                 if('nuvei' != self.scPaymentMethod) {
-                    self.writeLog('getApmMethods() - slected payment method is not Nuvei');
+                    console.log('getApmMethods() - slected payment method is not Nuvei, but', self.scPaymentMethod);
                     return;
                 }
 				
                 $.ajax({
                     dataType: "json",
                     type: 'post',
-                    url: self.getMerchantPaymentMethodsUrl(),
+                    url: window.checkoutConfig.payment[nuveiGetCode()].getMerchantPaymentMethodsUrl,
                     data: {
                         billingAddress: billingAddress
                     },
@@ -377,7 +376,7 @@ define(
                     showLoader: true
                 })
                 .done(function(res) {
-                    self.writeLog(res);
+                    console.log(res);
 					
                     if (res && res.error == 0) {
                         self.apmMethods(res.apmMethods);
@@ -408,7 +407,7 @@ define(
                                     self.nuveiInitFields();
                                     
                                     var nuvei_cc_card = document.getElementById("nuvei_cc_card");
-                                    if(typeof nuvei_cc_card == 'object') {
+                                    if(null !== nuvei_cc_card && typeof nuvei_cc_card == 'object') {
                                         document.getElementById("nuvei_cc_card").click();
                                     }
                                     
@@ -425,24 +424,24 @@ define(
                         }
                     }
                     else {
-                        self.writeLog(res, null, 'error');
+                        console.log(res, null, 'error');
                         self.isPlaceOrderActionAllowed(false);
                     }
 
                     $('.loading-mask').css('display', 'none');
                 })
                 .fail(function(e) {
-                    self.writeLog(e.responseText, null, 'error');
+                    console.log(e.responseText, null, 'error');
                     self.isPlaceOrderActionAllowed(false);
                 });
             },
 			
             placeOrder: function(data, event) {
-                self.writeLog('placeOrder()');
-
+                console.log('placeOrder()');
+                
                 if(self.chosenApmMethod() === '') {
-                    self.writeLog('chosenApmMethod is empty', null, 'error');
-                    self.showGeneralError('Please, choose some of the available payment options!');
+                    console.log('chosenApmMethod is empty', null, 'error');
+                    self.showGeneralError($.mage.__('Please, choose some of the available payment options!'));
                     
                     if(typeof quote.billingAddress != 'undefined'
                         && self.apmMethods.length == 0
@@ -457,7 +456,7 @@ define(
                     return;
                 }
 
-                $('body').trigger('processStart'); // show loader
+                nuveiShowLoader(); // show loader
 				
                 if (event) {
                     event.preventDefault();
@@ -465,13 +464,17 @@ define(
 				
                 jQuery.ajax({
                     dataType: 'json',
-                    url: self.getUpdateOrderUrl()
+                    url: window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl,
+                    data: {
+                        saveUpo: $('body').find('#nuvei_save_upo_cont input').val(),
+                        pmType: self.typeOfChosenPayMethod()
+                    }
                 })
                 .fail(function(){
                     self.validateOrderData();
                 })
                 .done(function(resp) {
-                    self.writeLog(resp);
+                    console.log(resp);
 
                     if(resp.hasOwnProperty('sessionToken')
                         && '' != resp.sessionToken
@@ -481,7 +484,7 @@ define(
 
                         sfc         = SafeCharge(scData);
                         scFields    = sfc.fields({
-                            locale: checkoutConfig.payment[self.getCode()].locale
+                            locale: checkoutConfig.payment[nuveiGetCode()].locale
                         });
                     }
 
@@ -490,37 +493,39 @@ define(
             },
             
             validateOrderData: function() {
-                self.writeLog('validateOrderData()');
+                console.log('validateOrderData()');
 
                 var payParams = {
                     sessionToken    : scData.sessionToken,
-                    merchantId      : window.checkoutConfig.payment[self.getCode()].merchantId,
-                    merchantSiteId  : window.checkoutConfig.payment[self.getCode()].merchantSiteId,
-                    webMasterId     : window.checkoutConfig.payment[self.getCode()].webMasterId,
-                    apmWindowType   : window.checkoutConfig.payment[self.getCode()].apmWindowType,
-                    //env           : window.checkoutConfig.payment[self.getCode()].isTestMode == true ? 'int' : 'prod'
+                    merchantId      : window.checkoutConfig.payment[nuveiGetCode()].merchantId,
+                    merchantSiteId  : window.checkoutConfig.payment[nuveiGetCode()].merchantSiteId,
+                    webMasterId     : window.checkoutConfig.payment[nuveiGetCode()].webMasterId,
+                    apmWindowType   : window.checkoutConfig.payment[nuveiGetCode()].apmWindowType,
+                    //env           : window.checkoutConfig.payment[nuveiGetCode()].isTestMode == true ? 'int' : 'prod'
                 };
                 
                 // Apple Pay
                 if(self.chosenApmMethod() === 'ppp_ApplePay') {
+                    console.log('validateOrderData() ppp_ApplePay');
+                    
                     if(typeof window.ApplePaySession != 'function') {
                         alert($.mage.__('Unexpected session error. Please, try different payment method!'));
-                        $('body').trigger('processStop');
+                        nuveiHideLoader();
 
-                        self.writeLog('ApplePaySession is not a Function.', null, 'error')
+                        console.log('ApplePaySession is not a Function.', null, 'error')
                         return;
                     }
 
-                    payParams.countryCode   = window.checkoutConfig.payment[self.getCode()].countryId;
-                    payParams.currencyCode  = window.checkoutConfig.payment[self.getCode()].currencyCode;
+                    payParams.countryCode   = window.checkoutConfig.payment[nuveiGetCode()].countryId;
+                    payParams.currencyCode  = window.checkoutConfig.payment[nuveiGetCode()].currencyCode;
 //                    payParams.currencyCode  = quote.totals().base_currency_code;
                     payParams.amount        = self.scOrderTotal;
                     payParams.total         = {
-                        label   : window.checkoutConfig.payment[self.getCode()].applePayLabel,
+                        label   : window.checkoutConfig.payment[nuveiGetCode()].applePayLabel,
                         amount  : self.scOrderTotal
                     };
 
-                    self.writeLog(payParams)
+                    console.log(payParams);
 
                     self.createPayment(payParams, true);
                     return;
@@ -528,75 +533,53 @@ define(
 				
                 // CC
                 if(self.chosenApmMethod() === 'cc_card') {
+                    console.log('validateOrderData() cc_card');
+                    var anyErrors = false;
+                    
                     if($('#nuvei_cc_owner').val() == '') {
-                        $('#nuvei_cc_owner').css('box-shadow', 'red 0px 0px 3px 1px');
-                        $('#cc_name_error_msg').show();
-
-                        document.getElementById("nuvei_cc_owner").scrollIntoView();
-                        $('body').trigger('processStop');
-
-                        return;
+                        $('#nuvei_cc_owner').addClass('nuvei_input_error');
+                        anyErrors = true;
                     }
 					
                     if( (!isCCNumEmpty && !isCCNumComplete) || isCCNumEmpty ) {
-                        $('#sc_card_number').css('box-shadow', 'red 0px 0px 3px 1px');
-                        $('#cc_num_error_msg').show();
-
-                        document.getElementById("nuvei_cc_owner").scrollIntoView();
-                        $('body').trigger('processStop');
-
-                        return;
+                        $('#sc_card_number').addClass('nuvei_input_error');
+                        anyErrors = true;
                     }
 					
                     if( (!isCVVEmpty && !isCVVComplete) || isCVVEmpty ) {
-                        $('#sc_card_cvc').css('box-shadow', 'red 0px 0px 3px 1px');
-                        $('#cc_error_msg').show();
-
-                        document.getElementById("nuvei_cc_owner").scrollIntoView();
-                        $('body').trigger('processStop');
-
-                        return;
+                        $('#sc_card_cvc').addClass('nuvei_input_error');
+                        anyErrors = true;
                     }
 					
                     if( (!isCCDateEmpty&& !isCCDateComplete) || isCCDateEmpty ) {
-                        $('#sc_card_expiry').css('box-shadow', 'red 0px 0px 3px 1px');
-                        $('#cc_error_msg').show();
-
-                        document.getElementById("nuvei_cc_owner").scrollIntoView();
-                        $('body').trigger('processStop');
-
+                        $('#sc_card_expiry').addClass('nuvei_input_error');
+                        anyErrors = true;
+                    }
+                    
+                    if (anyErrors) {
+                        document.getElementById("nuvei_cc_card").scrollIntoView({behavior: 'smooth'});
+                        nuveiHideLoader();
                         return;
                     }
 					
                     if(!self.validate()) {
-                        $('body').trigger('processStop');
+                        nuveiHideLoader();
                         return;
                     }
 
                     if(null == cardNumber) {
                         alert($.mage.__('Unexpected error! If the fields of the selected payment method do not reload in few seconds, please reload the page!'));
-                        $('body').trigger('processStop');
-
+                        nuveiHideLoader();
                         return;
                     }
 					
                     payParams.paymentOption		= cardNumber;
                     payParams.cardHolderName	= document.getElementById('nuvei_cc_owner').value;
-                    
-                    var canSaveUpo = 1 == window.checkoutConfig.payment[self.getCode()].saveUpos ? true : false;
-                    
-//                    if (1 == window.checkoutConfig.payment[self.getCode()].submitUserTokenForGuest
-//                        || ( 1 == window.checkoutConfig.payment[self.getCode()].useUPOs
-//                        && ( self.typeOfChosenPayMethod() == 'cc_card' || self.typeOfChosenPayMethod() == 'apm' )
-//                        && $('body').find('#nuvei_save_upo_cont input').val() == 1 )
-//                    ) {
-                    if ( canSaveUpo
-                        && ( self.typeOfChosenPayMethod() == 'cc_card' || self.typeOfChosenPayMethod() == 'apm' )
-                        && $('body').find('#nuvei_save_upo_cont input').val() == 1
-                    ) {
-                        payParams.userTokenId = window.checkoutConfig.payment[self.getCode()].userTokenId;
-                    }
+                    payParams.savePm            = self.savePm();
+                        
 					
+                    self.writeLog('payParams', payParams);
+                    
                     // create payment with WebSDK
                     self.createPayment(payParams);
                     return;
@@ -604,34 +587,34 @@ define(
 				
                 // in case of CC UPO
                 if(self.typeOfChosenPayMethod() === 'upo_cc') {
+                    console.log('validateOrderData() upo_cc');
+                    
                     // checks
                     if( (!isCVVEmpty && !isCVVComplete) || isCVVEmpty ) {
-                        $('#sc_upo_'+ self.chosenApmMethod() +'_cvc').css('box-shadow', 'red 0px 0px 3px 1px');
-
-                        $('#sc_upo_'+ self.chosenApmMethod() +'_cvc')
-                            .closest('.nuvei-apm-method-container')
-                            .find('fieldset .sc_error')
-                            .show();
+                        $('#sc_upo_'+ self.chosenApmMethod() +'_cvc').addClass('nuvei_input_error');
 
                         document.getElementById('sc_upo_'+ self.chosenApmMethod() +'_cvc').scrollIntoView();
-                        $('body').trigger('processStop');
+                        nuveiHideLoader();
 
                         return;
                     }
 					
                     if(!self.validate()) {
-                        $('body').trigger('processStop');
+                        nuveiHideLoader();
                         return;
                     }
                     // checks END
 					
-                    payParams.userTokenId	= window.checkoutConfig.payment[self.getCode()].userTokenId;
+                    payParams.userTokenId	= window.checkoutConfig.payment[nuveiGetCode()].userTokenId;
                     payParams.paymentOption	= {
                         userPaymentOptionId: self.chosenApmMethod(),
                         card: {
                             CVV: cardCvc
                         }
                     };
+
+                    self.writeLog('payParams', payParams);
+                    self.writeLog('payParams', payParams.paymentOption);
 
                     // create payment with WebSDK
                     self.createPayment(payParams);
@@ -640,45 +623,70 @@ define(
                 
                 // in case of APM
                 if(self.typeOfChosenPayMethod() === 'apm') {
+                    console.log('validateOrderData() apm');
                     var showApmError = false;
+                    
+                    payParams.paymentOption = {
+                        alternativePaymentMethod: {
+                            paymentMethod: self.chosenApmMethod()
+                        },
+                        savePm: self.savePm()
+                    };
                     
                     // check for empty fields
                     $('#nuvei_'+ self.chosenApmMethod())
                         .closest('.nuvei-apm-method-container')
                         .find('fieldset input')
                         .each(function() {
-                            var currField       = $(this);
-                            var currFieldError  = $('#nuvei_'+ self.chosenApmMethod())
-                                .closest('.nuvei-apm-method-container')
-                                .find('#'+ currField.attr('name'));
+                            var currField = $(this);
                     
                             if(currField.val() == '') {
-                                currField.css('box-shadow', 'red 0px 0px 3px 1px');
-                                currFieldError.show();
-                                
-                                document.getElementById('nuvei_'+ self.chosenApmMethod()).scrollIntoView();
-                                $('body').trigger('processStop');
-                                
+                                currField.addClass('nuvei_input_error');
                                 showApmError = true;
-                                
-                                return false;
                             }
                             else {
-                                currField.css('box-shadow', 'none');
-                                currFieldError.hide();
+                                currField.removeClass('nuvei_input_error');
+                                // add field name => value to the payParams
+                                payParams.paymentOption.alternativePaymentMethod[currField.attr('name')] = currField.val();
                             }
                         });
                     
-                    if(!showApmError) {
-                        self.continueWithOrder();
-                        return;
+                    if(showApmError) {
+                        document.getElementById('nuvei_'+ self.chosenApmMethod()).scrollIntoView({behavior: 'smooth'});
+                        nuveiHideLoader();
+                    }
+                    else {
+                        self.writeLog('payParams', payParams);
+                        self.createPayment(payParams);
                     }
                     
                     return;
                 }
                 
-                // all other cases
-                self.continueWithOrder();
+                // UPO APM
+                // get current UPO data
+//                var currUpoData = {};
+//                
+//                console.log(self.upos);
+//                
+//                for(var i in self.upos) {
+//                    if (self.upos[i].userPaymentOptionId == self.chosenApmMethod()) {
+//                        currUpoData = self.upos[i].upoData;
+//                        break;
+//                    }
+//                }
+                
+                payParams.paymentOption	= {
+                    alternativePaymentMethod: {
+                        paymentMethod: $('#nuvei_'+ self.chosenApmMethod()).attr('data-upo-name'),
+//                        upoData: currUpoData
+                    },
+                    userPaymentOptionId: self.chosenApmMethod(),
+                };
+                
+                console.log(payParams);
+                
+                self.createPayment(payParams);
                 return;
             },
 			
@@ -699,162 +707,74 @@ define(
             },
 			
             afterSdkResponse: function(resp) {
-                self.writeLog('create payment');
+                console.log('afterSdkResponse', resp, resp.result);
 
-                if(typeof resp != 'undefined' && resp.hasOwnProperty('result')) {
-                    if(resp.result == 'APPROVED' && resp.transactionId != 'undefined') {
-                        self.continueWithOrder(resp.transactionId);
-                    }
-                    else if(resp.result == 'DECLINED') {
-                        if(!alert($.mage.__('Your Payment was DECLINED. Please try another payment method!'))) {
-                            $('body').trigger('processStop');
-                        }
-                    }
-                    else {
-                        var respError = 'Error with your Payment. Please try again later!';
-
-                        if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
-                            respError = resp.errorDescription;
-                        }
-                        else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
-                            respError = resp.reason;
-                        }
-
-                        self.writeLog(resp, null, 'error');
-
-                        if(!alert($.mage.__(respError))) {
-                            self.scCleanCard();
-                            self.getApmMethods();
-                            $('body').trigger('processStop');
-
-                            return;
-                        }
-                    }
-                }
-                else {
+                // wrong response
+                if(typeof resp == 'undefined' || !resp.hasOwnProperty('result')) {
+                    // reload after click on alert button
                     if(!alert($.mage.__('Unexpected error, please try again later!'))) {
                         window.location.reload();
                         return;
                     }
                 }
-        },
+                
+                // approve or pending
+                if((resp.result == 'APPROVED' || resp.result == 'PENDING')
+                    && typeof resp.transactionId != 'undefined'
+                ) {
+                    self.transactionId = resp.transactionId;
+                    self.continueWithOrder(resp.transactionId);
+                    return;
+                }
+                // decline
+                if(resp.result == 'DECLINED') {
+                    // reload after click on alert button
+                    if(!alert($.mage.__('Your Payment was DECLINED. Please try another payment method!'))) {
+                        nuveiHideLoader();
+                        return;
+                    }
+                }
+                
+                // undefined error
+                var respError = 'Error with your Payment. Please try again later!';
+
+                if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
+                    respError = resp.errorDescription;
+                }
+                else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
+                    respError = resp.reason;
+                }
+
+                console.log(resp, null, 'error');
+
+                if(!alert($.mage.__(respError))) {
+                    self.scCleanCard();
+                    self.getApmMethods();
+                    nuveiHideLoader();
+
+                    return;
+                }
+            },
 			
             continueWithOrder: function(transactionId) {
-                self.writeLog('continueWithOrder()');
+                console.log('continueWithOrder()', self.typeOfChosenPayMethod());
 
                 // stop the proccess
                 if(!self.validate()) {
                     console.log('validation error, stop the proccess');
                     
-                    $('body').trigger('processStop');
+                    nuveiHideLoader();
                     return false;
                 }
 
                 // continue with the order
                 self.isPlaceOrderActionAllowed(false);
-
-                console.log('self.typeOfChosenPayMethod()', self.typeOfChosenPayMethod())
-
-                // APMs and UPO APMs payments
-                if (self.typeOfChosenPayMethod() === 'apm'
-                    || self.typeOfChosenPayMethod() === 'upo_apm'
-                ) {
-                    self.writeLog('continueWithOrder() apm or upo_apm');
-
-                    var choosenMethod	= self.chosenApmMethod();
-                    var postData	= {
-                        chosen_apm_method   : choosenMethod,
-                        apm_method_fields   : {}
-                    };
-                    
-                    console.log('postData', postData)
-
-                    // for APMs only
-                    if(self.typeOfChosenPayMethod() === 'apm') {
-                        $('.fields-' + choosenMethod + ' input').each(function(){
-                            var _slef = $(this);
-                            postData.apm_method_fields[_slef.attr('name')] = _slef.val();
-                        });
-
-                        if(window.checkoutConfig.payment[self.getCode()].saveUpos == 1) {
-                            postData.save_payment_method = $('body').find('#nuvei_save_upo_cont input').val();
-                        }
-                    }
-
-                    self.selectPaymentMethod();
-                    		
-                    setPaymentMethodAction(self.messageContainer)
-                        .done(function() {
-                            $('body').trigger('processStart');
-
-                            $.ajax({
-                                dataType: "json",
-                                type: 'post',
-                                data: postData,
-                                url: self.getPaymentApmUrl(),
-                                cache: false
-                            })
-                            .done(function(res) {
-                                if (res && res.error == 0 && res.redirectUrl) {
-                                    window.location.href = res.redirectUrl;
-                                    return;
-                                }
-                                else {
-                                    self.writeLog(res, null, 'error');
-                                    window.location.reload();
-                                    return;
-                                }
-                            })
-                            .fail(function(e) {
-                                self.writeLog(e, null, 'error');
-                                window.location.reload();
-                                return;
-                            });
-                        }.bind(self)
-                    );
-
-                    $('body').trigger('processStop');
-                    return;
-                }
-
-                var ajaxData = {
-                    dataType: "json",
-                    url: self.getRedirectUrl(),
-                    cache: false
-                };
-
-                // in case we use WebSDK
-                if(self.typeOfChosenPayMethod() !== 'apm' && transactionId != 'undefined') {
-                    ajaxData.url += '?method=web_sdk&transactionId=' + transactionId;
-                }
-
                 self.selectPaymentMethod();
 
                 setPaymentMethodAction(self.messageContainer)
                     .done(function() {
-                        $.ajax(ajaxData)
-                            .done(function(postData) {
-                                if (postData) {
-                                    if(self.typeOfChosenPayMethod() !== 'apm'
-                                        && typeof transactionId != 'undefined'
-                                        && !isNaN(transactionId)
-                                    ) {
-                                        window.location.href = postData.url;
-                                        return;
-                                    }
-
-                                    $.redirect(postData.url, postData.params, "POST");
-                                    return;
-                                }
-                                else {
-                                    window.location.reload();
-                                    return;
-                                }
-                            })
-                            .fail(function() {
-                                window.location.reload();
-                                return;
-                            });
+                        window.location = window.checkoutConfig.payment[nuveiGetCode()].successUrl;
+                        return;
                     }.bind(self));
 
                 return true;
@@ -863,26 +783,24 @@ define(
             showGeneralError: function(msg) {
                 jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
                 jQuery('#nuvei_general_error').show();
-                document.getElementById("nuvei_general_error").scrollIntoView();
+                document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
             },
 			
             nuveiInitFields: function() {
-                self.writeLog('nuveiInitFields()');
+                console.log('nuveiInitFields()');
 
                 if('nuvei' != self.scPaymentMethod) {
-                    self.writeLog('nuveiInitFields() - slected payment method is not Nuvei');
-
-                    $('body').trigger('processStop');
-
+                    console.log('nuveiInitFields() - slected payment method is not Nuvei');
+                    nuveiHideLoader();
                     return;
                 }
 				
                 // for the Fields
-                scData.merchantSiteId       = window.checkoutConfig.payment[self.getCode()].merchantSiteId;
-                scData.merchantId           = window.checkoutConfig.payment[self.getCode()].merchantId;
-                scData.sourceApplication    = window.checkoutConfig.payment[self.getCode()].sourceApplication;
+                scData.merchantSiteId       = window.checkoutConfig.payment[nuveiGetCode()].merchantSiteId;
+                scData.merchantId           = window.checkoutConfig.payment[nuveiGetCode()].merchantId;
+                scData.sourceApplication    = window.checkoutConfig.payment[nuveiGetCode()].sourceApplication;
 				
-                if(window.checkoutConfig.payment[self.getCode()].isTestMode == true) {
+                if(window.checkoutConfig.payment[nuveiGetCode()].isTestMode == true) {
                     scData.env = 'int';
                 }
                 else {
@@ -893,8 +811,16 @@ define(
 
                 // prepare fields
                 scFields = sfc.fields({
-                    locale: checkoutConfig.payment[self.getCode()].locale
+                    locale: checkoutConfig.payment[nuveiGetCode()].locale
                 });
+                
+                // precheck the Save Upo checkbox
+                if ('force' == window.checkoutConfig.payment[nuveiGetCode()].saveUpos
+                    && $('#nuvei_save_upo_cont input').length > 0
+                ) {
+                    $('#nuvei_save_upo_cont input').val(1);
+                    $('#nuvei_save_upo_cont input').prop('checked', true);
+                }
 
                 if( ( $('#sc_card_number').html() == '' || typeof $('#sc_card_number').html() == 'undefined' )
                     && ( $('#sc_card_expiry').html() == '' || typeof $('#sc_card_expiry').html() == 'undefined' )
@@ -906,15 +832,14 @@ define(
             },
 			
             attachFields: function() {
-                self.writeLog('attachFields()');
-                self.writeLog('scFields', scFields);
-                self.writeLog('lastCvcHolder', lastCvcHolder);
+                console.log('attachFields()', {
+                    scFields: scFields,
+                    lastCvcHolder: lastCvcHolder
+                });
 				
                 if(null === scFields) {
-                    self.writeLog('scFields is null');
-
-                    $('body').trigger('processStop');
-
+                    console.log('scFields is null');
+                    nuveiHideLoader();
                     return;
                 }
 				
@@ -999,7 +924,7 @@ define(
                     });
                     // CC CVC END
 
-                    $('body').trigger('processStop');
+                    nuveiHideLoader();
                 }
                 // UPO CC
                 else if('' !== lastCvcHolder) {
@@ -1035,7 +960,7 @@ define(
                         }
                     });
 
-                    $('body').trigger('processStop');
+                    nuveiHideLoader();
                 }
             },
 			
@@ -1045,7 +970,7 @@ define(
              * @returns {Boolean}
             */
             validate: function (hideError) {
-                self.writeLog('validate()');
+                console.log('validate()');
 
                 var isValid = true;
 
@@ -1069,7 +994,7 @@ define(
             },
 		   
             scCleanCard: function () {
-                self.writeLog('scCleanCard()');
+                console.log('scCleanCard()');
 
                 cardNumber = cardExpiry = cardCvc = null;
                 $('#sc_card_number, #sc_card_expiry, #sc_card_cvc').html('');
@@ -1080,19 +1005,19 @@ define(
             },
 			
             scBillingAddrChange: function() {
-                self.writeLog('scBillingAddrChange()');
+                console.log('scBillingAddrChange()');
 
                 if(quote.billingAddress() == null) {
-                    self.writeLog('scBillingAddrChange() - the BillingAddr is null. Stop here.');
+                    console.log('scBillingAddrChange() - the BillingAddr is null. Stop here.');
                     return;
                 }
 
                 if(quote.billingAddress().countryId == self.scBillingCountry) {
-                    self.writeLog('scBillingAddrChange() - the country is same. Stop here.');
+                    console.log('scBillingAddrChange() - the country is same. Stop here.');
                     return;
                 }
 
-                self.writeLog('scBillingAddrChange() - the country was changed to', quote.billingAddress().countryId);
+                console.log('scBillingAddrChange() - the country was changed to', quote.billingAddress().countryId);
                 self.scBillingCountry = quote.billingAddress().countryId;
 
                 self.scCleanCard();
@@ -1100,16 +1025,16 @@ define(
             },
 			
             scTotalsChange: function() {
-                self.writeLog(quote.totals(), 'scTotalsChange()');
+                console.log(quote.totals(), 'scTotalsChange()');
 
                 var currentTotal = parseFloat(quote.totals().base_grand_total).toFixed(2);
 
                 if(currentTotal == self.scOrderTotal) {
-                    self.writeLog('scTotalsChange() - the total is same. Stop here.');
+                    console.log('scTotalsChange() - the total is same. Stop here.');
                     return;
                 }
 
-                self.writeLog('scTotalsChange() - the total was changed to', currentTotal);
+                console.log('scTotalsChange() - the total was changed to', currentTotal);
                 self.scOrderTotal = currentTotal;
 
                 self.scCleanCard();
@@ -1117,19 +1042,19 @@ define(
             },
 			
             scPaymentMethodChange: function() {
-                self.writeLog('scPaymentMethodChange()');
+                console.log('scPaymentMethodChange()', quote.paymentMethod._latestValue, self.scPaymentMethod);
 
                 if(quote.paymentMethod._latestValue != null
                     && self.scPaymentMethod != quote.paymentMethod._latestValue.method
                 ) {
-                    self.writeLog('new paymentMethod is', quote.paymentMethod._latestValue.method);
+                    console.log('new paymentMethod is', quote.paymentMethod._latestValue.method);
 
 //                    self.scUpdateQuotePM();
 
                     self.scPaymentMethod = quote.paymentMethod._latestValue.method;
 
                     if('nuvei' == self.scPaymentMethod) {
-                        self.writeLog('sfc', sfc);
+                        console.log('sfc', sfc);
 
                         if(null == sfc) {
                                 self.getApmMethods();
@@ -1146,7 +1071,7 @@ define(
             },
 			
 //            scUpdateQuotePM: function() {
-//                self.writeLog('scUpdateQuotePM()');
+//                console.log('scUpdateQuotePM()');
 //
 //                var scAjaxQuoteUpdateParams = {
 //                    dataType	: "json",
@@ -1158,12 +1083,12 @@ define(
 //
 //                // update new payment method
 //                if('' != self.scPaymentMethod || quote.paymentMethod._latestValue.method != self.scPaymentMethod) {
-//                    self.writeLog('update quote payment method', quote.paymentMethod._latestValue.method);
+//                    console.log('update quote payment method', quote.paymentMethod._latestValue.method);
 //
 //                    $.ajax(scAjaxQuoteUpdateParams)
 //                        .done(function(resp) {})
 //                        .fail(function(e) {
-//                            self.writeLog(e.responseText, null, 'error');
+//                            console.log(e.responseText, null, 'error');
 //                        });
 //                }
 //            },
@@ -1178,7 +1103,7 @@ define(
              * @returns void
              */
             writeLog: function(_text, _param = null, _mode = 'log') {
-                if(window.checkoutConfig.payment[self.getCode()].isTestMode !== true) {
+                if(window.checkoutConfig.payment[nuveiGetCode()].isTestMode !== true) {
                     return;
                 }
 

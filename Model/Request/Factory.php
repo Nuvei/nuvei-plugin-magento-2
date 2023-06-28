@@ -31,11 +31,12 @@ class Factory
         AbstractRequest::GET_UPOS_METHOD                    => \Nuvei\Checkout\Model\Request\GetUserUPOs::class,
         AbstractRequest::OPEN_ORDER_METHOD                  => \Nuvei\Checkout\Model\Request\OpenOrder::class,
         AbstractRequest::UPDATE_ORDER_METHOD                => \Nuvei\Checkout\Model\Request\UpdateOrder::class,
-        AbstractRequest::PAYMENT_APM_METHOD                => \Nuvei\Checkout\Model\Request\PaymentApm::class,
+        AbstractRequest::PAYMENT_APM_METHOD                 => \Nuvei\Checkout\Model\Request\PaymentApm::class,
         AbstractRequest::GET_MERCHANT_PAYMENT_PLANS_METHOD  => \Nuvei\Checkout\Model\Request\GetPlansList::class,
         AbstractRequest::CREATE_MERCHANT_PAYMENT_PLAN       => \Nuvei\Checkout\Model\Request\CreatePlan::class,
         AbstractRequest::GET_SESSION_TOKEN                  => \Nuvei\Checkout\Model\Request\GetSessionToken::class,
         AbstractRequest::CANCEL_SUBSCRIPTION_METHOD         => \Nuvei\Checkout\Model\Request\CancelSubscription::class,
+        AbstractRequest::DELETE_UPOS_METHOD                 => \Nuvei\Checkout\Model\Request\DeleteUPO::class,
     ];
 
     /**

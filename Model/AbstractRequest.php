@@ -33,6 +33,7 @@ abstract class AbstractRequest
     const CREATE_SUBSCRIPTION_METHOD            = 'createSubscription';
     const CANCEL_SUBSCRIPTION_METHOD            = 'cancelSubscription';
     const GET_SESSION_TOKEN                     = 'getSessionToken';
+    const DELETE_UPOS_METHOD                    = 'deleteUPO';
 
     protected $readerWriter;
     protected $config;
