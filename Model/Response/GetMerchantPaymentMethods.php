@@ -25,6 +25,7 @@ class GetMerchantPaymentMethods extends AbstractResponse implements ResponseInte
     
     private $assetRepo;
     private $config;
+    private $paymentsPlans;
 
     /**
      * AbstractResponse constructor.
@@ -43,10 +44,10 @@ class GetMerchantPaymentMethods extends AbstractResponse implements ResponseInte
         Curl $curl,
         Resolver $localeResolver,
         \Magento\Framework\View\Asset\Repository $assetRepo,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter
+        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
+        \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans
     ) {
         parent::__construct(
-//            $config,
             $requestId,
             $curl,
             $readerWriter
@@ -54,6 +55,7 @@ class GetMerchantPaymentMethods extends AbstractResponse implements ResponseInte
 
         $this->localeResolver   = $localeResolver;
         $this->assetRepo        = $assetRepo;
+        $this->paymentsPlans    = $paymentsPlans;
         $this->config           = $config;
     }
 
@@ -68,8 +70,9 @@ class GetMerchantPaymentMethods extends AbstractResponse implements ResponseInte
         $body               = $this->getBody();
         $this->sessionToken = (string) $body['sessionToken'];
         $langCode           = $this->getStoreLocale(true);
-        $countryCode        = $countryCode ?: $this->config->getQuoteCountryCode();
-        $useCcOnly          = $this->config->getNuveiUseCcOnly();
+        $countryCode        = $countryCode ?? $this->config->getQuoteCountryCode();
+//        $useCcOnly          = $this->config->getNuveiUseCcOnly();
+        $useCcOnly          = !empty($this->paymentsPlans->getProductPlanData()) ? true : false;
         
         foreach ((array) $body['paymentMethods'] as $method) {
             if (!$countryCode && isset($method["paymentMethod"]) && $method["paymentMethod"] !== 'cc_card') {

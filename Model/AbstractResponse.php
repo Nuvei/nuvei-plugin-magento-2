@@ -19,7 +19,7 @@ abstract class AbstractResponse
     const GET_USER_DETAILS_HANDLER              = 'get_user_details';
     const PAYMENT_REFUND_HANDLER                = 'payment_refund';
     const PAYMENT_VOID_HANDLER                  = 'payment_void';
-    const PAYMENT_APM_HANDLER                   = 'payment_apm';
+//    const PAYMENT_APM_HANDLER                   = 'payment_apm';
     const GET_MERCHANT_PAYMENT_METHODS_HANDLER  = 'get_merchant_payment_methods';
     const GET_UPOS_HANDLER                      = 'get_user_upos';
     const GET_MERCHANT_PAYMENT_PLANS_HANDLER    = 'get_plans_list';

@@ -431,7 +431,7 @@
                     <!--/ko-->
                 <!--/ko-->
 
-                <!-- ko if: ($data.paymentMethod === 'cc_card' && $parent.typeOfChosenPayMethod() === 'cc_card')-->
+                <!-- ko if: ($data.paymentMethod === 'cc_card' && $parent.typeOfChosenPayMethod() === 'cc_card') -->
                 <fieldset data-bind="
                     attr: {
                         class: 'fieldset payment items ccard ' + $parent.getCode(),
@@ -440,9 +440,7 @@
                     ">
 
                     <legend class="legend">
-                        <span>
-                            <!-- ko i18n: 'Credit Card Information' --><!-- /ko -->
-                        </span>
+                        <span><!-- ko i18n: 'Credit Card Information' --><!-- /ko --></span>
                     </legend><br />
 
                     <div class="field number">
@@ -502,16 +500,21 @@
         </div>
 		<hr/>
 		
-        <!-- ko if: showSaveUpos -->
-            <div id="nuvei_save_upo_cont">
-                <label>
-                    <input type="checkbox" value="0" name="nuvei_save_upo" />&nbsp;
-                    <span data-bind="i18n: 'Save the selected payment method as preferred.'"></span>
-                </label>
-                <hr/>
-            </div>
+        <!-- ko if: showSaveUposCheckbox() !== 'false' -->
+        <div id="nuvei_save_upo_cont">
+            <label>
+                <!-- ko if: (showSaveUposCheckbox() === 'true' || showSaveUposCheckbox() === 'force') -->
+                <input type="checkbox" value="0" name="nuvei_save_upo" />&nbsp;
+                <span data-bind="i18n: 'Save the selected payment method as preferred.'"></span>
+                <!--/ko-->
+                <!-- ko if: showSaveUposCheckbox() === 'always' -->
+                <span data-bind="i18n: 'Your selected payment method will be keeped as preferred.'"></span>
+                <!--/ko-->
+            </label>
+            <hr/>
+        </div>
         <!--/ko-->
-			
+        
         <div class="payment-method-content">
             <div class="checkout-agreements-block">
                 <!-- ko foreach: $parent.getRegion('before-place-order') -->

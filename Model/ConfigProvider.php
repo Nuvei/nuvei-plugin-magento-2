@@ -22,6 +22,7 @@ class ConfigProvider extends CcGenericConfigProvider
     private $readerWriter;
     private $locale;
     private $config; // the config for the SDK
+    private $isPaymentPlan;
 
     /**
      * ConfigProvider constructor.
@@ -119,25 +120,21 @@ class ConfigProvider extends CcGenericConfigProvider
     {
         $this->readerWriter->createLog('getCheckoutSdkConfig()');
         
-        $blocked_cards      = $this->getBlockedCards();
-        $blocked_pms        = $this->moduleConfig->getConfigValue('block_pms', 'advanced');
-        $is_user_logged     = $this->moduleConfig->isUserLogged();
-        $billing_address    = $this->moduleConfig->getQuoteBillingAddress();
-        $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
-        $isPaymentPlan      = !empty($payment_plan_data) ? true : false;
-        $save_pm            = $this->moduleConfig->canSaveUpos();
-        $show_upos          = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
-        
-        if ($isPaymentPlan) {
-            $save_pm = 'always';
-        }
+        $blocked_cards          = $this->getBlockedCards();
+        $blocked_pms            = $this->moduleConfig->getConfigValue('block_pms', 'advanced');
+        $is_user_logged         = $this->moduleConfig->isUserLogged();
+        $billing_address        = $this->moduleConfig->getQuoteBillingAddress();
+        $payment_plan_data      = $this->paymentsPlans->getProductPlanData();
+        $this->isPaymentPlan    = !empty($payment_plan_data) ? true : false;
+        $show_upos              = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
+        $save_pm                = $this->getSaveUposSetting();
         
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
                     'cartUrl'                   => $this->urlBuilder->getUrl('checkout/cart/'),
                     'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
-                    'isPaymentPlan'             => $isPaymentPlan,
+                    'isPaymentPlan'             =>$this->isPaymentPlan,
 //                    'useDevSdk'                 => $this->moduleConfig->getConfigValue('use_dev_sdk'),
                     
                     // we will set some of the parameters in the JS file
@@ -166,8 +163,8 @@ class ConfigProvider extends CcGenericConfigProvider
                         'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
                         'maskCvv'                   => true,
                         'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
-                        'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'advanced'),
-                        'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'advanced'),
+                        'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme'),
+                        'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type'),
                     ],
                 ],
             ],
@@ -181,7 +178,7 @@ class ConfigProvider extends CcGenericConfigProvider
 //            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['webSdkEnv'] = 'dev';
 //        }
         
-        if ($isPaymentPlan) {
+        if ($this->isPaymentPlan) {
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = null;
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmWhitelist'] = ['cc_card'];
         }
@@ -191,6 +188,8 @@ class ConfigProvider extends CcGenericConfigProvider
                 = $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['email'];
         }
         
+        $this->readerWriter->createLog($config);
+        
         return $config;
     }
     
@@ -198,13 +197,7 @@ class ConfigProvider extends CcGenericConfigProvider
     {
         $this->readerWriter->createLog('getWebSdkConfig()');
         
-        $isUserLogged   = $this->moduleConfig->isUserLogged();
-        $saveUpos       = false;
-        $userTokenId    = '';
-        
-        if ($isUserLogged) {
-            $saveUpos = $this->moduleConfig->canSaveUpos();
-        }
+        $userTokenId = '';
         
         $config = [
             'payment' => [
@@ -220,8 +213,8 @@ class ConfigProvider extends CcGenericConfigProvider
                     'getUpdateOrderUrl'     => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
                     'getRemoveUpoUrl'       => $this->urlBuilder->getUrl('nuvei_checkout/payment/DeleteUpo'),
                     'checkoutApplePayBtn'   => $this->assetRepo->getUrl("Nuvei_Checkout::images/ApplePay-Button.png"),
-                    'showUpos'              => ($this->moduleConfig->canShowUpos() && $isUserLogged),
-                    'saveUpos'              => $saveUpos,
+                    'showUpos'              => ($this->moduleConfig->canShowUpos() && $this->moduleConfig->isUserLogged()),
+                    'saveUpos'              => $this->getSaveUposSetting(),
                     // we need this for the WebSDK
                     'merchantSiteId'        => $this->moduleConfig->getMerchantSiteId(),
                     'merchantId'            => $this->moduleConfig->getMerchantId(),
@@ -231,10 +224,12 @@ class ConfigProvider extends CcGenericConfigProvider
                     'userTokenId'           => $this->moduleConfig->getQuoteBillingAddress()['email'],
                     'applePayLabel'         => $this->moduleConfig->getMerchantApplePayLabel(),
                     'currencyCode'          => $this->moduleConfig->getQuoteBaseCurrency(), 
-                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type', 'advanced'),
+                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type'),
                 ],
             ],
         ];
+        
+        $this->readerWriter->createLog($config);
         
         return $config;
     }
@@ -271,6 +266,21 @@ class ConfigProvider extends CcGenericConfigProvider
         }
         
         return $blocked_cards;
+    }
+    
+    private function getSaveUposSetting()
+    {
+        $saveUpos = false;
+        
+        if ($this->moduleConfig->isUserLogged()) {
+            $saveUpos = $this->moduleConfig->canSaveUpos();
+        }
+        
+        if ($this->isPaymentPlan) {
+            $save_pm = 'always';
+        }
+        
+        return $saveUpos;
     }
     
 }

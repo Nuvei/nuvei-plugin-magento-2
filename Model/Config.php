@@ -781,10 +781,10 @@ class Config
         ];
     }
     
-    public function getNuveiUseCcOnly()
-    {
-        return $this->checkoutSession->getNuveiUseCcOnly();
-    }
+//    public function getNuveiUseCcOnly()
+//    {
+//        return $this->checkoutSession->getNuveiUseCcOnly();
+//    }
     
     public function setNuveiUseCcOnly($val)
     {

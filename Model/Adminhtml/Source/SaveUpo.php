@@ -20,7 +20,7 @@ class SaveUpo implements ArrayInterface
             'true'      => __('Yes'),
             'false'     => __('No'),
             'force'     => __('Force'),
-            'always'    => __('Always '),
+            'always'    => __('Always'),
         ];
     }
 }

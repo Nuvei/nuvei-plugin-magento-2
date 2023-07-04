@@ -140,7 +140,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             ->setQuoteId($this->quoteId)
             ->getProductPlanData();
         
-        $this->subs_data    = isset($this->items_data['subs_data']) ?: [];
+        $this->subs_data    = $this->items_data['subs_data'] ?? [];
         $order_data         = $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
         $this->readerWriter->createLog([
@@ -362,7 +362,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         // auto_close_popup
         if (1 == $this->config->getConfigValue('auto_close_popup')
-            && 'redirect' != $this->config->getConfigValue('apm_window_type', 'advanced')
+            && 'redirect' != $this->config->getConfigValue('apm_window_type')
         ) {
             $params['urlDetails']['successUrl'] = $params['urlDetails']['pendingUrl']
                                                 = $params['urlDetails']['failureUrl']
