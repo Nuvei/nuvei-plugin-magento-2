@@ -3,8 +3,20 @@
 ---
 
 ## System requirements
-Magento v2.3.x and up
-PHP 7.2 and up
+Magento v2.3.x and up.  
+PHP 7.2 and up.  
+Working CURL module.
+
+---
+
+## Nuvei requirements
+Enabled DMNs into merchant settings.  
+Whitelisted plugin endpoint so the plugin can receive the DMNs.  
+In case of using plugin Rebilling functionality, plese provide the the DMNs endpoint to Integration and Teach Support teams, so it can be added to the merchant configuration.
+
+---
+
+## System requirements
 
 ---
 
