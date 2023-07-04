@@ -61,17 +61,16 @@ class PaymentsPlans
 //            : $this->quoteFactory->create()->load($this->quoteId);
             : $this->cartRepo->get($this->quoteId);
         
-        $itemsQty = $quote->getItemsSummaryQty();
-        
-        if (0 == $itemsQty) {
-            $this->readerWriter->createLog('Items quantity is 0');
-            
-            return $return_arr;
-        }
-        
         try {
             # 1. when we search in the Cart
             if (0 == $product_id && empty($params)) {
+                $itemsQty = $quote->getItemsSummaryQty();
+        
+                if (0 == $itemsQty) {
+                    $this->readerWriter->createLog('Items quantity is 0');
+                    return $return_arr;
+                }
+                
                 $items = $quote->getItems();
                 
                 $this->readerWriter->createLog((array) $quote->getItems());
@@ -257,7 +256,7 @@ class PaymentsPlans
                 if (!$attributeId) {
                     $this->readerWriter->createLog(
                         [$key, $attributeId],
-                        'SubscriptionsHistory Error - attribute ID must be int.'
+                        'Attribute ID must be int.'
                     );
                     continue;
                 }
@@ -266,16 +265,17 @@ class PaymentsPlans
             }
 
             if (empty($prod_options)) {
+                $this->readerWriter->createLog('$prod_options are empty.');
                 return [];
             }
 
             $parent     = $this->productRepository->getById($product_id);
             $product    = $this->configurable->getProductByAttributes($prod_options, $parent);
             
-//            $this->readerWriter->createLog(
-//                $product->getCustomAttribute('nuvei_sub_enabled'),
-//                'getProductPlanData get nuvei_sub_enabled on simple product'
-//            );
+            $this->readerWriter->createLog(
+                $product->getCustomAttribute('nuvei_sub_enabled'),
+                'getProductPlanData get nuvei_sub_enabled on simple product'
+            );
 
             $plan_data = $this->buildPlanDetailsArray($product);
             

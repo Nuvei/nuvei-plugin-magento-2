@@ -26,8 +26,10 @@
     <script>
         require([
             'jquery'
-        ], function($){
+        ], function($) {
+            
             function nuveiShowPlanDetails(params) {
+                console.log('nuveiShowPlanDetails', params);
                 var strParams = '';
                 
                 if(typeof params != 'undefined' && '' != params) {
@@ -79,6 +81,8 @@
             }
             
             function nuveiCheckForSelectedPlanOnLoad() {
+                console.log('nuveiCheckForSelectedPlanOnLoad');
+            
                 if('' != window.location.hash) {
                     nuveiShowPlanDetails(window.location.hash.replace('#', ''));
                 }
@@ -92,6 +96,8 @@
             
                 // on change of the attribute
                 $('select.super-attribute-select').on('change', function() {
+                    console.log('change select.super-attribute-select');
+                    
                     var _self           = $(this);
                     var attrId          = _self.attr('id').replace('attribute', '');
                     var nuveiAttrVal    = _self.val();

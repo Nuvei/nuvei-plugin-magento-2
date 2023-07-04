@@ -801,6 +801,8 @@ define(
                     setPaymentMethodAction(self.messageContainer)
                         .done(function() {
                             nuveiShowLoader();
+                    
+                            var errorMsg = $.mage.__('Unexpected error. Please try another payment option.');
 
                             $.ajax({
                                 dataType: "json",
@@ -822,15 +824,24 @@ define(
                                 }
                                 
                                 // error
-                                self.writeLog(res, null, 'error');
-                                window.location.reload();
-                                return;
+                                if (res.hasOwnProperty('message') && '' != res.message) {
+                                    errorMsg = res.message;
+                                }
                                 
+                                console.log('Nuvei Error', res);
+                                
+                                if (!alert(errorMsg)) {
+                                    window.location.reload();
+                                    return;
+                                }
                             })
                             .fail(function(e) {
-                                self.writeLog(e, null, 'error');
-                                window.location.reload();
-                                return;
+                                console.log('Nuvei Error', res);
+                                
+                                if (!alert(errorMsg)) {
+                                    window.location.reload();
+                                    return;
+                                }
                             });
                         }.bind(self)
                     );

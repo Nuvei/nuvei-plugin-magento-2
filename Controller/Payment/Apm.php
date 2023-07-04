@@ -76,6 +76,12 @@ class Apm extends Action
         );
 
         $this->readerWriter->createLog($params, 'Apm Controller incoming params:');
+        
+        $savePm = 0;
+        
+        if (!empty($params["save_payment_method"]) && 'false' != $params["save_payment_method"]) {
+            $savePm = 1;
+        }
 
         try {
             $request = $this->requestFactory->create(AbstractRequest::PAYMENT_APM_METHOD);
@@ -83,7 +89,7 @@ class Apm extends Action
             $response = $request
                 ->setPaymentMethod(empty($params["chosen_apm_method"]) ? '' : $params["chosen_apm_method"])
                 ->setPaymentMethodFields(empty($params["apm_method_fields"]) ? '' : $params["apm_method_fields"])
-                ->setSavePaymentMethod(empty($params["save_payment_method"]) ? 0 : $params["save_payment_method"])
+                ->setSavePaymentMethod($savePm)
                 ->process();
         } catch (PaymentException $e) {
             $this->readerWriter->createLog(
@@ -98,20 +104,26 @@ class Apm extends Action
             ]);
         }
         
+        $response['error'] = 0;
+        
         // on error
         if ('error' == strtolower($response['status'])
             || empty($response['redirectUrl'])
         ) {
-            return $result->setData([
-                "error"         => 1,
-                "message"       => $response['reason'] ?? __('Unexpected payment error'),
-            ]);
+            $response['error'] = 1;
+//            
+//            return $result->setData([
+//                "error"         => 1,
+//                "message"       => $response['reason'] ?? __('Unexpected payment error'),
+//            ]);
         }
         
-        return $result->setData([
-            "error"         => 0,
-            "redirectUrl"   => $response['redirectUrl'],
-            "message"       => $response['status'],
-        ]);
+//        return $result->setData([
+//            "error"         => 0,
+//            "redirectUrl"   => $response['redirectUrl'],
+//            "message"       => $response['status'],
+//        ]);
+        
+        return $result->setData($response);
     }
 }

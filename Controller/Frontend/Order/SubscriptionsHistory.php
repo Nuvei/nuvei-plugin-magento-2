@@ -111,6 +111,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
                 || !is_numeric($params['prodId'])
                 || empty($params['params'])
             ) {
+                $this->readerWriter->createLog($params, 'Params are empty');
                 return [];
             }
             
@@ -124,6 +125,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
             if (empty($hash_params)
                 || !is_array($hash_params)
             ) {
+                $this->readerWriter->createLog($hash_params, 'Hash Params are empty');
                 return [];
             }
             
@@ -149,12 +151,21 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
             }
             
             if (empty($prod_options)) {
+                $this->readerWriter->createLog($prod_options, 'Product options are empty');
                 return [];
             }
             
             $product_data = $this->paymentsPlans->getProductPlanData($params['prodId'], $prod_options);
             
             if (empty($product_data) || !is_array($product_data)) {
+                $this->readerWriter->createLog(
+                    [
+                        '$product_data' => $product_data,
+                        '$params'       => $params,
+                        '$prod_options' => $prod_options,
+                    ],
+                    'Product data is empty'
+                );
                 return [];
             }
             

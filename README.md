@@ -12,7 +12,7 @@ Working CURL module.
 ## Nuvei requirements
 Enabled DMNs into merchant settings.  
 Whitelisted plugin endpoint so the plugin can receive the DMNs.  
-In case of using plugin Rebilling functionality, plese provide the the DMNs endpoint to Integration and Teach Support teams, so it can be added to the merchant configuration.
+In case of using plugin Rebilling functionality, plese provide the the DMNs endpoint to Integration and Tech Support teams, so it can be added to the merchant configuration.
 
 ---
 

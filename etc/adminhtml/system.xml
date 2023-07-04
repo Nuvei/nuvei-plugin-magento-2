@@ -216,7 +216,7 @@
 						   showInWebsite="1"
 						   showInStore="0" 
 						   canRestore="1">
-						<label>Show UPOs</label>
+						<label>Show UPOs for Registred users</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/show_upos</config_path>
 					</field>
