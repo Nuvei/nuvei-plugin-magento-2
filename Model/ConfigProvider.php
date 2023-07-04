@@ -188,8 +188,6 @@ class ConfigProvider extends CcGenericConfigProvider
                 = $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['email'];
         }
         
-        $this->readerWriter->createLog($config);
-        
         return $config;
     }
     
@@ -230,8 +228,6 @@ class ConfigProvider extends CcGenericConfigProvider
                 ],
             ],
         ];
-        
-        $this->readerWriter->createLog($config);
         
         return $config;
     }

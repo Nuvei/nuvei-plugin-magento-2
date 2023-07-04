@@ -16,10 +16,6 @@ In case of using plugin Rebilling functionality, plese provide the the DMNs endp
 
 ---
 
-## System requirements
-
----
-
 ## Install manually under app/code
 Download & place the contents of this repository under {YOUR-MAGENTO2-ROOT-DIR}/app/code/Nuvei/Checkout  
 Then, run the following commands under your Magento 2 root dir:

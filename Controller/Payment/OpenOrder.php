@@ -73,11 +73,10 @@ class OpenOrder extends Action
             ]);
         }
         
+        $save_upo   = $this->getRequest()->getParam('saveUpo') ?? null;
+        $pmType     = $this->getRequest()->getParam('pmType') ?? '';
         
-        
-        $save_upo = $this->getRequest()->getParam('saveUpo');
-        
-        if (strpos($this->getRequest()->getParam('pmType'), 'upo')) {
+        if (strpos($pmType, 'upo')) {
             $save_upo = 1;
         }
         
