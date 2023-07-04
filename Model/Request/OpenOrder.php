@@ -345,14 +345,17 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             ],
         ];
         
-        # send userTokenId and save UPO
+        # send userTokenId and save UPO TODO
 //        if ('false' != $this->config->canSaveUpos()) {
 //            if (true === $this->isUserLogged || $this->config->isUserLogged()) {
 //                    $params['userTokenId'] = $params['billingAddress']['email'];
 //            }
 //        }
         // webSDK check
-        if (true === $this->isUserLogged || $this->config->isUserLogged()) {
+        if (true === $this->isUserLogged
+            || $this->config->isUserLogged()
+            || 1 == $this->config->getConfigValue('save_guest_upos')
+        ) {
             if (1 == $this->saveUpo) {
                 $params['userTokenId'] = $params['billingAddress']['email'];
             }

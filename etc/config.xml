@@ -27,6 +27,7 @@
                 <sandbox_merchant_secret_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
 				<sdk>checkout</sdk>
                 <save_upos>true</save_upos>
+                <save_guest_upos>0</save_guest_upos>
 				<show_upos>1</show_upos>
 				<debug>3</debug>
                 <min_order_total/>

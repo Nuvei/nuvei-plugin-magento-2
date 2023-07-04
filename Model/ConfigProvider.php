@@ -197,7 +197,9 @@ class ConfigProvider extends CcGenericConfigProvider
     {
         $this->readerWriter->createLog('getWebSdkConfig()');
         
-        $userTokenId = '';
+        $userTokenId            = '';
+        $payment_plan_data      = $this->paymentsPlans->getProductPlanData();
+        $this->isPaymentPlan    = !empty($payment_plan_data) ? true : false;
         
         $config = [
             'payment' => [
@@ -268,16 +270,21 @@ class ConfigProvider extends CcGenericConfigProvider
         return $blocked_cards;
     }
     
+    /**
+     * @return string
+     */
     private function getSaveUposSetting()
     {
-        $saveUpos = false;
+        $saveUpos = 'false';
         
-        if ($this->moduleConfig->isUserLogged()) {
+        if ($this->moduleConfig->isUserLogged()
+            || 1 == $this->moduleConfig->getConfigValue('save_guest_upos')
+        ) {
             $saveUpos = $this->moduleConfig->canSaveUpos();
         }
         
         if ($this->isPaymentPlan) {
-            $save_pm = 'always';
+            $saveUpos = 'always';
         }
         
         return $saveUpos;
