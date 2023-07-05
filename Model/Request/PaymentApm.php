@@ -140,7 +140,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      */
     protected function getRequestMethod()
     {
-        return is_numeric($this->paymentMethod) ? self::PAYMENT_UPO_APM_METHOD : self::PAYMENT_APM_METHOD;
+        return self::PAYMENT_APM_METHOD;
     }
 
     /**

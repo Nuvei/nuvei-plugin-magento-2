@@ -259,12 +259,8 @@ define(
                 return nuveiGetCode();
             },
 
-//            getPaymentApmUrl: function() {
-//                return window.checkoutConfig.payment[self.getCode()].paymentApmUrl;
-//            },
-			
 			getSessionToken: function() {
-                console.log('getSessionToken', quote.paymentMethod);
+                console.log('getSessionToken', quote.paymentMethod());
                 
                 if(window.checkoutConfig.payment[self.getCode()].isPaymentPlan
                     && quote.getItems().length > 1
@@ -356,7 +352,7 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2);
                 }
 
-                console.log('nuveiLoadCheckout', self.checkoutSdkParams);
+                console.log('nuveiCollectSdkParams', self.checkoutSdkParams);
 
                 self.checkoutSdkParams.prePayment	= nuveiPrePayment;
                 self.checkoutSdkParams.onResult		= nuveiAfterSdkResponse;
