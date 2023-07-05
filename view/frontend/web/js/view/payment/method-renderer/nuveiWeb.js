@@ -738,7 +738,7 @@ define(
                 }
                 
                 // undefined error
-                var respError = 'Error with your Payment. Please try again later!';
+                var respError = $.mage.__('Error with your Payment. Please try again later!');
 
                 if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
                     respError = resp.errorDescription;

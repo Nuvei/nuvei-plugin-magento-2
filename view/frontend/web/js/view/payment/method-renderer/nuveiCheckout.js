@@ -171,9 +171,9 @@ function nuveiAfterSdkResponse(resp) {
 
 	// on Success, Approved
     jQuery('#nuvei_default_pay_btn').trigger('click');
-	nuveiHideLoader();
+//	nuveiHideLoader();
 //    jQuery('#nuvei_checkout').html(jQuery.mage.__('<b>The transaction was approved.</b>'));
-    jQuery('#checkoutOverlay').remove();
+//    jQuery('#checkoutOverlay').remove();
 	return;
 };
 

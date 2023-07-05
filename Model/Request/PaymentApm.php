@@ -219,7 +219,6 @@ class PaymentApm extends AbstractRequest implements RequestInterface
             'billingAddress'    => $billingAddress,
             'shippingAddress'   => $this->config->getQuoteShippingAddress($this->quoteId),
             'userDetails'       => $billingAddress,
-            
             'sessionToken'      => $order_data['sessionToken'],
         ];
         
