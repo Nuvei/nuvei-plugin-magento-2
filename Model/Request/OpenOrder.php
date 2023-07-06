@@ -357,7 +357,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                 }
             }
             elseif ('false' != $this->config->getConfigValue('save_upos')) {
-                 $params['userTokenId'] = $params['billingAddress']['email'];
+                $params['userTokenId'] = $params['billingAddress']['email'];
             }
         }
         

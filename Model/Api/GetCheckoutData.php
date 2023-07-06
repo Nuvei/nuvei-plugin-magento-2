@@ -195,7 +195,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'upos'              => $upos,
 //            'getRemoveUpoUrl'           => $this->urlBuilder->getUrl('nuvei_payments/payment/DeleteUpo'),
             'countryId'         => $this->moduleConfig->getQuoteCountryCode($quoteId),
-            'saveUpos'          => $this->moduleConfig->getSaveUposSetting(empty($oo_data['subsData']) ? false : true),
+            'useUPOs'           => $this->moduleConfig->getSaveUposSetting(empty($oo_data['subsData']) ? false : true),
             // we need this for the WebSDK
             'merchantSiteId'    => $this->moduleConfig->getMerchantSiteId(),
             'merchantId'        => $this->moduleConfig->getMerchantId(),

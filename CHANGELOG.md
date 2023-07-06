@@ -5,6 +5,8 @@
 # 3.1.0
 ```
     * Add WebSDK as option to finish the payment.
+    * Added more options for "Save UPOs" setting according SimplyConnect.
+    * All new settings are implemented for Headless mode too.
 ```
 
 # 3.0.1
