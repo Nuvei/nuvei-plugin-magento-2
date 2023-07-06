@@ -321,7 +321,7 @@ class Config
      */
     public function getConfigValue($fieldKey, $sub_group = '')
     {
-        if (isset($this->config[$fieldKey]) === false) {
+        if (!isset($this->config[$fieldKey])) {
             $path = 'payment/' . Payment::METHOD_CODE . '/';
             
             if (!empty($sub_group)) {
@@ -452,7 +452,7 @@ class Config
     
     public function getCheckoutTransl()
     {
-        $transl             = $this->getConfigValue('checkout_transl', 'advanced');
+        $transl             = $this->getConfigValue('checkout_transl', 'checkout');
         $checkout_transl    = '';
         
         if (!empty($transl)) {

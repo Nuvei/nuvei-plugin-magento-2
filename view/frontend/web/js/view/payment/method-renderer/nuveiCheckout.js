@@ -128,8 +128,14 @@ function nuveiAfterSdkResponse(resp) {
 		|| !resp.hasOwnProperty('result')
 		|| !resp.hasOwnProperty('transactionId')
 	) {
-		if(!alert(jQuery.mage.__('Unexpected error, please try again later!'))) {
-			window.location.reload();
+        var errorMsg = jQuery.mage.__('Unexpected error, please try again later!');
+        
+        if (resp.hasOwnProperty('error') && '' != resp.error) {
+            errorMsg = resp.error;
+        }
+
+		if(!alert(errorMsg)) {
+//			window.location.reload();
 			return;
 		}
 	}
@@ -181,16 +187,13 @@ define(
     [
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-//        'Magento_Paypal/js/action/set-payment-method',
         'ko',
         'Magento_Checkout/js/model/quote',
         'mage/translate'//,
-//		'mage/validation'
     ],
     function(
         $,
         Component,
-//        setPaymentMethodAction,
         ko,
         quote,
         mage
@@ -259,8 +262,16 @@ define(
                 return nuveiGetCode();
             },
 
-			getSessionToken: function() {
-                console.log('getSessionToken', quote.paymentMethod());
+			getSessionToken: function(_text) {
+                console.log('getSessionToken payment method', {
+                    paymentMethod: quote.paymentMethod(),
+                    textParam: _text,
+                    '#nuvei_checkout length': $('#nuvei_checkout').length
+                });
+                
+                if (null == quote.paymentMethod() || !quote.paymentMethod()) {
+                    return;
+                }
                 
                 if(window.checkoutConfig.payment[self.getCode()].isPaymentPlan
                     && quote.getItems().length > 1
@@ -302,7 +313,9 @@ define(
 
                             self.nuveiCollectSdkParams();
                             self.checkoutSdkParams.sessionToken = resp.sessionToken;
+                            self.checkoutSdkParams.amount       = self.checkoutSdkParams.amount.toString();
 
+                            console.log('call checkout sdk', self.checkoutSdkParams);
                             nuveiCheckoutSdk(self.checkoutSdkParams);
 
                             nuveiHideLoader();
@@ -323,6 +336,8 @@ define(
 			},
             
             nuveiCollectSdkParams: function() {
+                console.log('nuveiCollectSdkParams');
+                
                 self.checkoutSdkParams = JSON.parse(JSON.stringify(
                     window.checkoutConfig.payment[nuveiGetCode()].nuveiCheckoutParams
                 ));
@@ -352,7 +367,7 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2);
                 }
 
-                console.log('nuveiCollectSdkParams', self.checkoutSdkParams);
+//                console.log('nuveiCollectSdkParams', self.checkoutSdkParams);
 
                 self.checkoutSdkParams.prePayment	= nuveiPrePayment;
                 self.checkoutSdkParams.onResult		= nuveiAfterSdkResponse;
@@ -365,7 +380,7 @@ define(
 			},
 			
 			scBillingAddrChange: function() {
-				self.writeLog('scBillingAddrChange');
+				console.log('scBillingAddrChange');
 				
 				if(quote.billingAddress() == null) {
 					self.writeLog('scBillingAddrChange - the BillingAddr is null. Stop here.');
@@ -379,17 +394,13 @@ define(
 					return;
 				}
                 
-				self.writeLog('scBillingAddrChange - the country was changed to', quote.billingAddress().countryId);
+				console.log('scBillingAddrChange - the country was changed', quote.billingAddress().countryId);
 				
 //				// reload the checkout
-//                self.changedOrderCountry = quote.billingAddress().countryId;
-//                self.getSessionToken();
-
                 let sessionToken = self.checkoutSdkParams.sessionToken;
                 
                 self.nuveiCollectSdkParams();
                 self.checkoutSdkParams.sessionToken = sessionToken;
-                self.checkoutSdkParams.country      = quote.billingAddress().countryId;
                 
                 nuveiCheckoutSdk(self.checkoutSdkParams);
 			},
@@ -406,11 +417,10 @@ define(
 					return;
 				}
                 
-				self.writeLog('scTotalsChange() - the total was changed to', currentTotal);
+				console.log('scTotalsChange() - the total was changed', currentTotal);
 				
 				// reload the checkout
-//                self.changedOrderAmout = currentTotal;
-                self.getSessionToken();
+                self.getSessionToken('scTotalsChange');
 			},
 			
 			/**

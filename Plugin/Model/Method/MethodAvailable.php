@@ -19,7 +19,7 @@ class MethodAvailable
     
     public function afterGetAvailableMethods(\Magento\Payment\Model\MethodList $subject, $result)
     {
-        $this->readerWriter->createLog('MethodAvailable afterGetAvailableMethods');
+        $this->readerWriter->createLog((array) $result, 'MethodAvailable afterGetAvailableMethods');
         
         if (!empty($this->paymentsPlans->getProductPlanData())) {
             foreach ($result as $key => $_result) {

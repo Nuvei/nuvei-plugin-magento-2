@@ -1150,29 +1150,6 @@ define(
                 }
             },
 			
-//            scUpdateQuotePM: function() {
-//                console.log('scUpdateQuotePM()');
-//
-//                var scAjaxQuoteUpdateParams = {
-//                    dataType	: "json",
-//                    url		: self.getUpdateQuotePM(),
-//                    cache	: false,
-//                    showLoader	: true,
-//                    data	: { paymentMethod: quote.paymentMethod._latestValue.method }
-//                };
-//
-//                // update new payment method
-//                if('' != self.scPaymentMethod || quote.paymentMethod._latestValue.method != self.scPaymentMethod) {
-//                    console.log('update quote payment method', quote.paymentMethod._latestValue.method);
-//
-//                    $.ajax(scAjaxQuoteUpdateParams)
-//                        .done(function(resp) {})
-//                        .fail(function(e) {
-//                            console.log(e.responseText, null, 'error');
-//                        });
-//                }
-//            },
-			
             /**
              * Help function to show some logs in Sandbox
              * 

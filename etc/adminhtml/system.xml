@@ -293,7 +293,7 @@
 					</field>
 				</group>
 				
-				<group id="checkour_configuration"
+				<group id="checkout_configuration"
                        translate="label"
                        showInDefault="1"
                        showInWebsite="1"
