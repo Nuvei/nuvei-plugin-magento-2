@@ -406,14 +406,36 @@ class Config
         return false;
     }
     
-    public function canSaveUpos()
-    {
-        return $this->getConfigValue('save_upos');
-    }
-    
+    /**
+     * Just get show_upos setting value.
+     * 
+     * @return string
+     */
     public function canShowUpos()
     {
         return $this->getConfigValue('show_upos');
+    }
+    
+    /**
+     * Decision based on save UPO setting, save Guest UPO setting and type of the user - Guest or not.
+     * 
+     * @param bool $isPaymentPlan Is there any product with payment plan in the Cart.
+     */
+    public function getSaveUposSetting($isPaymentPlan)
+    {
+        $saveUpos = 'false';
+        
+        if ($this->isUserLogged()
+            || 1 == $this->getConfigValue('save_guest_upos')
+        ) {
+            $saveUpos = $this->getConfigValue('save_upos');
+        }
+        
+        if ($isPaymentPlan) {
+            $saveUpos = 'always';
+        }
+        
+        return $saveUpos;
     }
     
     public function isUserLogged()

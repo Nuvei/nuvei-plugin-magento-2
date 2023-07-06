@@ -35,7 +35,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $this->scopeConfig          = $scopeConfig;
         $this->apiRequest           = $apiRequest;
         $this->paymentsPlans        = $paymentsPlans;
-        
     }
     
     /**
@@ -134,7 +133,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $apmMethods     = [];
         $request        = $this->requestFactory->create(AbstractRequest::GET_MERCHANT_PAYMENT_METHODS_METHOD);
         $billingAddress = $this->moduleConfig->getQuoteBillingAddress($quoteId);
-//        $currency       = $this->moduleConfig->getQuoteBaseCurrency($quoteId);
         
         $apmsResp = $request
             ->setBillingAddress(json_encode($billingAddress))
@@ -170,7 +168,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
         
         if ($this->moduleConfig->canShowUpos() && $isUserLogged) {
             $request    = $this->requestFactory->create(AbstractRequest::GET_UPOS_METHOD);
-            $upos   = $request
+            $upos       = $request
                 ->setEmail($billingAddress['email'])
                 ->process();
             
@@ -191,23 +189,23 @@ class GetCheckoutData implements GetCheckoutDataInterface
         );
         
         $sdk_data = [
-            'sessionToken'              => $oo_data['sessionToken'],
-            'total'                     => $oo_data['amount'],
-            'apms'                      => $apmMethods,
-            'upos'                      => $upos,
+            'sessionToken'      => $oo_data['sessionToken'],
+            'total'             => $oo_data['amount'],
+            'apms'              => $apmMethods,
+            'upos'              => $upos,
 //            'getRemoveUpoUrl'           => $this->urlBuilder->getUrl('nuvei_payments/payment/DeleteUpo'),
-            'countryId'                 => $this->moduleConfig->getQuoteCountryCode($quoteId),
-            'useUPOs'                   => $this->moduleConfig->canUseUpos(true),
+            'countryId'         => $this->moduleConfig->getQuoteCountryCode($quoteId),
+            'saveUpos'          => $this->moduleConfig->getSaveUposSetting(empty($oo_data['subsData']) ? false : true),
             // we need this for the WebSDK
-            'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
-            'merchantId'                => $this->moduleConfig->getMerchantId(),
-            'isTestMode'                => $this->moduleConfig->isTestModeEnabled(),
-            'locale'                    => substr($locale, 0, 2),
-            'webMasterId'               => $this->moduleConfig->getSourcePlatformField(),
-            'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
-            'userTokenId'               => $isUserLogged ? $billingAddress['email'] : '',
+            'merchantSiteId'    => $this->moduleConfig->getMerchantSiteId(),
+            'merchantId'        => $this->moduleConfig->getMerchantId(),
+            'isTestMode'        => $this->moduleConfig->isTestModeEnabled(),
+            'locale'            => substr($locale, 0, 2),
+            'webMasterId'       => $this->moduleConfig->getSourcePlatformField(),
+            'sourceApplication' => $this->moduleConfig->getSourceApplication(),
+            'userTokenId'       => $isUserLogged ? $billingAddress['email'] : '',
 //            'applePayLabel'             => $this->moduleConfig->getMerchantApplePayLabel(),
-            'currencyCode'              => $this->moduleConfig->getQuoteBaseCurrency($quoteId),
+            'currencyCode'      => $this->moduleConfig->getQuoteBaseCurrency($quoteId),
         ];
         
         // return the data
@@ -268,15 +266,9 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $isTestMode         = $this->moduleConfig->isTestModeEnabled();
         $billingAddress     = $this->moduleConfig->getQuoteBillingAddress($quoteId);
         $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
-        $isPaymentPlan      = false;
+        $isPaymentPlan      = empty($payment_plan_data) ? false : true;
         $is_user_logged     = $this->moduleConfig->isUserLogged();
-        $save_pm            = $this->moduleConfig->canSaveUpos();
-        $show_upos          = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
-        
-        if (!empty($payment_plan_data)) {
-            $save_pm        = 'always';
-            $isPaymentPlan  = true;
-        }
+        $save_pm            = $this->moduleConfig->getSaveUposSetting($isPaymentPlan);
         
         $sdk_data = [
             'sessionToken'          => $oo_data['sessionToken'],
@@ -294,7 +286,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
                 'strict'                    => false,
                 'savePM'                    => $save_pm,
-                'showUserPaymentOptions'    => $show_upos,
+                'showUserPaymentOptions'    => ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false,
                 'alwaysCollectCvv'          => true,
                 'fullName'                  => trim($billingAddress['firstName'] . ' ' . $billingAddress['lastName']),
                 'email'                     => $billingAddress['email'],
@@ -306,6 +298,8 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 'maskCvv'                   => true,
                 'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
                 'blockCards'                => $blocked_cards,
+                'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
+                'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
             ],
         ];
         
