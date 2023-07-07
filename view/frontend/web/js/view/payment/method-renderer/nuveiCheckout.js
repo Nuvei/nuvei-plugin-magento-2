@@ -8,7 +8,7 @@
 var nuveiAgreementsConfig   = window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
 
 /**
- * Validate checkout agreements
+ * Validate checkout agreements.
  *
  * @returns {Boolean}
  */
@@ -37,7 +37,7 @@ function nuveiValidateAgreement(hideError) {
 };
 
 /**
- * Use it as last check before complete the Order with the Checkout SDK.
+ * Use it as last check before complete the Order.
  * 
  * @param {object} paymentDetails
  * @returns {Promise}
@@ -89,13 +89,13 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
 			if (xmlhttp.status == 400) {
                 console.log('There was an error.');
                 reject();
-                Query('body').trigger('processStop');
+                nuveiHideLoader();
                 return;
             }
 		   
 			console.log('Unexpected response code.');
 			reject();
-			Query('body').trigger('processStop');
+			nuveiHideLoader();
 			return;
         }
     };
@@ -189,7 +189,7 @@ define(
         'Magento_Payment/js/view/payment/cc-form',
         'ko',
         'Magento_Checkout/js/model/quote',
-        'mage/translate'//,
+        'mage/translate'
     ],
     function(
         $,
@@ -254,9 +254,9 @@ define(
                 return self;
             },
 
-            isShowLegend: function() {
-                return true;
-            },
+//            isShowLegend: function() {
+//                return true;
+//            },
 
             getCode: function() {
                 return nuveiGetCode();

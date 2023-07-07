@@ -351,13 +351,20 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             || $this->config->isUserLogged()
             || 1 == $this->config->getConfigValue('save_guest_upos')
         ) {
-            if (!is_null($this->saveUpo)) {
-                if (1 == $this->saveUpo) {
+            // For Checkout SDK we always pass userTokenId. The decision to save UPO or not is in the SDK
+            if ('checkout' == $this->config->getConfigValue('sdk')) {
+                $params['userTokenId'] = $params['billingAddress']['email'];
+            }
+            // For the WebSDK the decision to save UPO is here - in the OpenOrder
+            else {
+                if (!is_null($this->saveUpo)) {
+                    if (1 == $this->saveUpo) {
+                        $params['userTokenId'] = $params['billingAddress']['email'];
+                    }
+                }
+                elseif ('false' != $this->config->getConfigValue('save_upos')) {
                     $params['userTokenId'] = $params['billingAddress']['email'];
                 }
-            }
-            elseif ('false' != $this->config->getConfigValue('save_upos')) {
-                $params['userTokenId'] = $params['billingAddress']['email'];
             }
         }
         

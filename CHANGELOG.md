@@ -7,6 +7,7 @@
     * Add WebSDK as option to finish the payment.
     * Added more options for "Save UPOs" setting according SimplyConnect.
     * All new settings are implemented for Headless mode too.
+    * It is recommended "Zero Subtotal Checkout" to be disabled when plan to allow Zero-Orders checkout.
 ```
 
 # 3.0.1
