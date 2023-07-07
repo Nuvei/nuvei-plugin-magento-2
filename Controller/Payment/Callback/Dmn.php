@@ -1060,7 +1060,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //                $this->request->getPostValue()
 //            );
             
-            $orderId = $this->cartManagement->placeOrder($params);
+            $orderId = $this->cartManagement->placeOrder($params['quote']);
 
             $result
                 ->setData('success', true)
