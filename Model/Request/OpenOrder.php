@@ -17,6 +17,10 @@ use Nuvei\Checkout\Model\Response\Factory as ResponseFactory;
  */
 class OpenOrder extends AbstractRequest implements RequestInterface
 {
+//    public $orderId;
+    public $sessionToken;
+    public $ooAmount;
+    
     /**
      * @var RequestFactory
      */
@@ -201,10 +205,10 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $req_resp = $this->sendRequest(true);
         }
         
-        $this->orderId      = $req_resp['orderId'];
+//        $this->orderId      = $req_resp['orderId'];
         $this->sessionToken = $req_resp['sessionToken'];
         $this->ooAmount     = $req_resp['merchantDetails']['customField1'];
-        $this->subsData     = $this->subs_data;
+//        $this->subsData     = $this->subs_data;
 
         # save the session token in the Quote
         $add_info = [

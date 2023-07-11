@@ -397,7 +397,8 @@ abstract class AbstractRequest
         }
 
         $concat .= $this->config->getMerchantSecretKey();
-        $concat = utf8_encode($concat);
+//        $concat = utf8_encode($concat);
+        $concat = $concat;
         
         $params['checksum'] = hash($this->config->getConfigValue('hash'), $concat);
 

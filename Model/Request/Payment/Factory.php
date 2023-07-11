@@ -36,11 +36,11 @@ class Factory
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
      */
     public function __construct(
-        ObjectManagerInterface $objectManager,
-        \Nuvei\Checkout\Model\Config $config
+        ObjectManagerInterface $objectManager
+//        ,\Nuvei\Checkout\Model\Config $config
     ) {
         $this->objectManager = $objectManager;
-        $this->config = $config;
+//        $this->config           = $config;
     }
 
     /**
