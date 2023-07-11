@@ -222,7 +222,7 @@ class ConfigProvider extends CcGenericConfigProvider
                     'webMasterId'           => $this->moduleConfig->getSourcePlatformField(),
                     'sourceApplication'     => $this->moduleConfig->getSourceApplication(),
                     'userTokenId'           => $this->moduleConfig->getQuoteBillingAddress()['email'],
-                    'applePayLabel'         => $this->moduleConfig->getMerchantApplePayLabel(),
+                    'applePayLabel'         => $this->moduleConfig->getConfigValue('apple_pay_label', 'web_sdk'),
                     'currencyCode'          => $this->moduleConfig->getQuoteBaseCurrency(), 
 //                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type'),
                 ],

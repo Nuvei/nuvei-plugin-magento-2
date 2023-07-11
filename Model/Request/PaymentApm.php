@@ -206,7 +206,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
                     ? $this->urlDetails['pendingUrl'] : $this->config->getCallbackPendingUrl($this->quoteId),
                 'backUrl'           => !empty($this->urlDetails['backUrl'])
                     ? $this->urlDetails['backUrl'] : $this->config->getBackUrl(),
-                'notificationUrl'   => $this->config->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId),
+//                'notificationUrl'   => $this->config->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId),
             ],
             
 //            'amountDetails'     => [
@@ -221,6 +221,12 @@ class PaymentApm extends AbstractRequest implements RequestInterface
             'userDetails'       => $billingAddress,
             'sessionToken'      => $order_data['sessionToken'],
         ];
+        
+        // set notify url
+        if (0 == $this->config->getConfigValue('disable_notify_url', 'basic')) {
+            $params['urlDetails']['notificationUrl'] = $this->config
+                ->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId);
+        }
         
         // UPO APM
         if (is_numeric($this->paymentMethod)) {

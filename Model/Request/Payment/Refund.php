@@ -140,15 +140,24 @@ class Refund extends AbstractPayment implements RequestInterface
             'amount'                => (float) $this->amount,
             'relatedTransactionId'  => $trans_to_refund_data[Payment::TRANSACTION_ID],
             'merchant_unique_id'    => $order->getIncrementId(),
-            'urlDetails'            => [
-                'notificationUrl' => $this->config
-                    ->getCallbackDmnUrl(
-                        $order->getIncrementId(),
-                        $order->getStoreId(),
-                        ['invoice_id' => $inv_id]
-                    ),
-            ],
+//            'urlDetails'            => [
+//                'notificationUrl' => $this->config
+//                    ->getCallbackDmnUrl(
+//                        $order->getIncrementId(),
+//                        $order->getStoreId(),
+//                        ['invoice_id' => $inv_id]
+//                    ),
+//            ],
         ];
+        
+        // set notify url
+        if (0 == $this->config->getConfigValue('disable_notify_url', 'basic')) {
+            $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(
+                $order->getIncrementId(),
+                $order->getStoreId(),
+                ['invoice_id' => $inv_id]
+            );
+        }
 
         $params = array_merge_recursive($params, parent::getParams());
 

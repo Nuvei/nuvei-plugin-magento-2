@@ -192,10 +192,14 @@ define(
                 return self;
             },
             
+            getLang: function() {
+                return window.checkoutConfig.payment[nuveiGetCode()].locale
+            },
+            
             context: function() {
                 return self;
             },
-
+            
             // use it into the template
             getCode: function() {
                 return nuveiGetCode();
@@ -374,13 +378,21 @@ define(
 					
                     if (res && res.error == 0) {
                         self.apmMethods(res.apmMethods);
-                        self.applePayData(res.applePayData);
                         self.upos(res.upos);
+                        
+                        console.log(window.ApplePaySession);
+//                        console.log(typeof window.ApplePaySession.canMakePayments());
+                        console.log(typeof res.applePayData);
+                        console.log(typeof res.applePayData);
 						
-                        if(typeof window.ApplePaySession == 'function'
+                        // for ApplePay
+                        if(window.ApplePaySession
+                            && window.ApplePaySession.canMakePayments()
                             && typeof res.applePayData == 'object' 
                             && res.applePayData.hasOwnProperty('paymentMethod')
+                            && false // disabled at the moment
                         ) {
+                            self.applePayData(res.applePayData);
                             $('#nuvei_apple_pay').show();
                         }
 						
@@ -488,12 +500,18 @@ define(
             
             validateOrderData: function() {
                 console.log('validateOrderData()');
+                
+                var payParams = {};
 
                 // Apple Pay
                 if(self.chosenApmMethod() === 'ppp_ApplePay') {
                     console.log('validateOrderData() ppp_ApplePay');
                     
-                    var payParams = {
+                    if (window.ApplePaySession && window.ApplePaySession.canMakePayments()) {
+                        
+                    }
+                    
+                    payParams = {
                         sessionToken: scData.sessionToken,
                         merchantId: window.checkoutConfig.payment[nuveiGetCode()].merchantId,
                         merchantSiteId: window.checkoutConfig.payment[nuveiGetCode()].merchantSiteId,

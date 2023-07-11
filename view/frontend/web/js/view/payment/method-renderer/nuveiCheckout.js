@@ -254,16 +254,12 @@ define(
                 return self;
             },
 
-//            isShowLegend: function() {
-//                return true;
-//            },
-
             getCode: function() {
                 return nuveiGetCode();
             },
 
 			getSessionToken: function(_text) {
-                console.log('getSessionToken payment method', {
+                self.writeLog('getSessionToken payment method', {
                     paymentMethod: quote.paymentMethod(),
                     textParam: _text,
                     '#nuvei_checkout length': $('#nuvei_checkout').length
@@ -315,10 +311,10 @@ define(
                             self.checkoutSdkParams.sessionToken = resp.sessionToken;
                             self.checkoutSdkParams.amount       = self.checkoutSdkParams.amount.toString();
 
-                            console.log('call checkout sdk', self.checkoutSdkParams);
-                            nuveiCheckoutSdk(self.checkoutSdkParams);
-
-                            nuveiHideLoader();
+                            console.log('load checkout sdk', self.checkoutSdkParams);
+                            console.log('load checkout sdk nuvei_checkout length', $('#nuvei_checkout').length);
+                            
+                            self.loadSdk();
                             return;
                         }
 
@@ -342,7 +338,7 @@ define(
                     window.checkoutConfig.payment[nuveiGetCode()].nuveiCheckoutParams
                 ));
                 
-                self.checkoutSdkParams.amount = quote.totals().base_grand_total;
+//                self.checkoutSdkParams.amount = quote.totals().base_grand_total.toString();
 
                 // check for changed amout
 //                if(self.changedOrderAmout > 0 && self.changedOrderAmout != self.checkoutSdkParams.amount) {
@@ -364,7 +360,7 @@ define(
                     && parseFloat(quote.totals().base_grand_total).toFixed(2) != self.checkoutSdkParams.amount
                 ) {
                     self.checkoutSdkParams.amount
-                        = parseFloat(quote.totals().base_grand_total).toFixed(2);
+                        = parseFloat(quote.totals().base_grand_total).toFixed(2).toString();
                 }
 
 //                console.log('nuveiCollectSdkParams', self.checkoutSdkParams);
@@ -402,7 +398,7 @@ define(
                 self.nuveiCollectSdkParams();
                 self.checkoutSdkParams.sessionToken = sessionToken;
                 
-                nuveiCheckoutSdk(self.checkoutSdkParams);
+                self.loadSdk();
 			},
 			
 			scTotalsChange: function() {
@@ -420,9 +416,37 @@ define(
 				console.log('scTotalsChange() - the total was changed', currentTotal);
 				
 				// reload the checkout
-                self.getSessionToken('scTotalsChange');
+//                self.getSessionToken('scTotalsChange');
+
+                let sessionToken = self.checkoutSdkParams.sessionToken;
+                
+                self.nuveiCollectSdkParams();
+                self.checkoutSdkParams.sessionToken = sessionToken;
+                
+                self.loadSdk();
 			},
 			
+            /**
+             * A help method to load the checkout sdk.
+             * 
+             * @returns void
+             */
+            loadSdk: function() {
+                // in case of some reloads or when Zero Checkout method is active
+                if ($('#nuvei_checkout').length == 0) {
+                    console.log('Missing nuvei_checkout container. Do not load SimplyConnect');
+
+                    nuveiHideLoader();
+                    return;
+                }
+
+                // call the SDK
+                nuveiCheckoutSdk(self.checkoutSdkParams);
+
+                nuveiHideLoader();
+                return;
+            },
+            
 			/**
 			 * Help function to show some logs in Sandbox
 			 * 

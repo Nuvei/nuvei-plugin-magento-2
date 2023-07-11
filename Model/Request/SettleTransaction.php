@@ -99,6 +99,12 @@ class SettleTransaction extends AbstractRequest implements RequestInterface
             ],
         ];
         
+        // set notify url
+        if (0 == $this->config->getConfigValue('disable_notify_url', 'basic')) {
+            $params['urlDetails']['notificationUrl'] = $this->config
+                ->getCallbackDmnUrl($getIncrementId, null, ['invoice_id' => $this->invoice_id]);
+        }
+        
         $params = array_merge_recursive(parent::getParams(), $params);
 
         return $params;

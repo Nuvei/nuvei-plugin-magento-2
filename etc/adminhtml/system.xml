@@ -221,6 +221,20 @@
 						<config_path>payment/nuvei/show_upos</config_path>
 					</field>
                     
+                    <field id="disable_notify_url"
+						   translate="label"
+						   type="select"
+						   sortOrder="126"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="1">
+						<label>Disable the Notify URL</label>
+						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						<config_path>payment/nuvei/disable_notify_url</config_path>
+                        <comment>If disable the Notify URL, please be sure it is set into CPanel!</comment>
+					</field>
+                    
 					<field id="debug"
 						   translate="label"
 						   type="select"

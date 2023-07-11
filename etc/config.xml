@@ -28,6 +28,7 @@
 				<sdk>checkout</sdk>
                 <save_upos>true</save_upos>
                 <save_guest_upos>0</save_guest_upos>
+                <disable_notify_url>0</disable_notify_url>
 				<show_upos>1</show_upos>
 				<debug>3</debug>
                 <min_order_total/>

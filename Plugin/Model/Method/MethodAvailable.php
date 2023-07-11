@@ -4,6 +4,9 @@ namespace Nuvei\Checkout\Plugin\Model\Method;
 
 use Nuvei\Checkout\Model\Payment;
 
+/**
+ * When there is a product with Nuvei Payment plan, remove all other payment providers.
+ */
 class MethodAvailable
 {
     private $paymentsPlans;
@@ -19,13 +22,15 @@ class MethodAvailable
     
     public function afterGetAvailableMethods(\Magento\Payment\Model\MethodList $subject, $result)
     {
-        $this->readerWriter->createLog('MethodAvailable afterGetAvailableMethods');
+        $this->readerWriter->createLog($result, 'MethodAvailable afterGetAvailableMethods');
         
-        if (!empty($this->paymentsPlans->getProductPlanData())) {
-            foreach ($result as $key => $_result) {
-                if ($_result->getCode() != Payment::METHOD_CODE) {
-                    unset($result[$key]);
-                }
+        if (empty($this->paymentsPlans->getProductPlanData())) {
+            return $result;
+        }
+        
+        foreach ($result as $key => $_result) {
+            if ($_result->getCode() != Payment::METHOD_CODE) {
+                unset($result[$key]);
             }
         }
         

@@ -284,7 +284,7 @@
                     <!-- ko i18n: "You can not use Apple Pay" --><!-- /ko -->
                 </div>
 
-                <div>
+<!--                <div>
                     <button id="nuvei_apple_pay_btn" 
                             type="button" 
                             class="action checkout" 
@@ -295,6 +295,11 @@
                                 'alt' : $t('Apple Pay')
                             }" />
                     </button>
+                </div>-->
+                
+                <div id="nuvei_apple_pay_btn" class="apple-pay-button-with-text apple-pay-button-black-with-text buy" data-bind="attr: { lang: getLang()}">
+                    <!--<span class="text">Button</span>-->
+                    <span class="logo"></span>
                 </div>
             </div>
         </div>

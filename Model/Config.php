@@ -195,11 +195,6 @@ class Config
         return $this->getConfigValue('sdk');
     }
     
-    public function getMerchantApplePayLabel()
-    {
-        return $this->getConfigValue('apple_pay_label');
-    }
-    
     /**
      * Function getSourceApplication
      * Get the value of one more parameter for the REST API

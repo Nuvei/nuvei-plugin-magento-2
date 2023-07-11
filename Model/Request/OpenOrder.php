@@ -323,7 +323,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->config->getConfigValue('payment_action'),
 
             'urlDetails'        => [
-                'notificationUrl'   => $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId),
+//                'notificationUrl'   => $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId),
                 'backUrl'           => $this->config->getBackUrl(),
                 'successUrl'        => $this->config->getCallbackSuccessUrl($this->quoteId),
                 'failureUrl'        => $this->config->getCallbackErrorUrl($this->quoteId),
@@ -344,6 +344,11 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                     ? json_encode($this->items_data['items_data']) : '',
             ],
         ];
+        
+        // set notify url
+        if (0 == $this->config->getConfigValue('disable_notify_url', 'basic')) {
+            $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId);
+        }
         
         # send userTokenId and save UPO
         # save upo is allowed only for registred user or Guests in case when 'save_guest_upos' is set to Yes.
