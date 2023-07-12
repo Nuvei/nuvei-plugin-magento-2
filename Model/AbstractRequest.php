@@ -269,9 +269,6 @@ abstract class AbstractRequest
             'timeStamp'         => date('YmdHis'),
             'webMasterId'       => $this->config->getSourcePlatformField(),
             'sourceApplication' => $this->config->getSourceApplication(),
-//            'merchantDetails'   => [
-//                'customField3'      => 'Magento v.' . $this->config->getMagentoVersion(), // Magento version
-//            ],
             
         ];
 
@@ -376,14 +373,20 @@ abstract class AbstractRequest
         if (empty($checksumKeys)) {
             return $params;
         }
-
+        
         $concat = '';
+        
         foreach ($checksumKeys as $checksumKey) {
             if (!isset($params[$checksumKey])) {
+                // additional check for the new plugin option
+                if ('urlDetails' == $checksumKey
+                    && 1 == $this->config->getConfigValue('disable_notify_url')
+                ) {
+                    continue;
+                }
+                
                 $msg = __('Required key %1 for checksum calculation is missing.', $checksumKey);
-                
                 $this->readerWriter->createLog($msg);
-                
                 throw new PaymentException($msg);
             }
 

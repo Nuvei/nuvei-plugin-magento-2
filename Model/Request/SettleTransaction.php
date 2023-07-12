@@ -95,10 +95,10 @@ class SettleTransaction extends AbstractRequest implements RequestInterface
             'currency'                  => $order->getBaseCurrencyCode(),
             'relatedTransactionId'      => $trans_to_settle[Payment::TRANSACTION_ID],
             'authCode'                  => $trans_to_settle[Payment::TRANSACTION_AUTH_CODE],
-            'urlDetails'                => [
-                'notificationUrl' => $this->config
-                    ->getCallbackDmnUrl($getIncrementId, null, ['invoice_id' => $this->invoice_id]),
-            ],
+//            'urlDetails'                => [
+//                'notificationUrl' => $this->config
+//                    ->getCallbackDmnUrl($getIncrementId, null, ['invoice_id' => $this->invoice_id]),
+//            ],
         ];
         
         // set notify url

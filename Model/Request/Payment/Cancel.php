@@ -15,6 +15,7 @@ use Nuvei\Checkout\Model\RequestInterface;
 class Cancel extends AbstractPayment implements RequestInterface
 {
     protected $readerWriter;
+    protected $request;
     
     /**
      * Refund constructor.
