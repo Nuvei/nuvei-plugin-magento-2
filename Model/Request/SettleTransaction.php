@@ -11,6 +11,8 @@ use Magento\Framework\Exception\PaymentException;
 class SettleTransaction extends AbstractRequest implements RequestInterface
 {
     private $invoice_id;
+    private $payment;
+    private $amount;
     
     /**
      * @return AbstractResponse

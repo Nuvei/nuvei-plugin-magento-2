@@ -14,7 +14,8 @@ class BeforeCreateInvoice
 {
     private $objectManager;
     private $readerWriter;
-    private $request;
+//    private $request;
+    private $params;
     
     public function __construct(
         \Magento\Framework\ObjectManagerInterface $objectManager,
