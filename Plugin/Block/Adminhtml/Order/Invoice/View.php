@@ -5,7 +5,6 @@ namespace Nuvei\Checkout\Plugin\Block\Adminhtml\Order\Invoice;
 use Nuvei\Checkout\Model\Payment;
 use Magento\Sales\Model\Order\Invoice;
 
-//class View extends \Magento\Backend\Block\Widget\Form\Container
 class View
 {
     private $request;
@@ -15,7 +14,6 @@ class View
     private $readerWriter;
 
     public function __construct(
-//        \Magento\Backend\Block\Widget\Context $context,
         \Magento\Framework\App\RequestInterface $request,
         Invoice $invoice,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
@@ -27,8 +25,6 @@ class View
         $this->orderRepo                = $orderRepo;
         $this->searchCriteriaBuilder    = $searchCriteriaBuilder;
         $this->readerWriter             = $readerWriter;
-        
-//        parent::__construct($context);
     }
 
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\Invoice\View $view)

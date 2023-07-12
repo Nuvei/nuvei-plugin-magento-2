@@ -2,9 +2,6 @@
 
 namespace Nuvei\Checkout\Model\Response\Payment;
 
-//use Nuvei\Checkout\Model\Response\AbstractPayment;
-//use Nuvei\Checkout\Model\ResponseInterface;
-
 /**
  * Nuvei Checkout payment void response model.
  */

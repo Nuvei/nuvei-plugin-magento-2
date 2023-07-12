@@ -70,6 +70,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $transactionRepository;
     private $params;
     private $orderIncrementId;
+    private $readerWriter;
 
     /**
      * Object constructor.

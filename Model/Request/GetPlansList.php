@@ -8,23 +8,18 @@ use Nuvei\Checkout\Model\RequestInterface;
 class GetPlansList extends AbstractRequest implements RequestInterface
 {
     protected $requestFactory;
-//    protected $config;
     
-//    private $fileSystem;
     private $directory;
     
     public function __construct(
-        //        \Nuvei\Checkout\Model\Logger $logger,
         \Nuvei\Checkout\Model\Config $config,
         \Nuvei\Checkout\Lib\Http\Client\Curl $curl,
         \Nuvei\Checkout\Model\Response\Factory $responseFactory,
         \Nuvei\Checkout\Model\Request\Factory $requestFactory,
-        //        \Magento\Framework\Filesystem\DriverInterface $fileSystem,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Magento\Framework\Filesystem\DirectoryList $directory
     ) {
         parent::__construct(
-//            $logger,
             $config,
             $curl,
             $responseFactory,
@@ -32,7 +27,6 @@ class GetPlansList extends AbstractRequest implements RequestInterface
         );
 
         $this->requestFactory   = $requestFactory;
-//        $this->fileSystem       = $fileSystem;
         $this->directory        = $directory;
     }
     

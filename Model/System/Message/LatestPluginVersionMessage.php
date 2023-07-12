@@ -2,12 +2,14 @@
 
 namespace Nuvei\Checkout\Model\System\Message;
 
+use Magento\Framework\Notification\MessageInterface;
+
 /**
  * Show System message if there is new version of the plugin,
  *
  * @author Nuvei
  */
-class LatestPluginVersionMessage implements \Magento\Framework\Notification\MessageInterface
+class LatestPluginVersionMessage implements MessageInterface
 {
     const MESSAGE_IDENTITY = 'nuvei_plugin_version_message';
     

@@ -4,10 +4,7 @@ namespace Nuvei\Checkout\Model\Response;
 
 use Nuvei\Checkout\Lib\Http\Client\Curl;
 use Nuvei\Checkout\Model\AbstractResponse;
-//use Nuvei\Checkout\Model\Config;
 use Magento\Sales\Model\Order\Payment as OrderPayment;
-
-//use Nuvei\Checkout\Model\Logger;
 
 /**
  * Nuvei Checkout abstract payment response model.
@@ -22,23 +19,17 @@ abstract class AbstractPayment extends AbstractResponse
     /**
      * AbstractPayment constructor.
      *
-     * @param Logger            $logger
-     * @param Config            $config
      * @param int               $requestId
      * @param Curl              $curl
      * @param OrderPayment|null $orderPayment
      */
     public function __construct(
-        //        Logger $logger,
-        //        Config $config,
         $requestId,
         Curl $curl,
         OrderPayment $orderPayment,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter
     ) {
         parent::__construct(
-//            $logger,
-//            $config,
             $requestId,
             $curl,
             $readerWriter

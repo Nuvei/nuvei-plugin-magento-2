@@ -151,7 +151,7 @@ class Refund extends AbstractPayment implements RequestInterface
         ];
         
         // set notify url
-        if (0 == $this->config->getConfigValue('disable_notify_url', 'basic')) {
+        if (0 == $this->config->getConfigValue('disable_notify_url')) {
             $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(
                 $order->getIncrementId(),
                 $order->getStoreId(),

@@ -15,12 +15,10 @@ class ReaderWriter
     private $traceId;
     
     public function __construct(
-        //        \Magento\Framework\ObjectManagerInterface $objectManager,
         \Nuvei\Checkout\Model\Config $config,
         \Magento\Framework\Filesystem\DirectoryList $directory
     ) {
         try {
-//            $this->fileSystem   = $objectManager->create(\Magento\Framework\Filesystem\DriverInterface::class);
             $this->config       = $config;
             $this->directory    = $directory;
         } catch (\Exception $ex) {
