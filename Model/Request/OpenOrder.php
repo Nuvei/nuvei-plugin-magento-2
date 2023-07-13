@@ -338,10 +338,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'merchantDetails'    => [
                 'customField1' => $amount,
                 'customField2' => isset($this->subs_data) ? json_encode($this->subs_data) : '',
-//                'customField5' => $this->config->getReservedOrderId($quoteId), // order increment id
-//                'customField6' => $quoteId, // quote id
             ],
         ];
+        
+        $this->readerWriter->createLog(
+            [
+                $params['merchantDetails'],
+                $this->config->getCallbackDmnUrl(null, null, [], $quoteId)
+            ],
+            'OpenOrder');
         
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {

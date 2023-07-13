@@ -9,21 +9,15 @@ class Toolbar
     private $orderRepository;
     private $request;
     private $readerWriter;
-//    private $urlInterface;
-//    private $urlBuilder;
     
     public function __construct(
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
         ,\Magento\Framework\App\RequestInterface $request
         ,\Nuvei\Checkout\Model\ReaderWriter $readerWriter
-//        ,\Magento\Framework\UrlInterface $urlInterface
-//        ,\Magento\Framework\Url $urlBuilder
     ) {
         $this->orderRepository  = $orderRepository;
         $this->request          = $request;
         $this->readerWriter     = $readerWriter;
-//        $this->urlInterface     = $urlInterface;
-//        $this->urlBuilder       = $urlBuilder;
     }
     
     /**
@@ -57,7 +51,7 @@ class Toolbar
                 return [$context, $buttonList];
             }
             
-            $this->readerWriter->createLog($buttonList->getItems()[0]);
+//            $this->readerWriter->createLog($buttonList->getItems()[0]);
             
             if (!empty($ord_trans_addit_info) && is_array($ord_trans_addit_info)) {
                 foreach ($ord_trans_addit_info as $trans) {

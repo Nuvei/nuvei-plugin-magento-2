@@ -147,8 +147,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                 'merchantDetails'   => [
                     'customField1'  => $amount,
                     'customField2'  => json_encode($subs_data),
-//                    'customField5' => $this->config->getReservedOrderId($quoteId), // order increment id
-//                    'customField6' => $quoteId, // quote id
                 ],
             ]
         );

@@ -1602,30 +1602,32 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private function getOrderIdentificators($params)
     {
         // for the initial requests
-        if (in_array($params['transactionType'], ['Auth', 'Sale'])) {
-            if (!empty($params["order"])) {
-                $this->orderIncrementId = $params["order"];
-                return;
-            }
-            
-//            if (!empty($params['customField5'])) {
-//                return $params['customField5'];
+        if (isset($params['transactionType'])
+            && in_array($params['transactionType'], ['Auth', 'Sale'])
+        ) {
+//            if (!empty($params["order"])) {
+//                $this->orderIncrementId = $params["order"];
+//                return;
 //            }
             
             if (!empty($params["clientUniqueId"])) {
                 $this->quoteId = current(explode('_', $params["clientUniqueId"]));
                 return;
             }
+            
+            return;
         }
         
         // for subsccription DMNs
         if (!empty($params['dmnType'])
-            && in_array($params['dmnType'], ['subscriptionPayment', 'subscription'])
             && !empty($params['clientRequestId'])
+            && in_array($params['dmnType'], ['subscriptionPayment', 'subscription'])
         ) {
             $clientRequestId_arr    = explode('_', $params["clientRequestId"]);
             $last_elem              = end($clientRequestId_arr);
 
+            $this->readerWriter->createLog($last_elem, '$last_elem');
+            
             if (!empty($last_elem) && is_numeric($last_elem)) {
                 $this->orderIncrementId = $last_elem;
             }

@@ -13,6 +13,7 @@ use Nuvei\Checkout\Model\Payment;
 class Status extends Column
 {
     private $collection;
+    private $readerWriter;
 
     /**
      * Constructor
