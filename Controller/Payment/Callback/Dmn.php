@@ -121,7 +121,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter             = $readerWriter;
         $this->transactionRepository    = $transactionRepository;
         $this->currencyFactory          = $currencyFactory;
-        $this->orderModel               = $orderModel;
         
         parent::__construct($context);
     }
