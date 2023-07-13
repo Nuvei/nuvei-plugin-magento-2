@@ -50,6 +50,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $is_partial_settle  = false;
     private $curr_trans_info    = []; // collect the info for the current transaction (action)
     private $refund_msg         = '';
+    private $orderIncrementId   = 0;
+    private $quoteId            = 0;
     private $transaction;
     private $invoiceService;
     private $invoiceRepository;
@@ -69,7 +71,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $paymentModel;
     private $transactionRepository;
     private $params;
-    private $orderIncrementId;
     private $readerWriter;
 
     /**
@@ -120,6 +121,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter             = $readerWriter;
         $this->transactionRepository    = $transactionRepository;
         $this->currencyFactory          = $currencyFactory;
+        $this->orderModel               = $orderModel;
         
         parent::__construct($context);
     }
@@ -207,45 +209,20 @@ class Dmn extends Action implements CsrfAwareActionInterface
             }
             // /try to validate the Cheksum
             
-            // try to find Order ID
-            $orderIncrementId = 0;
+//            $this->orderIncrementId = $this->getOrderId($params);
+            /**
+             * Here will be set $this->orderIncrementId or $this->quoteId
+             */
+            $this->getOrderIdentificators($params);
             
-            if (!empty($params["order"])) {
-                $orderIncrementId = $params["order"];
-            }
-            elseif (!empty($params["merchant_unique_id"])) {
-                // modified because of the PayPal Sandbox problem with duplicate Orders IDs
-                $orderIncrementId = current(explode('_', $params["merchant_unique_id"]));
-            }
-            elseif (!empty($params["clientUniqueId"])) {
-                $orderIncrementId = current(explode('_', $params["clientUniqueId"]));
-            }
-            elseif (!empty($params["orderId"])) {
-                $orderIncrementId = $params["orderId"];
-            }
-            elseif (!empty($params['dmnType'])
-                && in_array($params['dmnType'], ['subscriptionPayment', 'subscription'])
-                && !empty($params['clientRequestId'])
-            ) {
-                $orderIncrementId       = 0;
-                $clientRequestId_arr    = explode('_', $params["clientRequestId"]);
-                $last_elem              = end($clientRequestId_arr);
-                
-                if (!empty($last_elem) && is_numeric($last_elem)) {
-                    $orderIncrementId = $last_elem;
-                }
-            }
-            else {
-                $msg = 'DMN error - no Order ID parameter.';
-            
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
-            // /try to find Order ID
-            
-            $this->orderIncrementId = $orderIncrementId;
+//            if (0 == $this->orderIncrementId) {
+//                $msg = 'DMN error - no Order ID parameter.';
+//
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+//                return $this->jsonOutput;
+//            }
             
             /**
              * Try to create the Order.
@@ -315,7 +292,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $stop = $this->processSubscrDmn($params, $ord_trans_addit_info);
             
             if ($stop) {
-                $msg = 'Process Subscr DMN ends for order #' . $orderIncrementId;
+                $msg = 'Process Subscr DMN ends for order #' . $this->orderIncrementId;
                 
                 $this->readerWriter->createLog($msg);
                 $this->jsonOutput->setData($msg);
@@ -325,7 +302,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             // /check for Subscription State DMN
             
             if (!in_array($status, ['declined', 'error', 'approved', 'success'])) { // UNKNOWN DMN
-                $msg = 'DMN for Order #' . $orderIncrementId . ' was not recognized.';
+                $msg = 'DMN for Order #' . $this->orderIncrementId . ' was not recognized.';
             
                 $this->readerWriter->createLog($msg);
                 $this->jsonOutput->setData($msg);
@@ -369,7 +346,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 
                 $this->orderResourceModel->save($this->order);
                 
-                $msg = 'DMN process end for order #' . $orderIncrementId;
+                $msg = 'DMN process end for order #' . $this->orderIncrementId;
             
                 $this->readerWriter->createLog($msg);
                 $this->jsonOutput->setData($msg);
@@ -467,11 +444,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return $this->jsonOutput;
         }
         
-        $this->readerWriter->createLog('DMN process end for order #' . $orderIncrementId);
-        $this->jsonOutput->setData('DMN process end for order #' . $orderIncrementId);
+        $this->readerWriter->createLog('DMN process end for order #' . $this->orderIncrementId);
+        $this->jsonOutput->setData('DMN process end for order #' . $this->orderIncrementId);
 
         # try to create Subscription plans
-        $this->createSubscription($params, $last_record, $orderIncrementId, $last_record);
+        $this->createSubscription($params, $last_record, $this->orderIncrementId, $last_record);
 
         return $this->jsonOutput;
     }
@@ -582,7 +559,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $dmn_inv_id         = $this->httpRequest->getParam('invoice_id');
         $is_cpanel_settle   = false;
         
-        if (!empty($this->params["merchant_unique_id"])
+        if (!empty($this->params["merchant_unique_id"] && isset($this->params["order"]))
             && $this->params["merchant_unique_id"] != $this->params["order"]
         ) {
             $is_cpanel_settle = true;
@@ -1009,7 +986,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
      */
     private function placeOrder($params)
     {
-        $this->readerWriter->createLog($params, 'PlaceOrder()');
+        $this->readerWriter->createLog('PlaceOrder()');
         
         $result = $this->dataObjectFactory->create();
         
@@ -1239,7 +1216,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-//        $items_list = json_decode($params['customField5'], true);
         $subsc_data = [];
 
         // we allow only one Product in the Order to be with Payment Plan
@@ -1302,13 +1278,26 @@ class Dmn extends Action implements CsrfAwareActionInterface
         return;
     }
     
-//    private function getOrCreateOrder($params, $orderIncrementId)
     private function getOrCreateOrder()
     {
-        $this->readerWriter->createLog($this->orderIncrementId, 'getOrCreateOrder for $orderIncrementId');
+        $this->readerWriter->createLog('getOrCreateOrder');
         
+        if (0 == $this->orderIncrementId && 0 == $this->quoteId) {
+            $msg = 'DMN error - orderIncrementId and quoteId are 0.';
+
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return $this->jsonOutput;
+        }
+        
+        $identificator  = max([$this->quoteId, $this->orderIncrementId]);
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('increment_id', $this->orderIncrementId, 'eq')->create();
+            ->addFilter(
+                0 == $this->quoteId ? 'increment_id' : 'quote_id',
+                $identificator,
+                'eq'
+            )->create();
 
         $tryouts    = 0;
         $max_tries  = 5;
@@ -1333,6 +1322,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         do {
             $tryouts++;
+            
             $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
 
             if (!$orderList || empty($orderList)) {
@@ -1349,7 +1339,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             if (in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
                 && strtolower($this->params['Status']) != 'approved'
             ) {
-                $msg = 'The Order ' . $this->orderIncrementId .' is not approved, stop process.';
+                $msg = 'The Order ' . $identificator .' is not approved, stop process.';
                 
                 $this->readerWriter->createLog($msg);
                 $this->jsonOutput->setData($msg);
@@ -1357,7 +1347,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 return false;
             }
             
-            $this->readerWriter->createLog('Order '. $this->orderIncrementId .' not found, try to create it!');
+            $this->readerWriter->createLog('Order '. $identificator .' not found, try to create it!');
 
             $result = $this->placeOrder($this->params);
 
@@ -1372,7 +1362,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
             $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
 
-            $this->readerWriter->createLog('An Order with ID '. $this->orderIncrementId .' was created in the DMN page.');
+            $this->readerWriter->createLog('An Order with ID '. $identificator .' was created in the DMN page.');
         }
         
         if (!$orderList || empty($orderList)) {
@@ -1414,7 +1404,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             $this->readerWriter->createLog(
                 [
-                    'orderIncrementId'  => $this->orderIncrementId,
+                    'orderIncrementId'  => $identificator,
                     'module'            => $method,
                 ],
                 $msg
@@ -1603,4 +1593,70 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         return true;
     }
+    
+    /**
+     * Try to find Order ID and/or Quote ID from DMN parameters.
+     * 
+     * @param array $params The DMN parameters.
+     * @returns string|int
+     */
+    private function getOrderIdentificators($params)
+    {
+        // for the initial requests
+        if (in_array($params['transactionType'], ['Auth', 'Sale'])) {
+            if (!empty($params["order"])) {
+                $this->orderIncrementId = $params["order"];
+                return;
+            }
+            
+//            if (!empty($params['customField5'])) {
+//                return $params['customField5'];
+//            }
+            
+            if (!empty($params["clientUniqueId"])) {
+                $this->quoteId = current(explode('_', $params["clientUniqueId"]));
+                return;
+            }
+        }
+        
+        // for subsccription DMNs
+        if (!empty($params['dmnType'])
+            && in_array($params['dmnType'], ['subscriptionPayment', 'subscription'])
+            && !empty($params['clientRequestId'])
+        ) {
+            $clientRequestId_arr    = explode('_', $params["clientRequestId"]);
+            $last_elem              = end($clientRequestId_arr);
+
+            if (!empty($last_elem) && is_numeric($last_elem)) {
+                $this->orderIncrementId = $last_elem;
+            }
+            
+            return;
+        }
+        
+        // for all other requests
+        if (!empty($params["order"])) {
+            $this->orderIncrementId = $params["order"];
+            return;
+        }
+        
+        if (!empty($params["merchant_unique_id"])) {
+            // modified because of the PayPal Sandbox problem with duplicate Orders IDs
+            $this->orderIncrementId = current(explode('_', $params["merchant_unique_id"]));
+            return;
+        }
+        
+        if (!empty($params["clientUniqueId"])) {
+            $this->orderIncrementId = current(explode('_', $params["clientUniqueId"]));
+            return;
+        }
+        
+        if (!empty($params["orderId"])) {
+            $this->orderIncrementId = $params["orderId"];
+            return;
+        }
+        
+        return;
+    }
+    
 }

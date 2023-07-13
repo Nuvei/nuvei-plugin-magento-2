@@ -329,31 +329,23 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->config->getConfigValue('payment_action'),
 
             'urlDetails'        => [
-//                'notificationUrl'   => $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId),
                 'backUrl'           => $this->config->getBackUrl(),
-                'successUrl'        => $this->config->getCallbackSuccessUrl($this->quoteId),
-                'failureUrl'        => $this->config->getCallbackErrorUrl($this->quoteId),
-                'pendingUrl'        => $this->config->getCallbackPendingUrl($this->quoteId),
+                'successUrl'        => $this->config->getCallbackSuccessUrl($quoteId),
+                'failureUrl'        => $this->config->getCallbackErrorUrl($quoteId),
+                'pendingUrl'        => $this->config->getCallbackPendingUrl($quoteId),
             ],
 
             'merchantDetails'    => [
-                // pass amount
                 'customField1' => $amount,
-                // subscription data
-                'customField2' => isset($this->subs_data)
-                    ? json_encode($this->subs_data) : '',
-                // customField3 is passed in AbstractRequest
-                // time when we create the request
-                'customField4' => time(),
-                // list of Order items
-                'customField5' => isset($this->items_data['items_data'])
-                    ? json_encode($this->items_data['items_data']) : '',
+                'customField2' => isset($this->subs_data) ? json_encode($this->subs_data) : '',
+//                'customField5' => $this->config->getReservedOrderId($quoteId), // order increment id
+//                'customField6' => $quoteId, // quote id
             ],
         ];
         
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {
-            $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(null, null, [], $this->quoteId);
+            $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(null, null, [], $quoteId);
         }
         
         # send userTokenId and save UPO

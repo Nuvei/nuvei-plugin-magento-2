@@ -112,28 +112,31 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             throw new PaymentException(__('There is no Cart data.'));
         }
         
+        $quoteId = empty($this->quoteId) ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
+        
         // iterate over Items and search for Subscriptions
         $items_data = $this->paymentsPlans->getProductPlanData();
         $subs_data  = isset($items_data['subs_data']) ? $items_data['subs_data'] : [];
         
         $this->config->setNuveiUseCcOnly(!empty($subs_data) ? true : false);
         
-        $billing_address    = $this->config->getQuoteBillingAddress($this->quoteId);
-        $amount             = $this->config->getQuoteBaseTotal($this->quoteId);
+        $billing_address    = $this->config->getQuoteBillingAddress($quoteId);
+        $amount             = $this->config->getQuoteBaseTotal($quoteId);
+        $currency           = $this->config->getQuoteBaseCurrency($quoteId);
         
         $this->readerWriter->createLog([
             '$subs_data' => $subs_data,
-            'quoteId' => $this->quoteId,
-            'getQuoteBaseCurrency' => $this->config->getQuoteBaseCurrency($this->quoteId),
+            'quoteId' => $quoteId,
+            'getQuoteBaseCurrency' => $currency,
         ]);
         
         $params = array_merge_recursive(
             parent::getParams(),
             [
-                'currency'          => $this->config->getQuoteBaseCurrency($this->quoteId),
+                'currency'          => $currency,
                 'amount'            => $amount,
                 'billingAddress'    => $billing_address,
-                'shippingAddress'   => $this->config->getQuoteShippingAddress($this->quoteId),
+                'shippingAddress'   => $this->config->getQuoteShippingAddress($quoteId),
                 
                 'items'             => [[
                     'name'      => 'magento_order',
@@ -142,15 +145,10 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                 ]],
                 
                 'merchantDetails'   => [
-                    // pass amount
                     'customField1'  => $amount,
                     'customField2'  => json_encode($subs_data),
-                    # customField3 is passed in AbstractRequest
-                    // time when we create the request
-                    'customField4'  => time(),
-                    // list of Order items
-                    'customField5'  => isset($items_data['items_data'])
-                        ? json_encode($items_data['items_data']) : '',
+//                    'customField5' => $this->config->getReservedOrderId($quoteId), // order increment id
+//                    'customField6' => $quoteId, // quote id
                 ],
             ]
         );

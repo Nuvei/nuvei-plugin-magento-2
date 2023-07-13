@@ -269,7 +269,10 @@ abstract class AbstractRequest
             'timeStamp'         => date('YmdHis'),
             'webMasterId'       => $this->config->getSourcePlatformField(),
             'sourceApplication' => $this->config->getSourceApplication(),
-            
+            // some of them are set in the child classes
+            'merchantDetails'   => [
+                'customField4' => time(),
+            ],
         ];
 
         return $params;

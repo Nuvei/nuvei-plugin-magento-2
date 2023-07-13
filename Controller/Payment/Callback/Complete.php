@@ -2,6 +2,8 @@
 
 namespace Nuvei\Checkout\Controller\Payment\Callback;
 
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Exception\PaymentException;
 use Magento\Framework\App\Request\InvalidRequestException;
@@ -11,7 +13,7 @@ use Magento\Framework\App\RequestInterface;
  * Nuvei Checkout redirect success controller.
  */
 //class Success extends Action
-class Complete extends \Magento\Framework\App\Action\Action implements \Magento\Framework\App\CsrfAwareActionInterface
+class Complete extends Action implements CsrfAwareActionInterface
 {
     /**
      * @var DataObjectFactory

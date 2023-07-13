@@ -115,7 +115,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
     
     public function setSavePaymentMethod($savePaymentMethod)
     {
-        $this->savePaymentMethod = $savePaymentMethod;
+        $this->savePaymentMethod = (int) $savePaymentMethod;
         return $this;
     }
     

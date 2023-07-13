@@ -267,7 +267,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $billingAddress     = $this->moduleConfig->getQuoteBillingAddress($quoteId);
         $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
         $isPaymentPlan      = empty($payment_plan_data) ? false : true;
-        $is_user_logged     = $this->moduleConfig->isUserLogged();
         $save_pm            = $this->moduleConfig->getSaveUposSetting($isPaymentPlan);
         
         $sdk_data = [
@@ -286,7 +285,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
                 'strict'                    => false,
                 'savePM'                    => $save_pm,
-                'showUserPaymentOptions'    => ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false,
+                'showUserPaymentOptions'    => ($isUserLogged && $this->moduleConfig->canShowUpos()) ? true : false,
                 'alwaysCollectCvv'          => true,
                 'fullName'                  => trim($billingAddress['firstName'] . ' ' . $billingAddress['lastName']),
                 'email'                     => $billingAddress['email'],
@@ -324,23 +323,29 @@ class GetCheckoutData implements GetCheckoutDataInterface
      */
     private function getApmRedirectUrl($quoteId)
     {
-        $params     = $this->apiRequest->getBodyParams();
-        $urlDetails = [];
+        $params = $this->apiRequest->getBodyParams();
         
-        if (isset($params['urlDetails'])) {
-            $urlDetails = $params['urlDetails'];
-            unset($params['urlDetails']);
-        }
+//        $urlDetails         = $params['urlDetails'] ?? [];
         
-        $this->readerWriter->createLog([$params, $urlDetails]);
+//        if (isset($params['urlDetails'])) {
+//            $urlDetails = $params['urlDetails'];
+//            unset($params['urlDetails']);
+//        }
+        
+//        $this->readerWriter->createLog([$params, $urlDetails]);
+        $this->readerWriter->createLog($params);
         
         $request    = $this->requestFactory->create(AbstractRequest::PAYMENT_APM_METHOD);
         $response   = $request
-            ->setPaymentMethod(empty($params["chosenApmMethod"]) ? '' : $params["chosenApmMethod"])
-            ->setSavePaymentMethod(empty($params["savePm"]) ? 0 : (int) $params["savePm"])
-            ->setPaymentMethodFields($params)
+//            ->setPaymentMethod(empty($params["chosenApmMethod"]) ? '' : $params["chosenApmMethod"])
+            ->setPaymentMethod($params['chosenApmMethod'] ?? '')
+//            ->setSavePaymentMethod(empty($params["savePm"]) ? 0 : (int) $params["savePm"])
+            ->setSavePaymentMethod($params["savePm"] ?? 0)
+//            ->setPaymentMethodFields($params)
+            ->setPaymentMethodFields($params['apmMethodFields'] ?? [])
             ->setQuoteId($quoteId)
-            ->setUrlDetails($urlDetails)
+//            ->setUrlDetails($urlDetails)
+            ->setUrlDetails($params['urlDetails'] ?? [])
             ->process();
         
         if (empty($response['redirectUrl'])) {
