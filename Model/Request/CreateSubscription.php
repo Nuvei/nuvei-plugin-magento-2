@@ -69,7 +69,7 @@ class CreateSubscription extends AbstractRequest implements RequestInterface
         $params = array_merge_recursive($this->request_data, parent::getParams());
         
         // append Order ID to the Request ID
-        $params['clientRequestId'] .= '_' . $this->order_id;
+        $params['clientRequestId'] = date('YmdHis') . '_' . $this->order_id;
         
         return $params;
     }

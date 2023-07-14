@@ -573,27 +573,28 @@ class Config
             ->getStore(null === $incrementId ? $this->storeId : $storeId)
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         
-        $params = [
+//        $params = [
 //            'order'     => null === $incrementId ? $this->getReservedOrderId($quoteId) : $incrementId,
-            'form_key'  => $this->formKey->getFormKey(),
-            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
-        ];
+//            'form_key'  => $this->formKey->getFormKey(),
+//            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+//        ];
         
-        $params_str = '';
+//        $params_str = '';
+//        
+//        if (!empty($url_params) && is_array($url_params)) {
+//            $params = array_merge($params, $url_params);
+//        }
         
-        if (!empty($url_params) && is_array($url_params)) {
-            $params = array_merge($params, $url_params);
-        }
+//        foreach ($params as $key => $val) {
+//            if (empty($val)) {
+//                continue;
+//            }
+//            
+//            $params_str .= $key . '/' . $val . '/';
+//        }
         
-        foreach ($params as $key => $val) {
-            if (empty($val)) {
-                continue;
-            }
-            
-            $params_str .= $key . '/' . $val . '/';
-        }
-        
-        return $url . 'nuvei_checkout/payment/callback_dmn/' . $params_str;
+//        return $url . 'nuvei_checkout/payment/callback_dmn/' . $params_str;
+        return $url . 'nuvei_checkout/payment/callback_dmn/';
     }
 
     /**

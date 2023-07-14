@@ -447,7 +447,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->jsonOutput->setData('DMN process end for order #' . $this->orderIncrementId);
 
         # try to create Subscription plans
-        $this->createSubscription($params, $last_record, $this->orderIncrementId, $last_record);
+//        $this->createSubscription($params, $last_record, $this->orderIncrementId);
+        $this->createSubscription($params, $this->orderIncrementId);
 
         return $this->jsonOutput;
     }
@@ -1170,7 +1171,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
      * @return void
      */
     
-    private function createSubscription($params, $last_record, $orderIncrementId)
+//    private function createSubscription($params, $last_record, $orderIncrementId)
+    private function createSubscription($params, $orderIncrementId)
     {
         $this->readerWriter->createLog('createSubscription()');
         
@@ -1260,7 +1262,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     . $resp['subscriptionId']). '. '
                     . __('Recurring amount: ') . $params['currency'] . ' '
                     . $subsc_data['recurringAmount'];
-            } else { // Error, Decline
+            }
+            // Error, Decline
+            else {
                 $msg = __("<b>Error</b> when try to create Subscription by this Order. ");
 
                 if (!empty($resp['reason'])) {
@@ -1393,6 +1397,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->jsonOutput->setData($msg);
 
             return false;
+        }
+        
+        if (0 == $this->orderIncrementId) {
+            $this->orderIncrementId = $this->order->getIncrementId();
         }
         
         // check if the Order belongs to nuvei

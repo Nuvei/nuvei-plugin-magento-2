@@ -262,6 +262,7 @@ abstract class AbstractRequest
     {
         $this->initRequest();
         $this->readerWriter->createLog('getParams()');
+        
         $params = [
             'merchantId'        => $this->config->getMerchantId(),
             'merchantSiteId'    => $this->config->getMerchantSiteId(),
