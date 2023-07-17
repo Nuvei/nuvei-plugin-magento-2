@@ -150,7 +150,6 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      */
     protected function getResponseHandlerType()
     {
-//        return AbstractResponse::PAYMENT_APM_HANDLER;
         return '';
     }
 
@@ -162,9 +161,8 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      */
     protected function getParams()
     {
-        $quote = empty($this->quoteId) ? $this->checkoutSession->getQuote()
-            : $this->quoteFactory->create()->load($this->quoteId);
-        
+        $quoteId        = empty($this->quoteId) ? $this->checkoutSession->getQuoteId() : $this->quoteId;
+        $quote          = $this->quoteFactory->create()->load($quoteId);
         $quotePayment   = $quote->getPayment();
         $order_data     = $quotePayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
@@ -183,11 +181,12 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         
         $billingAddress     = $this->config->getQuoteBillingAddress($this->quoteId);
         $amount             = (string) number_format($this->config->getQuoteBaseTotal($this->quoteId), 2, '.', '');
-        $reservedOrderId    = $quotePayment->getAdditionalInformation(Payment::TRANSACTION_ORDER_ID)
-            ?: $this->config->getReservedOrderId();
+//        $reservedOrderId    = $quotePayment->getAdditionalInformation(Payment::TRANSACTION_ORDER_ID)
+//            ?: $this->config->getReservedOrderId();
         
         $params = [
-            'clientUniqueId'    => $reservedOrderId . '_' . time(),
+            'clientUniqueId'    => $quoteId . '_' . time(),
+//            'clientUniqueId'    => $reservedOrderId . '_' . time(),
             'currency'          => $this->config->getQuoteBaseCurrency($this->quoteId),
             'amount'            => $amount,
             
@@ -206,15 +205,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
                     ? $this->urlDetails['pendingUrl'] : $this->config->getCallbackPendingUrl($this->quoteId),
                 'backUrl'           => !empty($this->urlDetails['backUrl'])
                     ? $this->urlDetails['backUrl'] : $this->config->getBackUrl(),
-//                'notificationUrl'   => $this->config->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId),
             ],
-            
-//            'amountDetails'     => [
-//                'totalShipping'     => '0.00',
-//                'totalHandling'     => '0.00',
-//                'totalDiscount'     => '0.00',
-//                'totalTax'          => '0.00',
-//            ],
             
             'billingAddress'    => $billingAddress,
             'shippingAddress'   => $this->config->getQuoteShippingAddress($this->quoteId),
@@ -225,7 +216,8 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {
             $params['urlDetails']['notificationUrl'] = $this->config
-                ->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId);
+//                ->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId);
+                ->getCallbackDmnUrl(null, null, [], $this->quoteId);
         }
         
         // UPO APM

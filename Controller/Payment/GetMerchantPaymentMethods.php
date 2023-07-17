@@ -81,7 +81,18 @@ class GetMerchantPaymentMethods extends Action
                 $applePayData = $d;
                 unset($apmMethodsData['apmMethods'][$k]);
                 
-                $this->readerWriter->createLog($applePayData, 'GetMerchantPaymentMethods $applePayData');
+                // clean logged data
+                $applePayDataToLog = $applePayData;
+                
+                if (!empty($applePayDataToLog['currencies'])) {
+                    $applePayDataToLog['currencies'] = json_encode($applePayDataToLog['currencies']);
+                }
+                if (!empty($applePayDataToLog['countries'])) {
+                    $applePayDataToLog['countries'] = json_encode($applePayDataToLog['countries']);
+                }
+                // /clean logged data
+                
+                $this->readerWriter->createLog($applePayDataToLog, 'GetMerchantPaymentMethods $applePayData');
                 break;
             }
         }

@@ -35,6 +35,13 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     
     protected $readerWriter;
     
+    private $items_data     = [];
+    private $subs_data      = [];
+    private $requestParams  = [];
+    private $isUserLogged   = null;
+    private $saveUpo        = null;
+    private $callerSdk      = null;
+    private $quoteId        = '';
     private $stockState;
     private $countryCode; // string
     private $quote;
@@ -42,13 +49,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $items; // the products in the cart
     private $paymentsPlans;
     private $quoteFactory;
-    private $items_data     = [];
-    private $subs_data      = [];
-    private $requestParams  = [];
-    private $isUserLogged   = null;
-    private $saveUpo        = null;
-    private $quoteId        = '';
-
+    
     /**
      * OpenOrder constructor.
      *
@@ -279,6 +280,19 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     }
     
     /**
+     * When we call this class after REST API request,
+     * it is good to know what SDK is used on the custom front-end.
+     * 
+     * @param string $callerSdk
+     * @return object
+     */
+    public function setCallerSdk($callerSdk) {
+        $this->callerSdk = $callerSdk;
+        
+        return $this;
+    }
+    
+    /**
      * {@inheritdoc}
      *
      * @return string
@@ -357,26 +371,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         }
         
         # send userTokenId and save UPO
-        # save upo is allowed only for registred user or Guests in case when 'save_guest_upos' is set to Yes.
-        if (true === $this->isUserLogged
-            || $this->config->isUserLogged()
-            || 1 == $this->config->getConfigValue('save_guest_upos')
-        ) {
-            // For Checkout SDK we always pass userTokenId. The decision to save UPO or not is in the SDK
-            if ('checkout' == $this->config->getConfigValue('sdk')) {
-                $params['userTokenId'] = $params['billingAddress']['email'];
-            }
-            // For the WebSDK the decision to save UPO is here - in the OpenOrder
-            else {
-                if (!is_null($this->saveUpo)) {
-                    if (1 == $this->saveUpo) {
-                        $params['userTokenId'] = $params['billingAddress']['email'];
-                    }
-                }
-                elseif ('false' != $this->config->getConfigValue('save_upos')) {
-                    $params['userTokenId'] = $params['billingAddress']['email'];
-                }
-            }
+        if ($this->sendUserTokenId()) {
+            $params['userTokenId'] = $params['billingAddress']['email'];
         }
         
         // auto_close_popup
@@ -418,6 +414,52 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'currency',
             'timeStamp',
         ];
+    }
+    
+    /**
+     * Just a help function.
+     */
+    private function sendUserTokenId()
+    {
+        // 1. REST API flow
+        if (!is_null($this->isUserLogged) && !is_null($this->callerSdk)) {
+            // 1.1 checkout - pass it, the desicion is on the front-end
+            if ('simplyConnect' == $this->callerSdk) {
+                return true;
+            }
+            
+            // 1.2 webSDK
+            if (1 != $this->saveUpo) {
+                return false;
+            }
+            
+            if (true === $this->isUserLogged // set from the REST API
+                || 1 == $this->config->getConfigValue('save_guest_upos') // force saving UPOs
+            ) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // 2. Standard plugin flow - save upo is allowed only for registred user or Guests in case when 'save_guest_upos' is set to Yes.
+        if (!$this->config->isUserLogged() // get it when user is logged into magento store
+            && 1 != $this->config->getConfigValue('save_guest_upos') // force saving UPOs)
+        ) {
+            return false;
+        }
+            
+        // For Checkout SDK we always pass userTokenId. The decision to save UPO or not is in the SDK
+        if ('checkout' == $this->config->getConfigValue('sdk')) {
+            return true;
+        }
+
+        // For the WebSDK the decision to save UPO is here - in the OpenOrder
+        if (1 == $this->saveUpo || 'false' != $this->config->getConfigValue('save_upos')) {
+            return true;
+        }
+        
+        return false;
     }
     
     /**

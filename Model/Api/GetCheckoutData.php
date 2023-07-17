@@ -121,7 +121,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
         # 1. Open new order
         $webApiparams   = $this->apiRequest->getBodyParams();
         $isUserLogged   = isset($webApiparams['isUserLogged']) ? (bool) $webApiparams['isUserLogged'] : false;
-        $oo_data        = $this->openOrder($quoteId, $isUserLogged); // get an array
+        $oo_data        = $this->openOrder($quoteId, $isUserLogged, 'webSdk'); // get an array
         
         // in case of error
         if (!empty($oo_data['message'])) {
@@ -223,7 +223,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
         # 1. Open new order
         $webApiparams   = $this->apiRequest->getBodyParams();
         $isUserLogged   = isset($webApiparams['isUserLogged']) ? (bool) $webApiparams['isUserLogged'] : false;
-        $oo_data        = $this->openOrder($quoteId, $isUserLogged); // get an array
+        $oo_data        = $this->openOrder($quoteId, $isUserLogged, 'simplyConnect'); // get an array
         
         // in case of error
         if (!empty($oo_data['message'])) {
@@ -404,12 +404,13 @@ class GetCheckoutData implements GetCheckoutDataInterface
      * 
      * @return array
      */
-    private function openOrder($quoteId, $isUserLogged)
+    private function openOrder($quoteId, $isUserLogged, $callerSdk)
     {
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $ooResp     = $request
             ->setIsUserLogged($isUserLogged)
             ->setQuoteId($quoteId)
+            ->setCallerSdk($callerSdk)
             ->process();
         
         // some error
