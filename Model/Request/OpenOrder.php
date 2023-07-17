@@ -159,15 +159,18 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $callUpdateOrder    = false;
         $order_total        = (float) $this->config->getQuoteBaseTotal($this->quoteId);
         
+        // check for prevouse OpenOrder data
         if (!empty($order_data)) {
             $callUpdateOrder = true;
         }
         
+        // check for newly added product with 
         if (empty($order_data['userTokenId']) && !empty($this->subs_data)) {
             $this->readerWriter->createLog('$order_data[userTokenId] is empty, call openOrder');
             $callUpdateOrder = false;
         }
         
+        // if my some reason missing transactionType
         if (empty($order_data['transactionType'])) {
             $this->readerWriter->createLog('$order_data[transactionType] is empty, call openOrder');
             $callUpdateOrder = false;
