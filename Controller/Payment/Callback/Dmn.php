@@ -1609,22 +1609,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
      */
     private function getOrderIdentificators($params)
     {
-        // for the initial requests
-        if (isset($params['transactionType'])
-            && in_array($params['transactionType'], ['Auth', 'Sale'])
-        ) {
-//            if (!empty($params["order"])) {
-//                $this->orderIncrementId = $params["order"];
-//                return;
-//            }
-            
-            if (!empty($params["clientUniqueId"])) {
-                $this->quoteId = current(explode('_', $params["clientUniqueId"]));
-                return;
-            }
-            
-            return;
-        }
+        $this->readerWriter->createLog('getOrderIdentificators');
         
         // for subsccription DMNs
         if (!empty($params['dmnType'])
@@ -1638,6 +1623,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             if (!empty($last_elem) && is_numeric($last_elem)) {
                 $this->orderIncrementId = $last_elem;
+            }
+            
+            return;
+        }
+        
+        // for the initial requests
+        if (isset($params['transactionType'])
+            && in_array($params['transactionType'], ['Auth', 'Sale'])
+        ) {
+            if (!empty($params["clientUniqueId"])) {
+                $this->quoteId = current(explode('_', $params["clientUniqueId"]));
+                return;
             }
             
             return;
