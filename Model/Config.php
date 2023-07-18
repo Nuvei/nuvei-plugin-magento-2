@@ -736,7 +736,7 @@ class Config
             : $this->quoteFactory->create()->load($quoteId);
         
         if (!is_object($quote) || empty($quote)) {
-            throw new Exception('There is no Quote by quote ID' . $quoteId);
+            throw new \Exception('There is no Quote by quote ID' . $quoteId);
         }
         
         $billingAddress = $quote->getBillingAddress();

@@ -22,6 +22,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     public $sessionToken;
     public $ooAmount;
     public $subsData;
+    public $error;
+    public $outOfStock;
+    public $reason;
     
     /**
      * @var RequestFactory
@@ -299,7 +302,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
      */
     protected function getResponseHandlerType()
     {
-        return AbstractResponse::OPEN_ORDER_HANDLER;
+        return '';
     }
 
     /**

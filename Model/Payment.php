@@ -204,8 +204,7 @@ class Payment implements MethodInterface
      */
     public function authorize(InfoInterface $payment, $amount)
     {
-        $this->processPayment($payment, $amount);
-
+//        $this->processPayment($payment, $amount);
         return $this;
     }
 
@@ -383,6 +382,8 @@ class Payment implements MethodInterface
         } catch (\Exception $ex) {
             $this->readerWriter->createLog($ex->getMessage());
         }
+        
+        return false;
     }
 
     /**

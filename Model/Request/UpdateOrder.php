@@ -95,7 +95,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
      */
     protected function getResponseHandlerType()
     {
-        return AbstractResponse::OPEN_ORDER_HANDLER;
+        return '';
     }
 
     /**

@@ -6,6 +6,7 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Exception\PaymentException;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;

@@ -11,8 +11,8 @@ use Magento\Sales\Model\Order\StatusFactory as OrderStatusFactory;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Sales\Model\Order;
-use Magento\Eav\Setup\EavSetup;
-use Magento\Eav\Setup\EavSetupFactory;
+//use Magento\Eav\Setup\EavSetup;
+use Magento\Eav\Setup\EavSetupFactory; // this class will be generated during the compile
 
 class NuveiPatch200 implements DataPatchInterface
 {
@@ -309,6 +309,8 @@ class NuveiPatch200 implements DataPatchInterface
             ]
         );
         # Admin > Product > Nuvei Subscription details END
+        
+        return $this;
     }
     
     /**

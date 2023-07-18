@@ -52,6 +52,11 @@ abstract class AbstractPayment extends AbstractResponse
 
         return $this;
     }
+    
+    protected function processResponseData()
+    {
+        return $this;
+    }
 
     /**
      * @return AbstractPayment

@@ -20,9 +20,7 @@ class Factory
      * @var array
      */
     private $invokableClasses = [
-        AbstractResponse::TOKEN_HANDLER             => \Nuvei\Checkout\Model\Response\Token::class,
         AbstractResponse::PAYMENT_SETTLE_HANDLER    => \Nuvei\Checkout\Model\Response\Payment\Settle::class,
-        AbstractResponse::GET_USER_DETAILS_HANDLER  => \Nuvei\Checkout\Model\Response\GetUserDetails::class,
         AbstractResponse::PAYMENT_VOID_HANDLER      => \Nuvei\Checkout\Model\Response\Payment\Cancel::class,
         
         AbstractResponse::GET_MERCHANT_PAYMENT_METHODS_HANDLER

@@ -11,6 +11,7 @@ use Magento\Framework\App\RequestInterface;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\Exception\PaymentException;
 
 /**
  * Nuvei Checkout payment redirect controller.

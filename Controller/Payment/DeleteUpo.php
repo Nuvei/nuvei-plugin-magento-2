@@ -73,7 +73,7 @@ class DeleteUpo extends Action
             $resp        = $request
                 ->setUpoId($this->getRequest()->getParam('upoId'))
                 ->process();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             return $result->setData(["success" => 0]);
         }
         

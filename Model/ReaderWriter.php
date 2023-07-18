@@ -166,7 +166,7 @@ class ReaderWriter
 //            $logger->info($string);
             
             return $this->saveFile($logsPath, $log_file_name . '.log', $string, FILE_APPEND);
-        } catch (exception $e) {
+        } catch (\Exception $e) {
             return;
         }
     }

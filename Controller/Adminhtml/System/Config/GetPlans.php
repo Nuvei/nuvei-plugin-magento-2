@@ -3,6 +3,7 @@
 namespace Nuvei\Checkout\Controller\Adminhtml\System\Config;
 
 use Nuvei\Checkout\Model\AbstractRequest;
+use Magento\Framework\Exception\PaymentException;
 
 class GetPlans extends \Magento\Backend\App\Action
 {

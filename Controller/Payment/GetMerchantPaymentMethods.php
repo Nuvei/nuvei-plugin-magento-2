@@ -125,7 +125,7 @@ class GetMerchantPaymentMethods extends Action
                 'apmMethods'    => $apmMethods->getPaymentMethods(),
                 'sessionToken'  => $apmMethods->getSessionToken(),
             ];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'Get APMs exception');
             return [
                 'apmMethods'    => [],
@@ -151,7 +151,7 @@ class GetMerchantPaymentMethods extends Action
             $resp           = $request
                 ->setEmail($billingAddress['email'])
                 ->process();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'Get UPOs exception');
         }
         
