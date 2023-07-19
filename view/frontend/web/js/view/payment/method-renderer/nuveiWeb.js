@@ -186,7 +186,7 @@ define(
 
                     self.getApmMethods();
                 } catch(ex) {
-                    console.error('Nuvei initObservable Exception', ex);
+                    console.log('Nuvei initObservable Exception', ex);
                 }
                 
                 return self;

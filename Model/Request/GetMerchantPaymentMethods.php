@@ -113,6 +113,10 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
             return $this->sendRequest(true, true);
         }
         
+        if (empty($this->quoteId)) {
+            $this->quoteId = $this->config->getQuoteId();
+        }
+        
         $this->sendRequest();
 
         return $this
@@ -182,17 +186,25 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
             $sessionToken   = !empty($tokenResponse['sessionToken']) ? $tokenResponse['sessionToken'] : '';
         }
         // call from the REST API
-        else {
-            $country_code = isset($this->billing_address['countryId']) ? $this->billing_address['countryId'] : '';
-            if (empty($country_code)) {
-                $country_code = $this->config->getQuoteCountryCode($this->quoteId);
-            }
+//        else {
+//            $country_code = isset($this->billing_address['countryId']) ? $this->billing_address['countryId'] : '';
+//            if (empty($country_code)) {
+//                $country_code = $this->config->getQuoteCountryCode($this->quoteId);
+//            }
+//            
+//            $params['countryCode'] = $country_code;
+//            
+//            if (!empty($this->currency)) {
+//                $params['currencyCode'] = $this->currency;
+//            }
+//        }
+        
+        if (!empty($this->quoteId)) {
+            $params['countryCode'] = !empty($this->billing_address['countryId'])
+                ? $this->billing_address['countryId'] : $this->config->getQuoteCountryCode($this->quoteId);
             
-            $params['countryCode'] = $country_code;
-            
-            if (!empty($this->currency)) {
-                $params['currencyCode'] = $this->currency;
-            }
+            $params['currencyCode'] = !empty($this->currency) 
+                ? $this->currency : $this->config->getQuoteBaseCurrency($this->quoteId);
         }
         
         $languageCode = 'en';
