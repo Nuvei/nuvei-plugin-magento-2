@@ -26,7 +26,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
         \Magento\Framework\Webapi\Rest\Request $apiRequest,
         \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Nuvei\Checkout\Model\Request\Factory $requestFactory,
+        \Nuvei\Checkout\Model\Request\Factory $requestFactory
     ) {
         $this->readerWriter         = $readerWriter;
         $this->moduleConfig         = $moduleConfig;
