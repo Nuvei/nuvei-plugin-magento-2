@@ -121,7 +121,7 @@ class ConfigProvider extends CcGenericConfigProvider
         $this->readerWriter->createLog('getCheckoutSdkConfig()');
         
         $blocked_cards          = $this->getBlockedCards();
-        $blocked_pms            = $this->moduleConfig->getConfigValue('block_pms', 'advanced');
+        $blocked_pms            = $this->moduleConfig->getConfigValue('block_pms', 'checkout');
         $is_user_logged         = $this->moduleConfig->isUserLogged();
         $billing_address        = $this->moduleConfig->getQuoteBillingAddress();
         $payment_plan_data      = $this->paymentsPlans->getProductPlanData();
@@ -171,7 +171,7 @@ class ConfigProvider extends CcGenericConfigProvider
         ];
         
         if (!empty($blocked_pms) && null !== $blocked_pms) {
-            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = $blocked_pms;
+            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = explode(',', $blocked_pms);
         }
         
 //        if (1 == $config['payment'][Payment::METHOD_CODE]['useDevSdk']) {

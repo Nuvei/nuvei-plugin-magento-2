@@ -7,7 +7,7 @@
     * Added WebSDK as option to finish the payment.
     * Added more options for "Save UPOs" setting according SimplyConnect.
     * Added an option to stop sending Notification URL into Nuvei requests.
-    * All new settings are implemented for Headless mode too.
+    * Fix for SimplyConnect "Block Payment methods" option.
 ```
 
 # 3.0.1
