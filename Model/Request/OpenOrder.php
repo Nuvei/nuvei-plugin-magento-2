@@ -18,7 +18,6 @@ use Nuvei\Checkout\Model\Response\Factory as ResponseFactory;
 class OpenOrder extends AbstractRequest implements RequestInterface
 {
     // public variables for the REST API
-//    public $orderId;
     public $sessionToken;
     public $ooAmount;
     public $subsData;
@@ -358,6 +357,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'merchantDetails'    => [
                 'customField1' => $amount,
                 'customField2' => isset($this->subs_data) ? json_encode($this->subs_data) : '',
+                'customField3' => $this->config->getReservedOrderId($quoteId),
             ],
         ];
         

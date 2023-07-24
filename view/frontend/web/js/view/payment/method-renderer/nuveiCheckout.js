@@ -158,8 +158,14 @@ function nuveiAfterSdkResponse(resp) {
 		}
 	}
 
+    // on Approved or Pending
+    if (resp.result == 'APPROVED' || resp.result == 'PENDING') {
+        jQuery('#nuvei_default_pay_btn').trigger('click');
+        return;
+    }
+
 	// when not Declined, but not Approved also
-	if(resp.result != 'APPROVED' || isNaN(resp.transactionId)) {
+//	if(resp.result != 'APPROVED' || isNaN(resp.transactionId)) {
 		var respError = 'Error with your Payment. Please try again later!';
 
 		if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
@@ -173,14 +179,14 @@ function nuveiAfterSdkResponse(resp) {
 			nuveiHideLoader();
 			return;
 		}
-	}
+//	}
 
 	// on Success, Approved
-    jQuery('#nuvei_default_pay_btn').trigger('click');
+//    jQuery('#nuvei_default_pay_btn').trigger('click');
 //	nuveiHideLoader();
 //    jQuery('#nuvei_checkout').html(jQuery.mage.__('<b>The transaction was approved.</b>'));
 //    jQuery('#checkoutOverlay').remove();
-	return;
+//	return;
 };
 
 define(
