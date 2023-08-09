@@ -153,7 +153,7 @@ class ReaderWriter
                 
                 case 1: // save both files
                     $log_file_name = 'Nuvei';
-                    $this->saveFile($logsPath, date('Y-m-d') . '.log', $string, FILE_APPEND);
+                    $this->saveFile($logsPath, 'Nuvei-' . date('Y-m-d') . '.log', $string, FILE_APPEND);
                     break;
                 
                 default:

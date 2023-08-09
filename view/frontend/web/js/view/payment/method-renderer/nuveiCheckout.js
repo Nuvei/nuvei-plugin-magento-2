@@ -241,7 +241,9 @@ define(
                     ]);
                    
 				try {
-                    if(typeof quote.totals != 'undefined') {
+                    if('amountButton' == window.checkoutConfig.payment[nuveiGetCode()]['nuveiCheckoutParams'].payButton
+                        && typeof quote.totals != 'undefined'
+                    ) {
                         quote.totals.subscribe(self.scTotalsChange, this, 'change');
                     }
                     
