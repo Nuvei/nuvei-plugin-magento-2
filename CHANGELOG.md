@@ -2,6 +2,12 @@
 
 ---
 
+# 3.1.1
+```
+    * Fix for save UPO problem when use WebSDK.
+    * Removed ApplePay data from the WebSDK Payment Methods, before pass them to the front-end.
+```
+
 # 3.1.0
 ```
     * Added WebSDK as option to finish the payment.

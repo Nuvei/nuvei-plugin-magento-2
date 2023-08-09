@@ -76,26 +76,27 @@ class GetMerchantPaymentMethods extends Action
         $apmMethodsData = $this->getApmMethods();
         $upos           = $this->getUpos($apmMethodsData);
         
-        foreach ($apmMethodsData['apmMethods'] as $k => $d) {
-            if ('ppp_ApplePay' == $d["paymentMethod"]) {
-                $applePayData = $d;
-                unset($apmMethodsData['apmMethods'][$k]);
-                
-                // clean logged data
-                $applePayDataToLog = $applePayData;
-                
-                if (!empty($applePayDataToLog['currencies'])) {
-                    $applePayDataToLog['currencies'] = json_encode($applePayDataToLog['currencies']);
-                }
-                if (!empty($applePayDataToLog['countries'])) {
-                    $applePayDataToLog['countries'] = json_encode($applePayDataToLog['countries']);
-                }
-                // /clean logged data
-                
-                $this->readerWriter->createLog($applePayDataToLog, 'GetMerchantPaymentMethods $applePayData');
-                break;
-            }
-        }
+        // Disable Apple pay
+//        foreach ($apmMethodsData['apmMethods'] as $k => $d) {
+//            if ('ppp_ApplePay' == $d["paymentMethod"]) {
+//                $applePayData = $d;
+//                unset($apmMethodsData['apmMethods'][$k]);
+//                
+//                // clean logged data
+//                $applePayDataToLog = $applePayData;
+//                
+//                if (!empty($applePayDataToLog['currencies'])) {
+//                    $applePayDataToLog['currencies'] = json_encode($applePayDataToLog['currencies']);
+//                }
+//                if (!empty($applePayDataToLog['countries'])) {
+//                    $applePayDataToLog['countries'] = json_encode($applePayDataToLog['countries']);
+//                }
+//                // /clean logged data
+//                
+//                $this->readerWriter->createLog($applePayDataToLog, 'GetMerchantPaymentMethods $applePayData');
+//                break;
+//            }
+//        }
         
         return $result->setData([
             "error"         => 0,

@@ -51,6 +51,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $items; // the products in the cart
     private $paymentsPlans;
     private $quoteFactory;
+    private $httpRequest;
     
     /**
      * OpenOrder constructor.
@@ -73,7 +74,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
         \Magento\CatalogInventory\Model\StockState $stockState,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory
+        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        \Magento\Framework\App\RequestInterface $httpRequest
     ) {
         parent::__construct(
             $config,
@@ -87,6 +89,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->paymentsPlans    = $paymentsPlans;
         $this->stockState       = $stockState;
         $this->quoteFactory     = $quoteFactory;
+        $this->httpRequest      = $httpRequest;
     }
 
     /**
@@ -213,7 +216,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $req_resp = $this->sendRequest(true);
         }
         
-//        $this->orderId      = $req_resp['orderId'];
         $this->sessionToken = $req_resp['sessionToken'];
         $this->ooAmount     = $req_resp['merchantDetails']['customField1'];
         $this->subsData     = $this->subs_data; // pass the private variable to the public one, used into the API
@@ -424,6 +426,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
      */
     private function sendUserTokenId()
     {
+        $this->readerWriter->createLog($this->saveUpo, 'sendUserTokenId');
+        
         // 1. REST API flow
         if (!is_null($this->isUserLogged) && !is_null($this->callerSdk)) {
             // 1.1 checkout - pass it, the desicion is on the front-end
@@ -445,7 +449,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             return false;
         }
         
-        // 2. Standard plugin flow - save upo is allowed only for registred user or Guests in case when 'save_guest_upos' is set to Yes.
+        // 2. Standard plugin flow - save upo is allowed only for registred user
+        // or Guests in case when 'save_guest_upos' is set to Yes.
         if (!$this->config->isUserLogged() // get it when user is logged into magento store
             && 1 != $this->config->getConfigValue('save_guest_upos') // force saving UPOs)
         ) {
@@ -457,8 +462,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             return true;
         }
 
+        $httpParams = array_merge(
+            $this->httpRequest->getParams(),
+            $this->httpRequest->getPostValue()
+        );
+                
         // For the WebSDK the decision to save UPO is here - in the OpenOrder
-        if (1 == $this->saveUpo || 'false' != $this->config->getConfigValue('save_upos')) {
+        if ('false' != $this->config->getConfigValue('save_upos')
+            && (1 == $this->saveUpo || 1 == $httpParams['saveUpo'])
+        ) {
             return true;
         }
         
