@@ -174,9 +174,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($params, 'DMN params:');
             
             ### DEBUG
-//            $msg = 'DMN manually stopped.';
-//            $this->readerWriter->createLog(http_build_query($params), $msg);
-//            $this->jsonOutput->setData($msg);
+//            $this->jsonOutput->setData('DMN manually stopped.');
 //            return $this->jsonOutput;
             ### DEBUG
             
@@ -209,20 +207,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
             }
             // /try to validate the Cheksum
             
-//            $this->orderIncrementId = $this->getOrderId($params);
             /**
              * Here will be set $this->orderIncrementId or $this->quoteId
              */
             $this->getOrderIdentificators($params);
-            
-//            if (0 == $this->orderIncrementId) {
-//                $msg = 'DMN error - no Order ID parameter.';
-//
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
-//                return $this->jsonOutput;
-//            }
             
             /**
              * Try to create the Order.
@@ -1319,22 +1307,22 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $max_tries  = 5;
         
         // search only once for Refund/Credit
-        if (isset($this->params['transactionType'])
-            && in_array(strtolower($this->params['transactionType']), ['refund', 'credit'])
-        ) {
-            $max_tries = 0;
-        }
+//        if (isset($this->params['transactionType'])
+//            && in_array(strtolower($this->params['transactionType']), ['refund', 'credit'])
+//        ) {
+//            $max_tries = 0;
+//        }
         
         // do not search more than once for Auth and Sale, if the DMN response time is more than 24 hours before now
-        if ($max_tries > 0
-            && isset($this->params['transactionType'])
-            && in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
-            && !empty($this->params['customField4'])
-            && is_numeric($this->params['customField4'])
-            && time() - $this->params['customField4'] > 3600
-        ) {
-            $max_tries = 0;
-        }
+//        if ($max_tries > 0
+//            && isset($this->params['transactionType'])
+//            && in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
+//            && !empty($this->params['customField4'])
+//            && is_numeric($this->params['customField4'])
+//            && time() - $this->params['customField4'] > 3600
+//        ) {
+//            $max_tries = 0;
+//        }
         
         do {
             $tryouts++;
@@ -1343,63 +1331,69 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
             if (!$orderList || empty($orderList)) {
                 $this->readerWriter->createLog('DMN try ' . $tryouts
-                    . ' there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.');
+                    . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.');
                 sleep(3);
             }
         } while ($tryouts < $max_tries && empty($orderList));
         
         // try to create the order
-        if ((!$orderList || empty($orderList))
-            && !isset($this->params['dmnType'])
-        ) {
-            if (in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
-                && strtolower($this->params['Status']) != 'approved'
-            ) {
-                $msg = 'The Order ' . $identificator .' is not approved, stop process.';
-                
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-                
-                return false;
-            }
-            
-            $this->readerWriter->createLog('Order '. $identificator .' not found, try to create it!');
-
-            $result = $this->placeOrder($this->params);
-
-            if ($result->getSuccess() !== true) {
-                $msg = 'DMN Callback error - place order error.';
-                
-                $this->readerWriter->createLog($result->getMessage(), $msg);
-                $this->jsonOutput->setData($msg);
-                
-                return false;
-            }
-
-            $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
-
-            $this->readerWriter->createLog('An Order with ID '. $identificator .' was created in the DMN page.');
-        }
+//        if ((!$orderList || empty($orderList))
+//            && !isset($this->params['dmnType'])
+//        ) {
+//            if (in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
+//                && strtolower($this->params['Status']) != 'approved'
+//            ) {
+//                $msg = 'The Order ' . $identificator .' is not approved, stop process.';
+//                
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//                
+//                return false;
+//            }
+//            
+//            $this->readerWriter->createLog('Order '. $identificator .' not found, try to create it!');
+//
+//            $result = $this->placeOrder($this->params);
+//
+//            if ($result->getSuccess() !== true) {
+//                $msg = 'DMN Callback error - place order error.';
+//                
+//                $this->readerWriter->createLog($result->getMessage(), $msg);
+//                $this->jsonOutput->setData($msg);
+//                
+//                return false;
+//            }
+//
+//            $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
+//
+//            $this->readerWriter->createLog('An Order with ID '. $identificator .' was created in the DMN page.');
+//        }
         
-        if (!$orderList || empty($orderList)) {
-            $msg = 'DMN Callback error - there is no Order and the code did not success to create it.';
+        // in case there is no Order
+        if (!is_array($orderList)
+            || empty($orderList)
+            || null == ($this->order = current($orderList)) // set $this->order here
+        ) {
+            $msg = 'DMN Callback error - there is no Order for this DMN data.';
             
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
+            $this->jsonOutput->setHttpResponseCode(400);
 
             return false;
         }
         
-        $this->order = current($orderList);
+//        $this->order = current($orderList);
         
-        if (null === $this->order) {
-            $msg = 'DMN error - Order object is null.';
-            
-            $this->readerWriter->createLog($orderList, $msg);
-            $this->jsonOutput->setData($msg);
-
-            return false;
-        }
+//        if (null === $this->order) {
+//            $msg = 'DMN error - Order object is null.';
+//            
+//            $this->readerWriter->createLog($orderList, $msg);
+//            $this->jsonOutput->setData($msg);
+//            $this->jsonOutput->setHttpResponseCode(400);
+//
+//            return false;
+//        }
         
         $this->orderPayment = $this->order->getPayment();
         
@@ -1436,6 +1430,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         return true;
     }
+    
+    
     
     /**
      * @param array $params
