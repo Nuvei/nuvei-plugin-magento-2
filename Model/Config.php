@@ -343,10 +343,10 @@ class Config
     public function getMerchantId()
     {
         if ($this->isTestModeEnabled() === true) {
-            return $this->getConfigValue('sandbox_merchant_id');
+            return trim($this->getConfigValue('sandbox_merchant_id'));
         }
 
-        return $this->getConfigValue('merchant_id');
+        return trim($this->getConfigValue('merchant_id'));
     }
 
     /**
@@ -357,10 +357,10 @@ class Config
     public function getMerchantSiteId()
     {
         if ($this->isTestModeEnabled() === true) {
-            return $this->getConfigValue('sandbox_merchant_site_id');
+            return trim($this->getConfigValue('sandbox_merchant_site_id'));
         }
 
-        return $this->getConfigValue('merchant_site_id');
+        return trim($this->getConfigValue('merchant_site_id'));
     }
     
     /**
@@ -371,10 +371,10 @@ class Config
     public function getMerchantSecretKey()
     {
         if ($this->isTestModeEnabled() === true) {
-            return $this->getConfigValue('sandbox_merchant_secret_key');
+            return trim($this->getConfigValue('sandbox_merchant_secret_key'));
         }
 
-        return $this->getConfigValue('merchant_secret_key');
+        return trim($this->getConfigValue('merchant_secret_key'));
     }
 
     /**
