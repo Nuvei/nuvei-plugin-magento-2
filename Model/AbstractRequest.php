@@ -389,9 +389,11 @@ abstract class AbstractRequest
                     continue;
                 }
                 
-                $msg = __('Required key %1 for checksum calculation is missing.', $checksumKey);
-                $this->readerWriter->createLog($msg);
-                throw new PaymentException($msg);
+//                $msg = __('Required key %1 for checksum calculation is missing.', $checksumKey);
+                
+                $this->readerWriter->createLog($checksumKey, 'Required key for checksum calculation is missing.', 'WARN');
+                continue;
+//                throw new PaymentException($msg);
             }
 
             if (is_array($params[$checksumKey])) {

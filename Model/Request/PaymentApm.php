@@ -53,17 +53,12 @@ class PaymentApm extends AbstractRequest implements RequestInterface
     
     public function process()
     {
-        $resp               = $this->sendRequest(true, true);
-//        $transactionStatus  = '';
-        $return             = [
+        $resp   = $this->sendRequest(true, true);
+        $return = [
             'status' => $resp['status']
         ];
         
         $this->readerWriter->createLog($resp);
-        
-//        if (!empty($resp['transactionStatus'])) {
-//            $transactionStatus = (string) $resp['transactionStatus'];
-//        }
         
         if (!empty($resp['redirectURL'])) {
             $return['redirectUrl'] = (string) $resp['redirectURL'];

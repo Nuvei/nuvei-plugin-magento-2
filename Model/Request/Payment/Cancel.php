@@ -17,6 +17,8 @@ class Cancel extends AbstractPayment implements RequestInterface
     protected $readerWriter;
     protected $request;
     
+    private $params; // in case of AutoVoid we will pass them all
+    
     /**
      * Refund constructor.
      *
@@ -47,6 +49,12 @@ class Cancel extends AbstractPayment implements RequestInterface
         $this->readerWriter = $readerWriter;
     }
     
+    public function setParams(array $params)
+    {
+        $this->params = $params;
+        return $this;
+    }
+    
     /**
      * {@inheritdoc}
      *
@@ -75,6 +83,22 @@ class Cancel extends AbstractPayment implements RequestInterface
      */
     protected function getParams()
     {
+        // AutoVoid flow when we pass all params from the DMN Class
+        if (!empty($this->params) && is_array($this->params)) {
+            // set notify url
+            if (0 == $this->config->getConfigValue('disable_notify_url')) {
+                $this->params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(
+                    $order->getIncrementId(),
+                    $order->getStoreId()//,
+//                        ['invoice_id' => $inv_id]
+                );
+            }
+
+            $this->params = array_merge_recursive($this->params, parent::getParams());
+
+            return $this->params;
+        }
+        
         // we can create Void for Settle and Auth only!!!
         $orderPayment           = $this->orderPayment;
         $ord_trans_addit_info   = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
@@ -147,13 +171,6 @@ class Cancel extends AbstractPayment implements RequestInterface
             'authCode'              => $auth_code,
             'comment'               => '',
             'merchant_unique_id'    => $order->getIncrementId(),
-//            'urlDetails'            => [
-//                'notificationUrl' => $this->config->getCallbackDmnUrl(
-//                    $order->getIncrementId(),
-//                    $order->getStoreId(),
-//                    ['invoice_id' => $inv_id]
-//                ),
-//            ],
         ];
         
         // set notify url

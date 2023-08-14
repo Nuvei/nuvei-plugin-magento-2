@@ -425,7 +425,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->order->addStatusHistoryComment($msg);
         }
         
-//        $this->readerWriter->createLog('', 'DMN before finalSaveData()', 'DEBUG');
         $resp_save_data = $this->finalSaveData($ord_trans_addit_info);
         
         if (!$resp_save_data) {
@@ -436,8 +435,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->jsonOutput->setData('DMN process end for order #' . $this->orderIncrementId);
 
         # try to create Subscription plans
-//        $this->createSubscription($params, $last_record, $this->orderIncrementId);
-        $this->createSubscription($params, $this->orderIncrementId);
+//        $this->createSubscription($params, $this->orderIncrementId);
+        $this->createSubscription($this->orderIncrementId);
 
         return $this->jsonOutput;
     }
@@ -1153,24 +1152,21 @@ class Dmn extends Action implements CsrfAwareActionInterface
     /**
      * Try to create Subscriptions.
      *
-     * @param array $params
-     * @param array $last_record
      * @param int   $orderIncrementId
-     *
      * @return void
      */
     
-//    private function createSubscription($params, $last_record, $orderIncrementId)
-    private function createSubscription($params, $orderIncrementId)
+//    private function createSubscription($params, $orderIncrementId)
+    private function createSubscription($orderIncrementId)
     {
         $this->readerWriter->createLog('createSubscription()');
         
-        if (!in_array($params['transactionType'], ['Auth', 'Settle', 'Sale'])) {
+        if (!in_array($this->params['transactionType'], ['Auth', 'Settle', 'Sale'])) {
             $this->readerWriter->createLog('Not allowed transaction type for rebilling. Stop the proccess.');
             return;
         }
         
-        $dmn_subscr_data = json_decode($params['customField2'], true);
+        $dmn_subscr_data = json_decode($this->params['customField2'], true);
         
         if (empty($dmn_subscr_data) || !is_array($dmn_subscr_data)) {
             $this->readerWriter->createLog(
@@ -1181,14 +1177,14 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        if (!in_array($params['transactionType'], ['Sale', 'Settle', 'Auth'])) {
+        if (!in_array($this->params['transactionType'], ['Sale', 'Settle', 'Auth'])) {
             $this->readerWriter->createLog('We start Rebilling only after Auth, '
                 . 'Settle or Sale. Stop the proccess.');
             return;
         }
         
-        if ('Auth' == $params['transactionType']
-            && 0 != (float) $params['totalAmount']
+        if ('Auth' == $this->params['transactionType']
+            && 0 != (float) $this->params['totalAmount']
         ) {
             $this->readerWriter->createLog('Non Zero Auth. Stop the proccess.');
             return;
@@ -1198,7 +1194,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
         $this->readerWriter->createLog($payment_subs_data, '$payment_subs_data');
         
-        if ('Settle' == $params['transactionType'] && empty($payment_subs_data)) {
+        if ('Settle' == $this->params['transactionType'] && empty($payment_subs_data)) {
             $this->readerWriter->createLog(
                 $payment_subs_data,
                 'Missing rebilling data into Order Payment. Stop the proccess.'
@@ -1230,15 +1226,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
         // create subscriptions for each of the Products
         $request = $this->requestFactory->create(AbstractRequest::CREATE_SUBSCRIPTION_METHOD);
         
-        $subsc_data['userPaymentOptionId'] = $params['userPaymentOptionId'];
-        $subsc_data['userTokenId']         = $params['email'];
-        $subsc_data['currency']            = $params['currency'];
+        $subsc_data['userPaymentOptionId'] = $this->params['userPaymentOptionId'];
+        $subsc_data['userTokenId']         = $this->params['email'];
+        $subsc_data['currency']            = $this->params['currency'];
             
         try {
-            $params = array_merge(
-                $this->request->getParams(),
-                $this->request->getPostValue()
-            );
+//            $params = array_merge(
+//                $this->request->getParams(),
+//                $this->request->getPostValue()
+//            );
 
             $resp = $request
                 ->setOrderId($orderIncrementId)
@@ -1249,7 +1245,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             if ('success' == strtolower($resp['status'])) {
                 $msg =  __("<b>Subscription</b> was created. Subscription ID "
                     . $resp['subscriptionId']). '. '
-                    . __('Recurring amount: ') . $params['currency'] . ' '
+                    . __('Recurring amount: ') . $this->params['currency'] . ' '
                     . $subsc_data['recurringAmount'];
             }
             // Error, Decline
@@ -1379,7 +1375,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
             $this->jsonOutput->setHttpResponseCode(400);
-
+            
+            $this->createAutoVoid();
+            
             return false;
         }
         
@@ -1431,7 +1429,79 @@ class Dmn extends Action implements CsrfAwareActionInterface
         return true;
     }
     
-    
+    private function createAutoVoid()
+    {
+        $order_request_time	= $this->params['customField4']; // time of create/update order
+        $curr_time          = time();
+        $dmnTrType          = $this->params['transactionType'];
+        
+        $this->readerWriter->createLog(
+            [
+                $order_request_time,
+                $dmnTrType,
+                $curr_time
+            ],
+            'create_auto_void'
+        );
+        
+        // not allowed Auto-Void
+        if (!in_array($dmnTrType, ['Sale', 'Auth'])) {
+            $msg = 'The Auto Void is allowed only for Sale and Auth.';
+            
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+            $this->jsonOutput->setHttpResponseCode(200);
+            
+            return;
+        }
+        
+        if (empty($order_request_time)) {
+            $msg = 'There is problem with $order_request_time. End process.';
+            
+            $this->readerWriter->createLog(null, $msg, 'WARINING');
+            $this->jsonOutput->setData($msg);
+            $this->jsonOutput->setHttpResponseCode(200);
+            return false;
+        }
+        
+        if ($curr_time - $order_request_time <= 1800) {
+            $msg = "Let's wait one more DMN try.";
+            
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+            
+            return false;
+        }
+        // /not allowed Auto-Void
+        
+        $request = $this->requestFactory->create(AbstractRequest::PAYMENT_VOID_METHOD);
+        
+        $resp = $request
+            ->setParams([
+                'clientUniqueId'        => date('YmdHis') . '_' . uniqid(),
+                'currency'              => $this->params['currency'],
+                'amount'                => $this->params['totalAmount'],
+                'relatedTransactionId'  => $this->params['relatedTransactionId'],
+                'customData'            => 'This is an Auto-Void transaction',
+            ])
+            ->process();
+        
+        if (!empty($resp->getTransactionId())) {
+            $msg = 'The searched Order does not exists, a Void request was made for this Transacrion.';
+            
+            $this->jsonOutput->setHttpResponseCode(200);
+            $this->jsonOutput->setData($msg);
+            
+            return;
+        }
+        
+        $msg = 'The searched Order does not exists, and the Void request was not successfu!';
+        
+        $this->readerWriter->createLog(null, $msg, 'CRITICAL');
+        $this->jsonOutput->setData($msg);
+        
+        return;
+    }
     
     /**
      * @param array $params

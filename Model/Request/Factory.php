@@ -23,7 +23,6 @@ class Factory
         
         AbstractRequest::CREATE_SUBSCRIPTION_METHOD         => \Nuvei\Checkout\Model\Request\CreateSubscription::class,
         AbstractRequest::CANCEL_SUBSCRIPTION_METHOD         => \Nuvei\Checkout\Model\Request\CancelSubscription::class,
-//        AbstractRequest::GET_USER_DETAILS_METHOD            => \Nuvei\Checkout\Model\Request\GetUserDetails::class,
         AbstractRequest::GET_UPOS_METHOD                    => \Nuvei\Checkout\Model\Request\GetUserUPOs::class,
         AbstractRequest::OPEN_ORDER_METHOD                  => \Nuvei\Checkout\Model\Request\OpenOrder::class,
         AbstractRequest::UPDATE_ORDER_METHOD                => \Nuvei\Checkout\Model\Request\UpdateOrder::class,
@@ -32,6 +31,7 @@ class Factory
         AbstractRequest::CREATE_MERCHANT_PAYMENT_PLAN       => \Nuvei\Checkout\Model\Request\CreatePlan::class,
         AbstractRequest::GET_SESSION_TOKEN                  => \Nuvei\Checkout\Model\Request\GetSessionToken::class,
         AbstractRequest::DELETE_UPOS_METHOD                 => \Nuvei\Checkout\Model\Request\DeleteUPO::class,
+        AbstractRequest::PAYMENT_VOID_METHOD                => \Nuvei\Checkout\Model\Request\Payment\Cancel::class,
     ];
 
     /**
@@ -63,8 +63,7 @@ class Factory
     public function create($method, $args = [])
     {
         $className = !empty($this->invokableClasses[$method])
-            ? $this->invokableClasses[$method]
-            : null;
+            ? $this->invokableClasses[$method] : null;
 
         if ($className === null) {
             throw new LocalizedException(

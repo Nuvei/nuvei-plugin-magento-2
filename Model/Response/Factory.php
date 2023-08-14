@@ -55,20 +55,13 @@ class Factory
      * @return ResponseInterface
      * @throws LocalizedException
      */
-    public function create(
-        $type,
-        $requestId,
-        $curl = null,
-        $payment = null
-    ) {
+    public function create($type, $requestId, $curl = null, $payment = null)
+    {
         $className = !empty($this->invokableClasses[$type])
-            ? $this->invokableClasses[$type]
-            : null;
+            ? $this->invokableClasses[$type] : null;
 
         if ($className === null) {
-            throw new LocalizedException(
-                __('%1 type is not supported.', $type)
-            );
+            throw new LocalizedException(__('%1 type is not supported.', $type));
         }
 
         $model = $this->objectManager->create(

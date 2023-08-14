@@ -9,6 +9,7 @@
     * Removed ApplePay data from the WebSDK Payment Methods, before pass them to the front-end.
     * When for SimplyConnect pay buttons is set option "text", the plugin will not subscribe for total amount change event.
     * When the plugin can not find an Order by DMN data, do not try to create Order, but return 400 to the Cashier.
+    * Implemented Auto-Void logic for DMNs.
 ```
 
 # 3.1.0
