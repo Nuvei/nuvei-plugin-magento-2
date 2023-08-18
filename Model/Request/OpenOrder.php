@@ -468,11 +468,27 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         );
                 
         // For the WebSDK the decision to save UPO is here - in the OpenOrder
-        if ('false' != $this->config->getConfigValue('save_upos')
-            && (1 == $this->saveUpo || 1 == $httpParams['saveUpo'])
-        ) {
+        if ('false' == $this->config->getConfigValue('save_upos')) {
+            return false;
+        }
+        
+        if (1 == $this->saveUpo) {
             return true;
         }
+        
+        if (isset($httpParams['saveUpo']) && 1 == $httpParams['saveUpo']) {
+            return true;
+        }
+        
+        if (isset($httpParams['pmType']) && false !== strpos('upo', $httpParams['pmType'])) {
+            return true;
+        }
+        
+//        if ('false' != $this->config->getConfigValue('save_upos')
+//            && (1 == $this->saveUpo || 1 == $httpParams['saveUpo'])
+//        ) {
+//            return true;
+//        }
         
         return false;
     }

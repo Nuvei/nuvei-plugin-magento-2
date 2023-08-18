@@ -4,6 +4,7 @@
 
 # 3.1.1
 ```
+    * Fix for the case when with WebSDK try to create rebilling Order with UPO.
     * Fix for save UPO problem when use WebSDK.
     * Fix for the daily log file name, when the plugin save both log files.
     * Removed ApplePay data from the WebSDK Payment Methods, before pass them to the front-end.
