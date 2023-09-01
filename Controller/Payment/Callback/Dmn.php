@@ -1481,7 +1481,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 'clientUniqueId'        => date('YmdHis') . '_' . uniqid(),
                 'currency'              => $this->params['currency'],
                 'amount'                => $this->params['totalAmount'],
-                'relatedTransactionId'  => $this->params['relatedTransactionId'],
+                'relatedTransactionId'  => $this->params['TransactionID'],
                 'customData'            => 'This is an Auto-Void transaction',
             ])
             ->process();
