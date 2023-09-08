@@ -759,10 +759,12 @@ class Config
             $billing_country = $this->getDefaultCountry();
         }
         
+        $address = str_replace(array("\n", "\r", '\\'), ' ', $billingAddress->getStreetFull());
+        
         return [
             "firstName" => $b_f_name,
             "lastName"  => $b_l_name,
-            "address"   => $billingAddress->getStreetFull(),
+            "address"   => $address,
             "phone"     => $billingAddress->getTelephone(),
             "zip"       => $billingAddress->getPostcode(),
             "city"      => $billingAddress->getCity(),
@@ -787,10 +789,12 @@ class Config
             $shipping_email = $this->getUserEmail();
         }
         
+        $address = str_replace(array("\n", "\r", "\\"), ' ', $shipping_address->getStreetFull());
+        
         return [
             "firstName" => $shipping_address->getFirstname(),
             "lastName"  => $shipping_address->getLastname(),
-            "address"   => $shipping_address->getStreetFull(),
+            "address"   => $address,
             "phone"     => $shipping_address->getTelephone(),
             "zip"       => $shipping_address->getPostcode(),
             "city"      => $shipping_address->getCity(),

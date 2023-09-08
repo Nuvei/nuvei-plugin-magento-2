@@ -2,6 +2,11 @@
 
 ---
 
+# 3.1.2
+```
+    * Clean new line and backslash symbol from order billing and shipping addresses.
+```
+
 # 3.1.1
 ```
     * Fix for the case when with WebSDK try to create rebilling Order with UPO.

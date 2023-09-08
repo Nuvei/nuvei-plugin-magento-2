@@ -324,20 +324,22 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $quoteId    = empty($this->quoteId) ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
         $amount     = $this->config->getQuoteBaseTotal($quoteId);
         
-        $billing_address = $this->config->getQuoteBillingAddress($quoteId);
-        
         if (!empty($this->billingAddress)) {
             $billing_address['firstName']   = $this->billingAddress['firstname'] ?: $billing_address['firstName'];
             $billing_address['lastName']    = $this->billingAddress['lastname'] ?: $billing_address['lastName'];
             
             if (is_array($this->billingAddress['street']) && !empty($this->billingAddress['street'])) {
-                $billing_address['address'] = implode(' ', $this->billingAddress['street']);
+                $address                    = trim(implode(' ', $this->billingAddress['street']));
+                $billing_address['address'] = str_replace(array("\n", "\r", '\\'), ' ', $address);
             }
             
             $billing_address['phone']   = $this->billingAddress['telephone'] ?: $billing_address['phone'];
             $billing_address['zip']     = $this->billingAddress['postcode'] ?: $billing_address['zip'];
             $billing_address['city']    = $this->billingAddress['city'] ?: $billing_address['city'];
             $billing_address['country'] = $this->billingAddress['countryId'] ?: $billing_address['country'];
+        }
+        else {
+            $billing_address = $this->config->getQuoteBillingAddress($quoteId);
         }
         
         $params = [
