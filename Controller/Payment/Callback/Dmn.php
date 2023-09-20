@@ -18,6 +18,15 @@ use Magento\Framework\Exception\PaymentException;
  */
 class Dmn extends Action implements CsrfAwareActionInterface
 {
+    private $is_partial_settle  = false;
+    private $curr_trans_info    = []; // collect the info for the current transaction (action)
+    private $refund_msg         = '';
+    private $orderIncrementId   = 0;
+    private $quoteId            = 0;
+    private $loop_tries         = 0; // count loops
+    private $loop_wait_time     = 3; // sleep time in seconds
+    private $loop_max_tries; // loop max tries count
+    
     /**
      * @var CurrencyFactory
      */
@@ -48,11 +57,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
      */
     private $jsonResultFactory;
     
-    private $is_partial_settle  = false;
-    private $curr_trans_info    = []; // collect the info for the current transaction (action)
-    private $refund_msg         = '';
-    private $orderIncrementId   = 0;
-    private $quoteId            = 0;
     private $transaction;
     private $invoiceService;
     private $invoiceRepository;
@@ -124,6 +128,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->currencyFactory          = $currencyFactory;
         
         parent::__construct($context);
+        
+		$this->loop_max_tries  = $this->moduleConfig->isTestModeEnabled() ? 10 : 4;
     }
     
     /**
@@ -435,7 +441,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->jsonOutput->setData('DMN process end for order #' . $this->orderIncrementId);
 
         # try to create Subscription plans
-//        $this->createSubscription($params, $this->orderIncrementId);
         $this->createSubscription($this->orderIncrementId);
 
         return $this->jsonOutput;
@@ -501,7 +506,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
      * @param float     $order_total
      * @param float     $dmn_total
      */
-//    private function processSaleAndSettleDMN($params, $order_total, $dmn_total)
     private function processSaleAndSettleDMN($order_total, $dmn_total)
     {
         $tr_type_param = strtolower($this->params['transactionType']);
@@ -513,32 +517,36 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter->createLog('processSaleAndSettleDMN()');
         
         $invCollection  = $this->order->getInvoiceCollection();
-        $tryouts        = 0;
+//        $tryouts        = 0;
         
-        do {
-            $tryouts++;
-            
-            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
-                $this->readerWriter->createLog(
-                    [
-                        'order status'  => $this->order->getStatus(),
-                        'tryouts'       => $tryouts,
-                        'count($invCollection)'       => count($invCollection),
-                    ],
-                    'processSaleAndSettleDMN() wait for Magento to set Proccessing status.'
-                );
-                
-                sleep(2);
+//        do {
+////            $tryouts++;
+//            $this->loop_tries++;
+//            
+//            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
+//                $this->readerWriter->createLog(
+//                    [
+//                        'order status'          => $this->order->getStatus(),
+////                        'tryouts'       => $tryouts,
+//                        'tryouts'               => $this->loop_tries,
+//                        'count($invCollection)' => count($invCollection),
+//                    ],
+//                    'processSaleAndSettleDMN() wait for Magento to set Proccessing status.'
+//                );
+//                
+//                sleep(2);
                 $this->getOrCreateOrder();
-            }
-        }
-        while(Payment::SC_PROCESSING == $this->order->getStatus() && $tryouts < 4);
+//            }
+//        }
+////        while(Payment::SC_PROCESSING == $this->order->getStatus() && $tryouts < 4);
+//        while(Payment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
         
         $this->readerWriter->createLog(
             [
-                'order status'  => $this->order->getStatus(),
-                'tryouts'       => $tryouts,
-                'count($invCollection)'       => count($invCollection),
+                'order status'          => $this->order->getStatus(),
+//                'tryouts'       => $tryouts,
+                'tryouts'               => $this->loop_tries,
+                'count($invCollection)' => count($invCollection),
             ]
             , 'processSaleAndSettleDMN() - after the Order Status check.');
         
@@ -694,25 +702,28 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->readerWriter->createLog('processVoidDmn()');
         
-        $tryouts = 0;
+//        $tryouts = 0;
         
-        do {
-            $tryouts++;
-            
-            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
-                $this->readerWriter->createLog(
-                    [
-                        'order status'  => $this->order->getStatus(),
-                        'tryouts'       => $tryouts,
-                    ],
-                    'processVoidDmn() wait for Magento to set Proccessing status.'
-                );
-                
-                sleep(2);
+//        do {
+////            $tryouts++;
+//            $this->loop_tries++;
+//            
+//            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
+//                $this->readerWriter->createLog(
+//                    [
+//                        'order status'  => $this->order->getStatus(),
+////                        'tryouts'       => $tryouts,
+//                        'tryouts'       => $this->loop_tries,
+//                    ],
+//                    'processVoidDmn() wait for Magento to set Proccessing status.'
+//                );
+//                
+//                sleep(2);
                 $this->getOrCreateOrder();
-            }
-        }
-        while(Payment::SC_PROCESSING == $this->order->getStatus() && $tryouts < 4);
+//            }
+//        }
+////        while(Payment::SC_PROCESSING == $this->order->getStatus() && $tryouts < 4);
+//        while(Payment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
         
         $this->transactionType        = Transaction::TYPE_VOID;
         $this->sc_transaction_type    = Payment::SC_VOIDED;
@@ -1299,71 +1310,24 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 'eq'
             )->create();
 
-        $tryouts    = 0;
-        $max_tries  = 5;
-        
-        // search only once for Refund/Credit
-//        if (isset($this->params['transactionType'])
-//            && in_array(strtolower($this->params['transactionType']), ['refund', 'credit'])
-//        ) {
-//            $max_tries = 0;
-//        }
-        
-        // do not search more than once for Auth and Sale, if the DMN response time is more than 24 hours before now
-//        if ($max_tries > 0
-//            && isset($this->params['transactionType'])
-//            && in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
-//            && !empty($this->params['customField4'])
-//            && is_numeric($this->params['customField4'])
-//            && time() - $this->params['customField4'] > 3600
-//        ) {
-//            $max_tries = 0;
-//        }
+//        $tryouts    = 0;
+//        $max_tries  = 5;
         
         do {
-            $tryouts++;
+//            $tryouts++;
+            $this->loop_tries++;
             
             $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
 
             if (!$orderList || empty($orderList)) {
-                $this->readerWriter->createLog('DMN try ' . $tryouts
+//                $this->readerWriter->createLog('DMN try ' . $tryouts
+                $this->readerWriter->createLog('DMN try ' . $this->loop_tries
                     . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.');
+                
                 sleep(3);
             }
-        } while ($tryouts < $max_tries && empty($orderList));
-        
-        // try to create the order
-//        if ((!$orderList || empty($orderList))
-//            && !isset($this->params['dmnType'])
-//        ) {
-//            if (in_array(strtolower($this->params['transactionType']), ['sale', 'auth'])
-//                && strtolower($this->params['Status']) != 'approved'
-//            ) {
-//                $msg = 'The Order ' . $identificator .' is not approved, stop process.';
-//                
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//                
-//                return false;
-//            }
-//            
-//            $this->readerWriter->createLog('Order '. $identificator .' not found, try to create it!');
-//
-//            $result = $this->placeOrder($this->params);
-//
-//            if ($result->getSuccess() !== true) {
-//                $msg = 'DMN Callback error - place order error.';
-//                
-//                $this->readerWriter->createLog($result->getMessage(), $msg);
-//                $this->jsonOutput->setData($msg);
-//                
-//                return false;
-//            }
-//
-//            $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
-//
-//            $this->readerWriter->createLog('An Order with ID '. $identificator .' was created in the DMN page.');
-//        }
+//        } while ($tryouts < $max_tries && empty($orderList));
+        } while ($this->loop_tries < $this->loop_max_tries && empty($orderList));
         
         // in case there is no Order
         if (!is_array($orderList)

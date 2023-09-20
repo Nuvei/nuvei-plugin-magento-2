@@ -5,6 +5,7 @@
 # 3.1.2
 ```
     * Clean new line and backslash symbol from order billing and shipping addresses.
+    * Set different delay time in the DMN logic according the environment.
 ```
 
 # 3.1.1
