@@ -1693,7 +1693,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        // for the initial requests
+        // for the initial requests use the Quote ID
         if (isset($params['transactionType'])
             && in_array($params['transactionType'], ['Auth', 'Sale'])
         ) {
@@ -1713,24 +1713,26 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //            return;
 //        }
         
+        if (!empty($params["clientUniqueId"])) {
+            $this->readerWriter->createLog('set orderIncrementId');
+//            $this->orderIncrementId = current(explode('_', $params["clientUniqueId"]));
+            $this->orderIncrementId = $params["clientUniqueId"];
+            return;
+        }
+        
         if (!empty($params["merchant_unique_id"])) {
             // modified because of the PayPal Sandbox problem with duplicate Orders IDs
             $this->readerWriter->createLog('set orderIncrementId');
-            $this->orderIncrementId = current(explode('_', $params["merchant_unique_id"]));
+//            $this->orderIncrementId = current(explode('_', $params["merchant_unique_id"]));
+            $this->orderIncrementId = $params["merchant_unique_id"];
             return;
         }
         
-        if (!empty($params["clientUniqueId"])) {
-            $this->readerWriter->createLog('set orderIncrementId');
-            $this->orderIncrementId = current(explode('_', $params["clientUniqueId"]));
-            return;
-        }
-        
-        if (!empty($params["orderId"])) {
-            $this->readerWriter->createLog('set orderIncrementId');
-            $this->orderIncrementId = $params["orderId"];
-            return;
-        }
+//        if (!empty($params["orderId"])) {
+//            $this->readerWriter->createLog('set orderIncrementId');
+//            $this->orderIncrementId = $params["orderId"];
+//            return;
+//        }
         
         return;
     }
