@@ -44,11 +44,11 @@ class ConfigurableInfo extends \Magento\Payment\Block\ConfigurableInfo
     {
         $labels = [
             Payment::TRANSACTION_ID                 => __('Transaction Id'),
-            Payment::TRANSACTION_AUTH_CODE            => __('Authorization Code'),
+            Payment::TRANSACTION_AUTH_CODE          => __('Authorization Code'),
             Payment::TRANSACTION_ORDER_ID           => __('Nuvei Order Id'),
             Payment::TRANSACTION_REQUEST_ID         => __('Internal Request Id'),
-            Payment::TRANSACTION_PAYMENT_SOLUTION    => __('Payment Solution'),
-            Payment::TRANSACTION_PAYMENT_METHOD        => __('Payment Method'),
+            Payment::TRANSACTION_PAYMENT_SOLUTION   => __('Payment Solution'),
+            Payment::TRANSACTION_PAYMENT_METHOD     => __('Payment Method'),
         ];
 
         $label = $field;

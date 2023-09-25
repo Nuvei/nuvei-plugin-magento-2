@@ -7,6 +7,7 @@
     * Clean new line and backslash symbol from order billing and shipping addresses.
     * Set different delay time in the DMN logic according the environment.
     * Added additional check for wrong Order status upgrade.
+    * Fix for the missing Credit Memo button in Invoice view.
 ```
 
 # 3.1.1

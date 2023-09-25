@@ -241,10 +241,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
             }
             if (!empty($params['customField2'])) {
                 $this->orderPayment->setAdditionalInformation(
-                    'nuvei_subscription_data',
+                    Payment::SUBSCR_DATA,
                     json_decode($params['customField2'], true)
                 );
             }
+            
+            $this->orderPayment->save();
             // /set additional data
             
             // the saved Additional Info for the transaction
@@ -252,7 +254,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             $this->readerWriter->createLog(
                 $this->orderPayment->getAdditionalInformation(),
-                'DMN order payment getAdditionalInformation'
+                'DMN order payment AdditionalInformation'
             );
             
             if (empty($ord_trans_addit_info) || !is_array($ord_trans_addit_info)) {
@@ -1504,12 +1506,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if (isset($params['totalAmount'])) {
             $this->curr_trans_info[Payment::TRANSACTION_TOTAL_AMOUN] = $params['totalAmount'];
         }
-//        if (isset($params['payment_method'])) {
-//            $this->curr_trans_info[Payment::TRANSACTION_PAYMENT_METHOD] = $params['payment_method'];
-//        }
-//        if (!empty($params['customField2'])) {
-//            $this->curr_trans_info['start_subscr_data'] = $params['customField2'];
-//        }
     }
     
     /**

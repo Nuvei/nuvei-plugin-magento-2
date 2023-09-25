@@ -44,6 +44,7 @@ class Payment implements MethodInterface
     const TRANSACTION_STATUS            = 'status';
     const TRANSACTION_TYPE              = 'transaction_type';
     const SUBSCR_IDS                    = 'subscr_ids'; // list with subscription IDs
+    const SUBSCR_DATA                   = 'nuvei_subscription_data'; // list with subscription IDs
     const TRANSACTION_UPO_ID            = 'upo_id';
     const TRANSACTION_TOTAL_AMOUN       = 'total_amount';
     const REFUND_TRANSACTION_AMOUNT     = 'refund_amount';
