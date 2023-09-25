@@ -710,28 +710,24 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->readerWriter->createLog('processVoidDmn()');
         
-//        $tryouts = 0;
-        
-//        do {
-////            $tryouts++;
-//            $this->loop_tries++;
-//            
-//            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
-//                $this->readerWriter->createLog(
-//                    [
-//                        'order status'  => $this->order->getStatus(),
-////                        'tryouts'       => $tryouts,
-//                        'tryouts'       => $this->loop_tries,
-//                    ],
-//                    'processVoidDmn() wait for Magento to set Proccessing status.'
-//                );
-//                
-//                sleep(2);
+        // wait Magento to set its Canceled status so our DMN can change it to Nuvei Voided
+        do {
+            $this->loop_tries++;
+            
+            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
+                $this->readerWriter->createLog(
+                    [
+                        'order status'  => $this->order->getStatus(),
+                        'tryouts'       => $this->loop_tries,
+                    ],
+                    'processVoidDmn() wait for Magento to set Proccessing status.'
+                );
+                
+                sleep($this->loop_wait_time);
                 $this->getOrCreateOrder();
-//            }
-//        }
-////        while(Payment::SC_PROCESSING == $this->order->getStatus() && $tryouts < 4);
-//        while(Payment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
+            }
+        }
+        while(Payment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
         
         $this->transactionType        = Transaction::TYPE_VOID;
         $this->sc_transaction_type    = Payment::SC_VOIDED;
