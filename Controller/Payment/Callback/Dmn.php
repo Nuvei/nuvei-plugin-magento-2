@@ -575,7 +575,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && ($order_total - round(floatval($this->params['totalAmount']), 2) > 0.00)
         ) {
             $this->is_partial_settle = true;
-        } elseif ($order_total != $dmn_total) { // amount check for Sale only
+        }
+        elseif ($order_total != $dmn_total) { // amount check for Sale only
             $this->sc_transaction_type = 'fraud';
 
             $this->order->addStatusHistoryComment(
@@ -1546,7 +1547,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
         /**
          * When all is same for Sale
-         * we do this check only for sale, because Settle, Reffund and Void
+         * we do this check only for sale, because Settle, Refund and Void
          * can be partial
          */
         if (strtolower($order_tr_type) == $tr_type_param
@@ -1589,8 +1590,21 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return true;
         }
 
+        // do not replace Settle with Auth
         if ($tr_type_param === 'auth' && strtolower($order_tr_type) === 'settle') {
             $msg = 'Can not set Auth to Settled Order #' . $this->order->getId();
+            
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+        
+            return true;
+        }
+        
+        // after Auth only Settle and Void are allowed
+        if (strtolower($order_tr_type) === 'auth'
+            && !in_array($tr_type_param, ['settle', 'void'])
+        ) {
+            $msg = 'The only allowed upgrades of Auth are Void and Settle. Order #' . $this->order->getId();
             
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
