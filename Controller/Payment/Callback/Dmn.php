@@ -555,11 +555,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $dmn_inv_id         = $this->httpRequest->getParam('invoice_id');
         $is_cpanel_settle   = false;
         
-        if (!empty($this->params["merchant_unique_id"] && isset($this->params["order"]))
-            && $this->params["merchant_unique_id"] != $this->params["order"]
-        ) {
+        if (!empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
             $is_cpanel_settle = true;
         }
+        
+//        if (!empty($this->params["merchant_unique_id"] && isset($this->params["order"]))
+//            && $this->params["merchant_unique_id"] != $this->params["order"]
+//        ) {
+//            $is_cpanel_settle = true;
+//        }
 
         if ($this->params["payment_method"] == 'cc_card') {
             $this->order->setCanVoidPayment(true);
@@ -621,17 +625,20 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter->createLog('There are no Invoices');
         
         // there are not invoices, but we can create
-        if (
-//            ( $this->order->canInvoice() || $is_cpanel_settle )
-//            && (
-            (
-                'sale' == $tr_type_param // Sale flow
-                || ( // APMs flow
-                    $this->params["order"] == $this->params["merchant_unique_id"]
-                    && $this->params["payment_method"] != 'cc_card'
-                )
-                || $is_cpanel_settle
-            )
+//        if (
+////            ( $this->order->canInvoice() || $is_cpanel_settle )
+////            && (
+//            (
+//                'sale' == $tr_type_param // Sale flow
+//                || ( // APMs flow
+//                    $this->params["order"] == $this->params["merchant_unique_id"]
+//                    && $this->params["payment_method"] != 'cc_card'
+//                )
+//                || $is_cpanel_settle
+//            )
+        if ('sale' == $tr_type_param
+            || $this->params["payment_method"] != 'cc_card'
+            || $is_cpanel_settle
         ) {
             $this->readerWriter->createLog('We can create Invoice');
             
@@ -1686,11 +1693,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         // for all other requests
-        if (!empty($params["order"])) {
-            $this->readerWriter->createLog('set orderIncrementId');
-            $this->orderIncrementId = $params["order"];
-            return;
-        }
+//        if (!empty($params["order"])) {
+//            $this->readerWriter->createLog('set orderIncrementId');
+//            $this->orderIncrementId = $params["order"];
+//            return;
+//        }
         
         if (!empty($params["merchant_unique_id"])) {
             // modified because of the PayPal Sandbox problem with duplicate Orders IDs

@@ -274,6 +274,7 @@ abstract class AbstractRequest
             'merchantDetails'   => [
                 'customField4' => time(),
             ],
+            'customData'        => 'store-request',
         ];
 
         return $params;
