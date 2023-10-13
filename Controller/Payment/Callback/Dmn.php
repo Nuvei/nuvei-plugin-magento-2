@@ -461,7 +461,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->sc_transaction_type = Payment::SC_AUTH;
 
         // amount check
-        if ($order_total != $dmn_total) {
+        if ($order_total != $dmn_total && !$this->isValidDccTransaction()) {
             $this->sc_transaction_type = 'fraud';
 
             $this->order->addStatusHistoryComment(
@@ -573,7 +573,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         ) {
             $this->is_partial_settle = true;
         }
-        elseif ($order_total != $dmn_total) { // amount check for Sale only
+        elseif ($order_total != $dmn_total && !$this->isValidDccTransaction()) { // amount check for Sale only
             $this->sc_transaction_type = 'fraud';
 
             $this->order->addStatusHistoryComment(
@@ -1722,6 +1722,30 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //        }
         
         return;
+    }
+    
+    /**
+     * Help function to detect if for the incoming transaction was used DCC
+     * 
+     * @return bool
+     */
+    private function isValidDccTransaction()
+    {
+        $order_data = $this->orderPayment->getAdditionalInformation();
+        
+        if (empty($order_data['nuvei_create_order_data']['dcc']['currency'])
+            || empty($order_data['nuvei_create_order_data']['dcc']['converted_amount'])
+        ) {
+            return false;
+        }
+        
+        if ($this->params['totalAmount'] == $order_data['nuvei_create_order_data']['dcc']['converted_amount']
+            && $this->params['currency'] == $order_data['nuvei_create_order_data']['dcc']['currency']
+        ) {
+            return true;
+        }
+        
+        return false;
     }
     
 }
