@@ -8,6 +8,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
+use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
 
 /**
@@ -31,6 +32,7 @@ class OpenOrder extends Action
     private $requestFactory;
     
     private $readerWriter;
+    private $cart;
 
     /**
      * Redirect constructor.
@@ -40,13 +42,15 @@ class OpenOrder extends Action
      * @param JsonFactory       $jsonResultFactory
      * @param RequestFactory    $requestFactory
      * @param ReaderWriter      $readerWriter
+     * @param Cart              $cart
      */
     public function __construct(
         Context $context,
         ModuleConfig $moduleConfig,
         JsonFactory $jsonResultFactory,
         RequestFactory $requestFactory,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter
+        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
+        \Magento\Checkout\Model\Cart $cart,
     ) {
         parent::__construct($context);
 
@@ -54,6 +58,7 @@ class OpenOrder extends Action
         $this->jsonResultFactory    = $jsonResultFactory;
         $this->requestFactory       = $requestFactory;
         $this->readerWriter         = $readerWriter;
+        $this->cart                 = $cart;
     }
 
     /**
@@ -61,9 +66,11 @@ class OpenOrder extends Action
      */
     public function execute()
     {
+        $this->readerWriter->createLog($this->getRequest()->getParams(), 'openOrder Controller');
+        
         $result = $this->jsonResultFactory->create()
             ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
-
+        
         if (!$this->moduleConfig->getConfigValue('active')) {
             $this->readerWriter->createLog('OpenOrder error - '
                 . 'Nuvei checkout module is not active at the moment!');
@@ -73,6 +80,70 @@ class OpenOrder extends Action
             ]);
         }
         
+        # when use Checkout SDK and its pre-payment do not call OpenOrder class at all
+        if ('checkout' == $this->moduleConfig->getUsedSdk()
+            && $this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment'
+        ) {
+            $quote              = $this->cart->getQuote();
+            $order_data         = $quote->getPayment()
+                    ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
+            $items              = $quote->getItems();
+            $items_base_data    = [];
+            
+            $this->readerWriter->createLog($order_data);
+
+            if (!empty($items) && is_array($items)) {
+                foreach ($items as $item) {
+                    $items_base_data[] = [
+                        'id'    => $item->getId(),
+                        'name'  => $item->getName(),
+                        'qty'   => $item->getQty(),
+                        'price' => $item->getPrice(),
+                    ];
+                }
+            }
+
+            $this->readerWriter->createLog($items_base_data);
+            
+            // success
+            if (!empty($order_data['itemsBaseInfoHash'])
+                && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
+            ) {
+                // save converted order amount to the session and later as meta field
+                $dcc_params = $this->getRequest()->getParam('dcc');
+                
+                $this->readerWriter->createLog($dcc_params);
+                
+                if (isset($dcc_params['currency'], $dcc_params['converted_amount'])
+                    && 0 < $dcc_params['converted_amount']
+                    && $this->moduleConfig->getQuoteBaseCurrency() != $dcc_params['currency']
+                ) {
+                    $order_data['dcc'] = [
+                        'currency'          => $dcc_params['currency'],
+                        'converted_amount'  => $dcc_params['converted_amount'],
+                    ];
+
+
+                    $quote->getPayment()->setAdditionalInformation(
+                        Payment::CREATE_ORDER_DATA,
+                        $order_data
+                    );
+                    
+                    $quote->save();
+                }
+                // /save converted order amount to the session and later as meta field
+                
+                return $result->setData([
+                    "success" => 1,
+                ]);
+            }
+            
+            return $result->setData([
+                "success" => 0,
+            ]);
+        }
+        
+        # when use Web SDK we have to call the OpenOrder class because have to decide will we create UPO
         $save_upo   = $this->getRequest()->getParam('saveUpo') ?? null;
         $pmType     = $this->getRequest()->getParam('pmType') ?? '';
         
@@ -82,7 +153,7 @@ class OpenOrder extends Action
         
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $resp       = $request
-                ->setSaveUpo($this->getRequest()->getParam('saveUpo'))
+                ->setSaveUpo($save_upo)
                 ->process();
         
         // some error
@@ -100,6 +171,7 @@ class OpenOrder extends Action
             
             return $result->setData($resp_array);
         }
+        
         // success
         return $result->setData([
             "error"         => 0,

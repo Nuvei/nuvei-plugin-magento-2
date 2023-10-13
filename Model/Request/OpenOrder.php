@@ -115,7 +115,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->quote = empty($this->quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($this->quoteId);
         
-        $this->items = $this->quote->getItems();
+        $this->items        = $this->quote->getItems();
+        $items_base_data    = [];
         
         # check if each item is in stock
         if (!empty($this->items)) {
@@ -129,7 +130,14 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                 } else {
                     $stockItemToCheck[] = $item->getProduct()->getId();
                 }
-
+                
+                $items_base_data[] = [
+                    'id'    => $item->getId(),
+                    'name'  => $item->getName(),
+                    'qty'   => $item->getQty(),
+                    'price' => $item->getPrice(),
+                ];
+                
                 foreach ($stockItemToCheck as $productId) {
                     $available = $this->stockState->checkQty($productId, $item->getQty());
 
@@ -152,13 +160,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             ->setQuoteId($this->quoteId)
             ->getProductPlanData();
         
+        $this->readerWriter->createLog($this->items_data);
+        
         $this->subs_data    = $this->items_data['subs_data'] ?? [];
         $order_data         = $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
         $this->readerWriter->createLog([
-            '$this->quoteId'    => $this->quoteId,
-            '$order_data'       => $order_data,
-            '$this->subs_data'  => $this->subs_data,
+            'quoteId'       => $this->quoteId,
+            'order_data'    => $order_data,
+            'subs_data'     => $this->subs_data,
         ]);
         
         // will we call updateOrder?
@@ -225,6 +235,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'sessionToken'      => $req_resp['sessionToken'],
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
+            'itemsBaseInfoHash' => md5(serialize($items_base_data)),
         ];
         
         if (isset($req_resp['userTokenId'])) {
@@ -485,12 +496,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         if (isset($httpParams['pmType']) && false !== strpos('upo', $httpParams['pmType'])) {
             return true;
         }
-        
-//        if ('false' != $this->config->getConfigValue('save_upos')
-//            && (1 == $this->saveUpo || 1 == $httpParams['saveUpo'])
-//        ) {
-//            return true;
-//        }
         
         return false;
     }

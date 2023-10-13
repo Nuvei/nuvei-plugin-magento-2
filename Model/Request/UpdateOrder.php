@@ -66,6 +66,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     public function setOrderData(array $orderData)
     {
         $this->orderData = $orderData;
+        
         return $this;
     }
     

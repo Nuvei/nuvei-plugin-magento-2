@@ -2,6 +2,12 @@
 
 ---
 
+# 3.1.3
+```
+    * Removed the updateOrder reques on SDK pre-payment event. In case of Quote problems, the page will reload.
+    * If the client use DCC, pass its data to the Order.
+```
+
 # 3.1.2
 ```
     * Clean new line and backslash symbol from order billing and shipping addresses.

@@ -65,7 +65,13 @@ function nuveiPrePayment(paymentDetails) {
 };
 
 function nuveiUpdateOrder(resolve, reject, secondCall = false) {
-	var xmlhttp = new XMLHttpRequest();
+    var paramsStr   = '?nuveiAction=nuveiPrePayment';
+    var xmlhttp     = new XMLHttpRequest();
+    
+    if (jQuery('#nuvei_checkout input[name="useDcc"]').is(':checked')) {
+        paramsStr += '&dcc[currency]=' + jQuery('#nuvei_checkout select.currency').val()
+            + '&dcc[converted_amount]=' + jQuery('#nuvei_checkout input.converted_amount').val();
+    }
 
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
@@ -75,15 +81,24 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
 				var resp = JSON.parse(xmlhttp.response);
                 console.log('Request response', resp);
                 
-                // error
-                if (resp.hasOwnProperty('error') && 1 == resp.error) {
+                if (!resp.hasOwnProperty('success') || 0 == resp.success) {
                     reject();
-                    alert(resp.reason);
+                    window.location.reload();
                     return;
                 }
-                // success
-				resolve();
-				return;
+                
+                resolve();
+                return;
+                
+                // error
+//                if (resp.hasOwnProperty('error') && 1 == resp.error) {
+//                    reject();
+//                    alert(resp.reason);
+//                    return;
+//                }
+//                // success
+//				resolve();
+//				return;
             }
            
 			if (xmlhttp.status == 400) {
@@ -99,8 +114,8 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
 			return;
         }
     };
-
-    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl, true);
+    
+    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
     xmlhttp.send();
 }
 
@@ -111,6 +126,12 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
  */
 function nuveiAfterSdkResponse(resp) {
 	console.log('nuveiAfterSdkResponse() resp', resp);
+
+    // expired session
+    if (resp.hasOwnProperty('session_expired') && resp.session_expired) {
+        window.location.reload();
+        return;
+    }
 
     // a specific Error
     if(resp.hasOwnProperty('status')
@@ -287,7 +308,7 @@ define(
                 ///////////////////////////////////
                 
                 nuveiShowLoader();
-
+                
                 var xmlhttp = new XMLHttpRequest();
                 
                 xmlhttp.onreadystatechange = function() {
@@ -334,8 +355,14 @@ define(
                         }
                     }
                 };
-
-                xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl, true);
+                
+                console.log(typeof $, $)
+                
+                xmlhttp.open(
+                    "GET", 
+                    window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + '?nuveiAction=getSessionToken', 
+                    true
+                );
                 xmlhttp.send();
 			},
             
