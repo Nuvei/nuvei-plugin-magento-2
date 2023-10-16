@@ -53,70 +53,77 @@ class LatestPluginVersionMessage implements MessageInterface
     {
         if ($this->modulConfig->getConfigValue('active') === false) {
             $this->readerWriter->createLog('LatestPluginVersionMessage Error - the module is not active.');
-            return;
+            return false;
         }
         
+        $this->readerWriter->createLog($_SESSION ?? []);
+        
         // check every 7th day
-        if ((int) date('d', time()) % 7 != 0) {
-            return;
-        }
+//        if ((int) date('d', time()) % 7 != 0) {
+//            return;
+//        }
         
         $git_version    = 0;
         $this_version   = 0;
         
         try {
-            $file = $this->directory->getPath('log') . DIRECTORY_SEPARATOR . 'nuvei-plugin-latest-version.txt';
-            
-            $this->curl->get('https://raw.githubusercontent.com/Nuvei/nuvei-plugin-magento-2/master/composer.json');
-            $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-            $this->curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+            if (empty($_SESSION['admin']['nuveiPluginGitVersion'])) {
+                $file = $this->directory->getPath('log') . DIRECTORY_SEPARATOR . 'nuvei-plugin-latest-version.txt';
 
-            $result = $this->curl->getBody();
-            $array  = json_decode($result, true);
+                $this->curl->get('https://raw.githubusercontent.com/Nuvei/nuvei-plugin-magento-2/master/composer.json');
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
 
-            if (empty($array['version'])) {
-                $this->readerWriter->createLog($result, 'LatestPluginVersionMessage Error - missing version.');
-                return;
+                $result = $this->curl->getBody();
+                $array  = json_decode($result, true);
+
+                if (empty($array['version'])) {
+                    $this->readerWriter->createLog($result, 'LatestPluginVersionMessage Error - missing version.');
+                    return false;
+                }
+
+                $arr_v = $array['version'];
+
+                if (!empty($arr_v)) {
+                    $git_version = $_SESSION['admin']['nuveiPluginGitVersion'] = (int) str_replace('.', '', $arr_v);
+                }
+
+//                $res = $this->readerWriter->saveFile(
+//                    $this->directory->getPath('log'),
+//                    'nuvei-plugin-latest-version.txt',
+//                    $array['version']
+//                );
+//
+//                if (!$res) {
+//                    $this->readerWriter->createLog('LatestPluginVersionMessage Error - file was not created.');
+//                }
             }
-            
-            $arr_v = $array['version'];
-            
-            if (!empty($arr_v)) {
-                $git_version = (int) str_replace('.', '', $arr_v);
-            }
-            
-            $res = $this->readerWriter->saveFile(
-                $this->directory->getPath('log'),
-                'nuvei-plugin-latest-version.txt',
-                $array['version']
-            );
-
-            if (!$res) {
-                $this->readerWriter->createLog('LatestPluginVersionMessage Error - file was not created.');
+            else {
+                $git_version = $_SESSION['admin']['nuveiPluginGitVersion'];
             }
         } catch (\Exception $ex) {
             $this->readerWriter->createLog($ex->getMessage(), 'LatestPluginVersionMessage Exception:');
         }
         
-        if (!$this->readerWriter->fileExists($file) && 0 == $git_version) {
-            $this->readerWriter->createLog('LatestPluginVersionMessage - version file does not exists.');
-            return false;
-        }
+//        if (!$this->readerWriter->fileExists($file) && 0 == $git_version) {
+//            $this->readerWriter->createLog('LatestPluginVersionMessage - version file does not exists.');
+//            return false;
+//        }
         
-        if (!$this->readerWriter->isReadable($file)) {
-            $this->readerWriter->createLog($file, 'LatestPluginVersionMessage Error - '
-                . 'version file exists, but is not readable!');
-            
-            if (0 == $git_version) {
-                return false;
-            }
-        }
+//        if (!$this->readerWriter->isReadable($file)) {
+//            $this->readerWriter->createLog($file, 'LatestPluginVersionMessage Error - '
+//                . 'version file exists, but is not readable!');
+//            
+//            if (0 == $git_version) {
+//                return false;
+//            }
+//        }
+//        
+//        $file = trim($this->readerWriter->readFile($file));
         
-        $file = trim($this->readerWriter->readFile($file));
-        
-        if (0 == $git_version && !empty($file)) {
-            $git_version = (int) str_replace('.', '', $file);
-        }
+//        if (0 == $git_version && !empty($file)) {
+//            $git_version = (int) str_replace('.', '', $file);
+//        }
         
         $this->readerWriter->createLog('isDisplayed()');
         
