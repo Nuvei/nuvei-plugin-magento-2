@@ -5,6 +5,7 @@
 # 3.1.3
 ```
     * Removed the updateOrder reques on SDK pre-payment event. In case of Quote problems, the page will reload.
+    * Removed WebSDK options in plugin configuration.
     * If the client use DCC, pass its data to the Order.
     * For plugin version check, do it every day and keep Git version in the session.
 ```

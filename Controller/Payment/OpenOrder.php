@@ -33,6 +33,7 @@ class OpenOrder extends Action
     
     private $readerWriter;
     private $cart;
+    private $quoteFactory;
 
     /**
      * Redirect constructor.
@@ -51,6 +52,7 @@ class OpenOrder extends Action
         RequestFactory $requestFactory,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Magento\Checkout\Model\Cart $cart,
+        \Magento\Quote\Model\QuoteFactory $quoteFactory
     ) {
         parent::__construct($context);
 
@@ -59,6 +61,7 @@ class OpenOrder extends Action
         $this->requestFactory       = $requestFactory;
         $this->readerWriter         = $readerWriter;
         $this->cart                 = $cart;
+        $this->quoteFactory         = $quoteFactory;
     }
 
     /**
@@ -84,7 +87,8 @@ class OpenOrder extends Action
         if ('checkout' == $this->moduleConfig->getUsedSdk()
             && $this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment'
         ) {
-            $quote              = $this->cart->getQuote();
+            $quoteId            = $this->getRequest()->getParam('quoteId'); // it comes form REST site as parameter
+            $quote              = empty($quoteId) ? $this->cart->getQuote() : $this->quoteFactory->create()->load($quoteId);
             $order_data         = $quote->getPayment()
                     ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
             $items              = $quote->getItems();

@@ -325,26 +325,14 @@ class GetCheckoutData implements GetCheckoutDataInterface
     {
         $params = $this->apiRequest->getBodyParams();
         
-//        $urlDetails         = $params['urlDetails'] ?? [];
-        
-//        if (isset($params['urlDetails'])) {
-//            $urlDetails = $params['urlDetails'];
-//            unset($params['urlDetails']);
-//        }
-        
-//        $this->readerWriter->createLog([$params, $urlDetails]);
         $this->readerWriter->createLog($params);
         
         $request    = $this->requestFactory->create(AbstractRequest::PAYMENT_APM_METHOD);
         $response   = $request
-//            ->setPaymentMethod(empty($params["chosenApmMethod"]) ? '' : $params["chosenApmMethod"])
             ->setPaymentMethod($params['chosenApmMethod'] ?? '')
-//            ->setSavePaymentMethod(empty($params["savePm"]) ? 0 : (int) $params["savePm"])
             ->setSavePaymentMethod($params["savePm"] ?? 0)
-//            ->setPaymentMethodFields($params)
             ->setPaymentMethodFields($params['apmMethodFields'] ?? [])
             ->setQuoteId($quoteId)
-//            ->setUrlDetails($urlDetails)
             ->setUrlDetails($params['urlDetails'] ?? [])
             ->process();
         
@@ -371,6 +359,8 @@ class GetCheckoutData implements GetCheckoutDataInterface
      */
     private function updateOrder($quoteId)
     {
+        $this->readerWriter->createLog('REST updateOrder()');
+        
         # 1. Open new order
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $ooResp     = $request

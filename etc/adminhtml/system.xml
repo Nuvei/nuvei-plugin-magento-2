@@ -437,13 +437,13 @@
 					</field>
 				</group>
 					
-                <group id="web_sdk_configuration"
+<!--                <group id="web_sdk_configuration"
                        translate="label"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1"
                        sortOrder="20">
-					<label>WebSDK Configuration</label>
+					<label>WebSDK Configuration</label>-->
                     
 <!--                    <field id="web_save_upos"
 						   translate="label"
@@ -458,7 +458,7 @@
 						<config_path>payment/nuvei/save_upos</config_path>
 					</field>-->
                     
-                    <field id="apple_pay_label"
+<!--                    <field id="apple_pay_label"
 					   translate="label"
 					   type="text"
 					   sortOrder="20"
@@ -467,7 +467,7 @@
 					   showInStore="0">
 					<label>Apple Pay Label</label>
 				</field>
-                </group>
+                </group>-->
                 
                 <group id="help_tools"
                        translate="label"

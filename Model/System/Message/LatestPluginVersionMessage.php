@@ -56,7 +56,7 @@ class LatestPluginVersionMessage implements MessageInterface
             return false;
         }
         
-        $this->readerWriter->createLog($_SESSION ?? []);
+//        $this->readerWriter->createLog($_SESSION ?? []);
         
         // check every 7th day
 //        if ((int) date('d', time()) % 7 != 0) {

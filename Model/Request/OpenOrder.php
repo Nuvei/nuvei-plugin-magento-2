@@ -160,7 +160,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             ->setQuoteId($this->quoteId)
             ->getProductPlanData();
         
-        $this->readerWriter->createLog($this->items_data);
+        $this->readerWriter->createLog($this->items_data, 'items_data');
         
         $this->subs_data    = $this->items_data['subs_data'] ?? [];
         $order_data         = $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
