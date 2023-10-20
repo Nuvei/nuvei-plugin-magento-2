@@ -232,6 +232,30 @@ class Dmn extends Action implements CsrfAwareActionInterface
             }
             // /Try to create the Order.
             
+            # For Auth and Settle check the internal Nuvei Order ID
+            if (in_array($params['transactionType'], ['Auth', 'Sale'])) {
+                $this->createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
+                
+                if (empty($params['PPP_TransactionID'])
+                    || empty($this->createOrderData['orderId'])
+                    || $this->createOrderData['orderId'] != $params['PPP_TransactionID']
+                ) {
+                    $msg = 'DMN Error - PPP_TransactionID is different from the saved for the current Order.';
+            
+                    $this->readerWriter->createLog(
+                        [
+                            'PPP_TransactionID' => @$params['PPP_TransactionID'],
+                            'orderId'           => @$this->createOrderData['orderId'],
+                        ],
+                        $msg
+                    );
+                    $this->jsonOutput->setData($msg);
+
+                    return $this->jsonOutput;
+                }
+            }
+            # /For Auth and Settle check the internal Nuvei Order ID
+            
             // set additional data
             if (!empty($params['payment_method'])) {
                 $this->orderPayment->setAdditionalInformation(
@@ -473,21 +497,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             );
         }
         
-        // check for Zero Total Order with Rebilling
-//        $rebillling_data = json_decode($this->params['customField2'], true);
-//        
-//        if (0 == $order_total
-//            && !empty($rebillling_data)
-//            && is_array($rebillling_data)
-//        ) {
-//            $this->start_subscr = true;
-//            
-//            $this->order->addStatusHistoryComment(
-//                __("This is Zero Total Auth Transaction, you no need to Settle it."),
-//                $this->sc_transaction_type
-//            );
-//        }
-
         $this->orderPayment
             ->setAuthAmount($this->params['totalAmount'])
             ->setIsTransactionPending(true)
@@ -1722,30 +1731,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //        }
         
         return;
-    }
-    
-    /**
-     * Help function to detect if for the incoming transaction was used DCC
-     * 
-     * @return bool
-     */
-    private function isValidDccTransaction()
-    {
-        $order_data = $this->orderPayment->getAdditionalInformation();
-        
-        if (empty($order_data['nuvei_create_order_data']['dcc']['currency'])
-            || empty($order_data['nuvei_create_order_data']['dcc']['converted_amount'])
-        ) {
-            return false;
-        }
-        
-        if ($this->params['totalAmount'] == $order_data['nuvei_create_order_data']['dcc']['converted_amount']
-            && $this->params['currency'] == $order_data['nuvei_create_order_data']['dcc']['currency']
-        ) {
-            return true;
-        }
-        
-        return false;
     }
     
 }

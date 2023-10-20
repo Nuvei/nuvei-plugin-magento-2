@@ -113,30 +113,6 @@ class OpenOrder extends Action
             if (!empty($order_data['itemsBaseInfoHash'])
                 && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
             ) {
-                // save converted order amount to the session and later as meta field
-                $dcc_params = $this->getRequest()->getParam('dcc');
-                
-                $this->readerWriter->createLog($dcc_params);
-                
-                if (isset($dcc_params['currency'], $dcc_params['converted_amount'])
-                    && 0 < $dcc_params['converted_amount']
-                    && $this->moduleConfig->getQuoteBaseCurrency() != $dcc_params['currency']
-                ) {
-                    $order_data['dcc'] = [
-                        'currency'          => $dcc_params['currency'],
-                        'converted_amount'  => $dcc_params['converted_amount'],
-                    ];
-
-
-                    $quote->getPayment()->setAdditionalInformation(
-                        Payment::CREATE_ORDER_DATA,
-                        $order_data
-                    );
-                    
-                    $quote->save();
-                }
-                // /save converted order amount to the session and later as meta field
-                
                 return $result->setData([
                     "success" => 1,
                 ]);

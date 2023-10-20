@@ -68,11 +68,6 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
     var paramsStr   = '?nuveiAction=nuveiPrePayment';
     var xmlhttp     = new XMLHttpRequest();
     
-    if (jQuery('#nuvei_checkout input[name="useDcc"]').is(':checked')) {
-        paramsStr += '&dcc[currency]=' + jQuery('#nuvei_checkout select.currency').val()
-            + '&dcc[converted_amount]=' + jQuery('#nuvei_checkout input.converted_amount').val();
-    }
-
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
             console.log('Request response', xmlhttp.response);
@@ -89,16 +84,6 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
                 
                 resolve();
                 return;
-                
-                // error
-//                if (resp.hasOwnProperty('error') && 1 == resp.error) {
-//                    reject();
-//                    alert(resp.reason);
-//                    return;
-//                }
-//                // success
-//				resolve();
-//				return;
             }
            
 			if (xmlhttp.status == 400) {
