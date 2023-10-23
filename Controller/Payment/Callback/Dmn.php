@@ -399,8 +399,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $this->sc_transaction_type = Payment::SC_PROCESSING;
                 
                 // try to recognize DMN type
-                $this->processAuthDmn($order_total, $dmn_total); // AUTH
-                $this->processSaleAndSettleDMN($order_total, $dmn_total, $last_record); // SALE and SETTLE
+//                $this->processAuthDmn($order_total, $dmn_total, $params); // AUTH
+                $this->processAuthDmn($params); // AUTH
+//                $this->processSaleAndSettleDMN($order_total, $dmn_total, $last_record); // SALE and SETTLE
+                $this->processSaleAndSettleDMN($params); // SALE and SETTLE
                 $this->processVoidDmn($tr_type_param); // VOID
                 $this->processRefundDmn($ord_trans_addit_info); // REFUND/CREDIT
                 
@@ -473,10 +475,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
     }
     
     /**
-     * @param float $order_total
-     * @param float $dmn_total
+     * @param array $params
      */
-    private function processAuthDmn($order_total, $dmn_total)
+    private function processAuthDmn($params)
     {
         if ('auth' != strtolower($this->params['transactionType'])) {
             return;
@@ -484,8 +485,29 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->sc_transaction_type = Payment::SC_AUTH;
 
+        # Fraud check
+        $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
+        $order_curr     = $this->order->getQuoteBaseCurrency();
+        
+        $fraud = false;
+        
         // amount check
-        if ($order_total != $dmn_total && !$this->isValidDccTransaction()) {
+        if ($order_total != $params['totalAmount']
+            && isset($params['customField5'])
+            && $order_total != $params['customField5']
+        ) {
+            $fraud = true;
+        }
+        
+        // currency check
+        if ($order_curr != $params['currency']
+            && isset($params['customField6'])
+            && $order_curr != $params['customField6']
+        ) {
+            $fraud = true;
+        }
+        
+        if ($fraud) {
             $this->sc_transaction_type = 'fraud';
 
             $this->order->addStatusHistoryComment(
@@ -496,6 +518,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $this->sc_transaction_type
             );
         }
+        # /Fraud check
         
         $this->orderPayment
             ->setAuthAmount($this->params['totalAmount'])
@@ -514,11 +537,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
     
     /**
      * @param array     $params
-     * @param float     $order_total
-     * @param float     $dmn_total
      */
-    private function processSaleAndSettleDMN($order_total, $dmn_total)
+    private function processSaleAndSettleDMN($params)
     {
+        $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
+        $dmn_total      = round((float) $params['totalAmount'], 2);
         $tr_type_param = strtolower($this->params['transactionType']);
         
         if (!in_array($tr_type_param, ['sale', 'settle']) || isset($this->params['dmnType'])) {
@@ -582,16 +605,38 @@ class Dmn extends Action implements CsrfAwareActionInterface
         ) {
             $this->is_partial_settle = true;
         }
-        elseif ($order_total != $dmn_total && !$this->isValidDccTransaction()) { // amount check for Sale only
-            $this->sc_transaction_type = 'fraud';
+        // in case of Sale check the currency and the amount
+        else {
+            $order_curr = $this->order->getQuoteBaseCurrency();
+            $fraud      = false;
+            
+            // check the total
+            if ($order_total != $dmn_total
+                && isset($params['customField5'])
+                && $order_total != $params['customField5']
+            ) {
+                $fraud = true;
+            }
+            
+            // check the currency
+            if ($order_curr != $params['currency']
+                && isset($params['customField6'])
+                && $order_curr != $params['customField6']
+            ) {
+                $fraud = true;
+            }
+            
+            if ($fraud) {
+                $this->sc_transaction_type = 'fraud';
 
-            $this->order->addStatusHistoryComment(
-                __('<b>Attention!</b> - There is a problem with the Order. The Order amount is ')
-                . $this->order->getOrderCurrencyCode() . ' '
-                . $order_total . ', ' . __('but the Paid amount is ')
-                . $this->params['currency'] . ' ' . $dmn_total,
-                $this->sc_transaction_type
-            );
+                $this->order->addStatusHistoryComment(
+                    __('<b>Attention!</b> - There is a problem with the Order. The Order amount is ')
+                    . $this->order->getOrderCurrencyCode() . ' '
+                    . $order_total . ', ' . __('but the Paid amount is ')
+                    . $this->params['currency'] . ' ' . $dmn_total,
+                    $this->sc_transaction_type
+                );
+            }
         }
 
         // there are invoices
