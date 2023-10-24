@@ -67,6 +67,20 @@ define(
                 component: 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js'
             });
         }
+        // load SimplyConnect
+        else {
+            // Load Nuvei Chekout SDK and add it ot a local variable
+            var magentoTmpCheckout	= window.checkout;
+            var nuveiCheckoutSdkScr	= document.createElement('script');
+
+            nuveiCheckoutSdkScr.src     = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js";
+            nuveiCheckoutSdkScr.onload  = function () {
+                window.nuveiCheckoutSdk     = checkout;
+                window.checkout             = magentoTmpCheckout;
+            };
+            
+            document.head.appendChild(nuveiCheckoutSdkScr);
+        }
         
         // load the render file
         rendererList.push({

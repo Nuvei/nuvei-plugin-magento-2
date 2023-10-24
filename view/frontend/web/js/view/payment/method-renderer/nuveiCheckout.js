@@ -218,13 +218,13 @@ define(
 
         var self = null;
         
-        $.getScript(
-            "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js",
-            function( data, textStatus, jqxhr ) {
-                window.nuveiCheckoutSdk	= checkout;
-                $('#nuveiCheckoutCss').remove(); // remove the style, it is broken.
-            }
-        );
+//        $.getScript(
+//            "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js",
+//            function( data, textStatus, jqxhr ) {
+//                window.nuveiCheckoutSdk	= checkout;
+//                $('#nuveiCheckoutCss').remove(); // remove the style, it is broken.
+//            }
+//        );
 
         return Component.extend({
             defaults: {

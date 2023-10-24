@@ -6,7 +6,7 @@
 ```
     * Removed the updateOrder reques on SDK pre-payment event. In case of Quote problems, the page will reload.
     * Removed WebSDK options in plugin configuration.
-    * For plugin version check, do it every day and keep Git version in the session.
+    * Check for new plugin version each day and keep the information into the session.
 ```
 
 # 3.1.2
