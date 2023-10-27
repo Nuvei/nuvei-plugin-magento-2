@@ -491,37 +491,16 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         $this->sc_transaction_type = Payment::SC_AUTH;
-
-        # Fraud check
-        $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
-        $order_curr     = $this->order->getQuoteBaseCurrency();
         
-        $fraud = false;
-        
-        // amount check
-        if ($order_total != $this->params['totalAmount']
-            && isset($this->params['customField5'])
-            && $order_total != $this->params['customField5']
-        ) {
-            $fraud = true;
-        }
-        
-        // currency check
-        if ($order_curr != $this->params['currency']
-            && isset($this->params['customField6'])
-            && $order_curr != $this->params['customField6']
-        ) {
-            $fraud = true;
-        }
-        
-        if ($fraud) {
+        if ($this->fraudCheck()) {
             $this->sc_transaction_type = 'fraud';
 
             $this->order->addStatusHistoryComment(
                 __('<b>Attention!</b> - There is a problem with the Order. The Order amount is ')
                     . $this->order->getOrderCurrencyCode() . ' '
-                    . $order_total . ', ' . __('but the Authorized amount is ')
-                    . $this->params['currency'] . ' ' . $dmn_total,
+                    . round((float) $this->order->getBaseGrandTotal(), 2) . ', ' 
+                    . __('but the Authorized amount is ') . $this->params['currency'] 
+                    . ' ' . $this->params['totalAmount'],
                 $this->sc_transaction_type
             );
         }
@@ -613,26 +592,25 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         // in case of Sale check the currency and the amount
         else {
-            $order_curr = $this->order->getQuoteBaseCurrency();
-            $fraud      = false;
-            
+//            $order_curr = $this->order->getQuoteBaseCurrency();
+//            $fraud      = false;
             // check the total
-            if ($order_total != $dmn_total
-                && isset($this->params['customField5'])
-                && $order_total != $this->params['customField5']
-            ) {
-                $fraud = true;
-            }
+//            if ($order_total != $dmn_total
+//                && isset($this->params['customField5'])
+//                && $order_total != $this->params['customField5']
+//            ) {
+//                $fraud = true;
+//            }
+//            
+//            // check the currency
+//            if ($order_curr != $this->params['currency']
+//                && isset($this->params['customField6'])
+//                && $order_curr != $this->params['customField6']
+//            ) {
+//                $fraud = true;
+//            }
             
-            // check the currency
-            if ($order_curr != $this->params['currency']
-                && isset($this->params['customField6'])
-                && $order_curr != $this->params['customField6']
-            ) {
-                $fraud = true;
-            }
-            
-            if ($fraud) {
+            if ($this->fraudCheck()) {
                 $this->sc_transaction_type = 'fraud';
 
                 $this->order->addStatusHistoryComment(
@@ -1778,6 +1756,39 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //        }
         
         return;
+    }
+    
+    /**
+     * Just a help function to find differences between Order total/currency
+     * pair and the incoming DMN data.
+     * 
+     * @return boolean $fraud
+     */
+    private function fraudCheck()
+    {
+        # Fraud check
+        $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
+        $order_curr     = $this->order->getQuoteBaseCurrency();
+        
+        $fraud = false;
+        
+        // amount check
+        if ($order_total != $this->params['totalAmount']
+            && isset($this->params['customField1'])
+            && $order_total != $this->params['customField1']
+        ) {
+            $fraud = true;
+        }
+        
+        // currency check
+        if ($order_curr != $this->params['currency']
+            && isset($this->params['customField5'])
+            && $order_curr != $this->params['customField5']
+        ) {
+            $fraud = true;
+        }
+        
+        return $fraud;
     }
     
 }

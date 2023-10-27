@@ -1,8 +1,7 @@
 <?php
 
 /**
- * Description of ZeroTotal
- * Override original logic in Magento 2 and allow Orders with Total Amount of 0
+ * Override original logic in Magento 2 and allow Orders with Total Amount of 0.
  */
 
 namespace Nuvei\Checkout\Plugin;

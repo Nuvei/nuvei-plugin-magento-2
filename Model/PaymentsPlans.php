@@ -41,7 +41,6 @@ class PaymentsPlans
         $this->quoteFactory         = $quoteFactory;
         $this->cartRepo             = $cartRepo;
         $this->checkoutSession      = $checkoutSession;
-//        $this->quote                = $checkoutSession->getQuote();
     }
     
     /**
@@ -58,7 +57,6 @@ class PaymentsPlans
         $plan_data  = [];
         $return_arr = [];
         $quote      = empty($this->quoteId) ? $this->checkoutSession->getQuote() 
-//            : $this->quoteFactory->create()->load($this->quoteId);
             : $this->cartRepo->get($this->quoteId);
         
         try {

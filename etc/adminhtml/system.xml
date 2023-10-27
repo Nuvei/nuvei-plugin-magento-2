@@ -235,6 +235,20 @@
                         <comment>If disable the Notify URL, please be sure it is set into CPanel!</comment>
 					</field>
                     
+                    <field id="allow_zero_total"
+						   translate="label"
+						   type="select"
+						   sortOrder="128"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="1">
+						<label>Use Nuvei GW for Zero-Total Orders</label>
+						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						<config_path>payment/nuvei/allow_zero_total</config_path>
+                        <comment>Show Nuvei GW as payment option for Zero-Total Orders. For product with Nuvei Payment Plan this is enable by default.</comment>
+					</field>
+                    
 					<field id="debug"
 						   translate="label"
 						   type="select"
