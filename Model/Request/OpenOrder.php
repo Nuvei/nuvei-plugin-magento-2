@@ -115,45 +115,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->quote = empty($this->quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($this->quoteId);
         
-        $this->items        = $this->quote->getItems();
-        $items_base_data    = [];
+        $this->items = $this->quote->getItems();
+//        $items_base_data    = [];
         
-        # check if each item is in stock
-        if (!empty($this->items)) {
-            foreach ($this->items as $item) {
-                $childItems = $item->getChildren();
-
-                if (count($childItems)) {
-                    foreach ($childItems as $childItem) {
-                        $stockItemToCheck[] = $childItem->getProduct()->getId();
-                    }
-                } else {
-                    $stockItemToCheck[] = $item->getProduct()->getId();
-                }
-                
-                $items_base_data[] = [
-                    'id'    => $item->getId(),
-                    'name'  => $item->getName(),
-                    'qty'   => $item->getQty(),
-                    'price' => $item->getPrice(),
-                ];
-                
-                foreach ($stockItemToCheck as $productId) {
-                    $available = $this->stockState->checkQty($productId, $item->getQty());
-
-                    if (!$available) {
-                        $this->error        = 1;
-                        $this->outOfStock   = 1;
-                        $this->reason       = __('Error! Some of the products are out of stock.');
-
-                        $this->readerWriter->createLog($productId, 'A product is not availavle, product id ');
-
-                        return $this;
-                    }
-                }
-            }
+        // check if each item is in stock
+        $items_base_data = $this->isProductAvailable();
+        // after the above call
+        if (1 == $this->error) {
+            return $this;
         }
-        # /check of each item is in stock
         
         // iterate over Items and search for Subscriptions
         $this->items_data   = $this->paymentsPlans
@@ -305,6 +275,39 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->callerSdk = $callerSdk;
         
         return $this;
+    }
+    
+    public function prePaymentCheck()
+    {
+        $this->readerWriter->createLog('prePaymentCheck');
+        
+        $quote = empty($this->quoteId) ? $this->cart->getQuote() 
+            : $this->quoteFactory->create()->load($this->quoteId);
+        
+        $order_data = $quote->getPayment()
+            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
+        
+        $this->items        = $quote->getItems();
+        $items_base_data    = $this->isProductAvailable();
+        
+        // success
+        if (!empty($order_data['itemsBaseInfoHash'])
+            && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
+        ) {
+            $this->error = 0;
+            
+            return $this;
+//            return $result->setData([
+//                "success" => 1,
+//            ]);
+        }
+
+        $this->error = 1;
+        
+        return $this;
+//        return $result->setData([
+//            "success" => 0,
+//        ]);
     }
     
     /**
@@ -533,4 +536,69 @@ class OpenOrder extends AbstractRequest implements RequestInterface
 
         return $return;
     }
+    
+    /**
+     * @return array
+     */
+    private function isProductAvailable()
+    {
+        $items_base_data = [];
+        
+        if (empty($this->items)) {
+            $msg = 'Error! There are no items.';
+            
+            $this->error        = 1;
+            $this->outOfStock   = 0;
+            $this->reason       = __($msg);
+
+            $this->readerWriter->createLog($items_base_data, $msg);
+            
+            return $items_base_data;
+        }
+        
+        foreach ($this->items as $item) {
+            $childItems = $item->getChildren();
+
+            if (count($childItems)) {
+                foreach ($childItems as $childItem) {
+                    $stockItemToCheck[] = $childItem->getProduct()->getId();
+                }
+            } else {
+                $stockItemToCheck[] = $item->getProduct()->getId();
+            }
+
+            $items_base_data[] = [
+                'id'    => $item->getId(),
+                'name'  => $item->getName(),
+                'qty'   => $item->getQty(),
+                'price' => $item->getPrice(),
+            ];
+
+            foreach ($stockItemToCheck as $productId) {
+                $available = $this->stockState->checkQty($productId, $item->getQty());
+
+                if (!$available) {
+                    $this->error        = 1;
+                    $this->outOfStock   = 1;
+                    $this->reason       = __('Error! Some of the products are out of stock.');
+
+                    $this->readerWriter->createLog(
+                        [
+                            '$productId'        => $productId,
+                            '$items_base_data'  => $items_base_data,
+                        ],
+                        'A product is not availavle.'
+                    );
+
+//                        return $this;
+                    return $items_base_data;
+                }
+            }
+        }
+        
+        $this->readerWriter->createLog($items_base_data, '$items_base_data');
+        
+        return $items_base_data;
+    }
+    
 }

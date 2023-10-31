@@ -83,43 +83,53 @@ class OpenOrder extends Action
             ]);
         }
         
+        $request = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
+        
         # when use Checkout SDK and its pre-payment do not call OpenOrder class at all
         if ('checkout' == $this->moduleConfig->getUsedSdk()
             && $this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment'
         ) {
-            $quoteId            = $this->getRequest()->getParam('quoteId'); // it comes form REST site as parameter
-            $quote              = empty($quoteId) ? $this->cart->getQuote() : $this->quoteFactory->create()->load($quoteId);
-            $order_data         = $quote->getPayment()
-                    ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
-            $items              = $quote->getItems();
-            $items_base_data    = [];
+            $quoteId = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
+//            $quote              = empty($quoteId) ? $this->cart->getQuote() : $this->quoteFactory->create()->load($quoteId);
+//            $order_data         = $quote->getPayment()
+//                    ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
+//            $items              = $quote->getItems();
+//            $items_base_data    = [];
+//            
+//            $this->readerWriter->createLog($order_data);
+//
+//            if (!empty($items) && is_array($items)) {
+//                foreach ($items as $item) {
+//                    $items_base_data[] = [
+//                        'id'    => $item->getId(),
+//                        'name'  => $item->getName(),
+//                        'qty'   => $item->getQty(),
+//                        'price' => $item->getPrice(),
+//                    ];
+//                }
+//            }
+//
+//            $this->readerWriter->createLog($items_base_data);
+//            
+//            // success
+//            if (!empty($order_data['itemsBaseInfoHash'])
+//                && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
+//            ) {
+//                return $result->setData([
+//                    "success" => 1,
+//                ]);
+//            }
+//            
+//            return $result->setData([
+//                "success" => 0,
+//            ]);
             
-            $this->readerWriter->createLog($order_data);
-
-            if (!empty($items) && is_array($items)) {
-                foreach ($items as $item) {
-                    $items_base_data[] = [
-                        'id'    => $item->getId(),
-                        'name'  => $item->getName(),
-                        'qty'   => $item->getQty(),
-                        'price' => $item->getPrice(),
-                    ];
-                }
-            }
-
-            $this->readerWriter->createLog($items_base_data);
-            
-            // success
-            if (!empty($order_data['itemsBaseInfoHash'])
-                && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
-            ) {
-                return $result->setData([
-                    "success" => 1,
-                ]);
-            }
+            $resp = $request
+                ->setQuoteId($quoteId)
+                ->prePaymentCheck();
             
             return $result->setData([
-                "success" => 0,
+                "success" => 0 == $resp->error ? 1 : 0,
             ]);
         }
         
@@ -131,8 +141,7 @@ class OpenOrder extends Action
             $save_upo = 1;
         }
         
-        $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
-        $resp       = $request
+        $resp = $request
                 ->setSaveUpo($save_upo)
                 ->process();
         
