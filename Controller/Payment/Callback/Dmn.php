@@ -242,18 +242,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             # For Auth and Settle check the internal Nuvei Order ID
             if (in_array($this->params['transactionType'], ['Auth', 'Sale'])) {
-                $this->createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
+                $createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
                 
                 if (empty($this->params['PPP_TransactionID'])
-                    || empty($this->createOrderData['orderId'])
-                    || $this->createOrderData['orderId'] != $this->params['PPP_TransactionID']
+                    || empty($createOrderData['orderId'])
+                    || $createOrderData['orderId'] != $this->params['PPP_TransactionID']
                 ) {
                     $msg = 'DMN Error - PPP_TransactionID is different from the saved for the current Order.';
             
                     $this->readerWriter->createLog(
                         [
                             'PPP_TransactionID' => @$this->params['PPP_TransactionID'],
-                            'orderId'           => @$this->createOrderData['orderId'],
+                            'orderId'           => @$createOrderData['orderId'],
                         ],
                         $msg
                     );

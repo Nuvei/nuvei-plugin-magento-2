@@ -542,6 +542,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
      */
     private function isProductAvailable()
     {
+        $this->readerWriter->createLog('isProductAvailable');
+        
         $items_base_data = [];
         
         if (empty($this->items)) {
