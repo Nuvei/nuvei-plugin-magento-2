@@ -120,14 +120,15 @@ class ConfigProvider extends CcGenericConfigProvider
     {
         $this->readerWriter->createLog('getCheckoutSdkConfig()');
         
-        $blocked_cards          = $this->getBlockedCards();
-        $blocked_pms            = $this->moduleConfig->getConfigValue('block_pms', 'checkout');
-        $is_user_logged         = $this->moduleConfig->isUserLogged();
-        $billing_address        = $this->moduleConfig->getQuoteBillingAddress();
-        $payment_plan_data      = $this->paymentsPlans->getProductPlanData();
-        $isPaymentPlan          = !empty($payment_plan_data) ? true : false;
-        $show_upos              = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
-        $save_pm                = $this->moduleConfig->getSaveUposSetting($isPaymentPlan);
+        $blocked_cards      = $this->getBlockedCards();
+        $blocked_pms        = $this->moduleConfig->getConfigValue('block_pms', 'checkout');
+        $is_user_logged     = $this->moduleConfig->isUserLogged();
+        $billing_address    = $this->moduleConfig->getQuoteBillingAddress();
+        $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
+        $isPaymentPlan      = !empty($payment_plan_data) ? true : false;
+        $show_upos          = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
+        $save_pm            = $this->moduleConfig->getSaveUposSetting($isPaymentPlan);
+        $total              = $this->moduleConfig->getQuoteBaseTotal();
         
         $config = [
             'payment' => [
@@ -135,7 +136,6 @@ class ConfigProvider extends CcGenericConfigProvider
                     'cartUrl'                   => $this->urlBuilder->getUrl('checkout/cart/'),
                     'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
                     'isPaymentPlan'             =>$isPaymentPlan,
-//                    'useDevSdk'                 => $this->moduleConfig->getConfigValue('use_dev_sdk'),
                     
                     // we will set some of the parameters in the JS file
                     'nuveiCheckoutParams' => [
@@ -144,7 +144,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
                         'country'                   => $billing_address['country'],
                         'currency'                  => $this->moduleConfig->getQuoteBaseCurrency(),
-                        'amount'                    => $this->moduleConfig->getQuoteBaseTotal(),
+                        'amount'                    => $total,
                         'renderTo'                  => '#nuvei_checkout',
                         'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
                         'strict'                    => false,
@@ -174,11 +174,10 @@ class ConfigProvider extends CcGenericConfigProvider
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = explode(',', $blocked_pms);
         }
         
-//        if (1 == $config['payment'][Payment::METHOD_CODE]['useDevSdk']) {
-//            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['webSdkEnv'] = 'dev';
-//        }
-        
-        if ($isPaymentPlan) {
+        if ($isPaymentPlan
+            // for zero-total and enabled Nuvei GW
+            || ( 0 == $total && $this->moduleConfig->getConfigValue('allow_zero_total') )
+        ) {
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmBlacklist'] = null;
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['pmWhitelist'] = ['cc_card'];
         }

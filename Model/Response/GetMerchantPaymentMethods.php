@@ -71,8 +71,15 @@ class GetMerchantPaymentMethods extends AbstractResponse implements ResponseInte
         $this->sessionToken = (string) $body['sessionToken'];
         $langCode           = $this->getStoreLocale(true);
         $countryCode        = $countryCode ?? $this->config->getQuoteCountryCode();
-//        $useCcOnly          = $this->config->getNuveiUseCcOnly();
+        // check for products with rebilling
         $useCcOnly          = !empty($this->paymentsPlans->getProductPlanData()) ? true : false;
+        
+        // check for zero-total and enabled Nuvei GW for Zero-Total
+        if (1 == $this->config->getConfigValue('allow_zero_total')
+            && 0 == $this->config->getQuoteBaseTotal()
+        ) {
+            $useCcOnly = true;
+        }
         
         foreach ((array) $body['paymentMethods'] as $method) {
             if (!$countryCode && isset($method["paymentMethod"]) && $method["paymentMethod"] !== 'cc_card') {
