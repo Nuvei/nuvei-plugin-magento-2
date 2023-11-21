@@ -1768,7 +1768,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     {
         # Fraud check
         $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
-        $order_curr     = $this->order->getQuoteBaseCurrency();
+        $order_curr     = $this->order->getOrderCurrencyCode();
         
         $fraud = false;
         
