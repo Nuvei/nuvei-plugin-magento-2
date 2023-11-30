@@ -30,7 +30,11 @@ class MethodAvailable
         $total              = $this->config->getQuoteBaseTotal();
         
         $this->readerWriter->createLog(
-            [json_encode($result), $allow_zero_total, $total], 
+            [
+                'param $result'     => json_encode($result),
+                '$allow_zero_total' => $allow_zero_total,
+                '$total'            => $total
+            ], 
             'MethodAvailable afterGetAvailableMethods'
         );
         

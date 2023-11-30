@@ -1768,7 +1768,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     {
         # Fraud check
         $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
-        $order_curr     = $this->order->getOrderCurrencyCode();
+        $order_curr     = $this->order->getBaseCurrencyCode();
         
         $fraud = false;
         
@@ -1777,6 +1777,14 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && isset($this->params['customField1'])
             && $order_total != $this->params['customField1']
         ) {
+            $this->readerWriter->createLog(
+                [
+                    '$order_total'          => $order_total,
+                    'params totalAmount'    => $this->params['customField1'],
+                ],
+                'fraudCheck'
+            );
+            
             $fraud = true;
         }
         
@@ -1785,6 +1793,14 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && isset($this->params['customField5'])
             && $order_curr != $this->params['customField5']
         ) {
+            $this->readerWriter->createLog(
+                [
+                    '$order_curr'           => $order_curr,
+                    'params customField5'   => $this->params['customField5'],
+                ],
+                'fraudCheck'
+            );
+            
             $fraud = true;
         }
         
