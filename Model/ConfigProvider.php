@@ -129,6 +129,11 @@ class ConfigProvider extends CcGenericConfigProvider
         $show_upos          = ($is_user_logged && $this->moduleConfig->canShowUpos()) ? true : false;
         $save_pm            = $this->moduleConfig->getSaveUposSetting($isPaymentPlan);
         $total              = $this->moduleConfig->getQuoteBaseTotal();
+        $useDCC             = $this->moduleConfig->getConfigValue('use_dcc');
+        
+        if ($total == 0) {
+            $useDCC = 'false';
+        }
         
         $config = [
             'payment' => [
@@ -146,7 +151,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'currency'                  => $this->moduleConfig->getQuoteBaseCurrency(),
                         'amount'                    => $total,
                         'renderTo'                  => '#nuvei_checkout',
-                        'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
+                        'useDCC'                    =>  $useDCC,
                         'strict'                    => false,
                         'savePM'                    => $save_pm,
                         'showUserPaymentOptions'    => $show_upos,
