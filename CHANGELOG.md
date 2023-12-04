@@ -9,6 +9,7 @@
     * Check for new plugin version each day and keep the information into the session.
     * Allow Nuvei GW to be used for Zero-Total Orders.
     * Disable DCC when Order total is Zero.
+    * Save Order messages for Pending DMNs.
 ```
 
 # 3.1.2

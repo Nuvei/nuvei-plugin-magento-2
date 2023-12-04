@@ -192,6 +192,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //            return $this->jsonOutput;
             ### DEBUG
             
+            // do not save message for the tokenization
             if (!empty($this->params['type']) && 'CARD_TOKENIZATION' == $this->params['type']) {
                 $msg = 'DMN report - this is Card Tokenization DMN.';
             
@@ -201,29 +202,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 return $this->jsonOutput;
             }
             
-            // try to find Status
+            // validate the Cheksum
+            if (!$this->validateChecksum()) {
+                return $this->jsonOutput;
+            }
+            
+            // get the Status
             $status = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
             
-            if ('pending' == $status) {
-                $msg = 'DMN report - Pending DMN, wait for the next one.';
-            
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
-            
-            // try to validate the Cheksum
-            $success = $this->validateChecksum();
-            
-            if (!$success) {
-                return $this->jsonOutput;
-            }
-            // /try to validate the Cheksum
-            
-            /**
-             * Here will be set $this->orderIncrementId or $this->quoteId
-             */
+            // Here will be set $this->orderIncrementId or $this->quoteId
             $this->getOrderIdentificators();
             
             /**
@@ -233,15 +220,97 @@ class Dmn extends Action implements CsrfAwareActionInterface
              * $this->order
              * $this->orderPayment
              */
-            $success = $this->getOrCreateOrder();
-            
-            if (!$success) {
+//            $success = $this->getOrCreateOrder();
+//            
+//            if (!$success) {
+            if (!$this->getOrCreateOrder()) {
                 return $this->jsonOutput;
             }
+            
+            // the saved Additional Info for the transactions
+            $ord_trans_addit_info = $this->orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
+            
+            if (empty($ord_trans_addit_info) || !is_array($ord_trans_addit_info)) {
+                $ord_trans_addit_info = [];
+            } else {
+                $last_record    = end($ord_trans_addit_info);
+                
+                $order_status   = !empty($last_record[Payment::TRANSACTION_STATUS])
+                    ? $last_record[Payment::TRANSACTION_STATUS] : '';
+                
+                $order_tr_type  = !empty($last_record[Payment::TRANSACTION_TYPE])
+                    ? $last_record[Payment::TRANSACTION_TYPE] : '';
+            }
+            
+            
+            
+            // TODO lets the Pending DMN continue and save Order note!
+//            if ('pending' == $status) {
+//                $msg = 'DMN report - Pending DMN, wait for the next one.';
+//            
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+//                return $this->jsonOutput;
+//            }
+            
+            # check for Subscription State DMN
+            if ($this->processSubscrDmn($ord_trans_addit_info)) {
+//            $stop = $this->processSubscrDmn($ord_trans_addit_info);
+            
+//            if ($stop) {
+//                $msg = 'Process Subscr DMN ends for order #' . $this->orderIncrementId;
+//                
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+                return $this->jsonOutput;
+            }
+            # /check for Subscription State DMN
+            
+            # Subscription transaction DMN
+            if (!empty($this->params['dmnType'])
+                && 'subscriptionPayment' == $this->params['dmnType']
+            ) {
+                // check for errors and prepare the current Transaction data
+                if (!$this->prepareCurrTrInfo($ord_trans_addit_info, $status)) {
+                    return $this->jsonOutput;
+                }
+                
+                $this->order->addStatusHistoryComment(
+                    __('<b>Subscription Payment</b> with Status ') . $status
+                        . __(' was made. <br/>Plan ID: ') . $this->params['planId']
+                        . __(', <br/>Subscription ID: ') . $this->params['subscriptionId']
+                        . __(', <br/>Amount: ') . $this->params['totalAmount'] . ' ' . $this->params['currency'] 
+                        . __(', <br/>TransactionId: ') . $this->params['TransactionID']
+                );
+                
+                $ord_trans_addit_info[$this->params['TransactionID']] = $this->curr_trans_info;
+                
+                
+//                $resp_save_data = $this->finalSaveData($ord_trans_addit_info);
+//        
+//                if (!$resp_save_data) {
+                if (!$this->finalSaveData($ord_trans_addit_info)) {
+                    return $this->jsonOutput;
+                }
+
+                $msg = 'DMN process end for Order #' . $this->orderIncrementId;
+                
+                $this->readerWriter->createLog($msg);
+                $this->jsonOutput->setData($msg);
+
+                return $this->jsonOutput;
+            }
+            # /Subscription transaction DMN
+            
+            
             // /Try to create the Order.
             
             # For Auth and Settle check the internal Nuvei Order ID
-            if (in_array($this->params['transactionType'], ['Auth', 'Sale'])) {
+            if (isset($this->params['transactionType'])
+                && in_array($this->params['transactionType'], ['Auth', 'Sale'])
+            ) {
                 $createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
                 
                 if (empty($this->params['PPP_TransactionID'])
@@ -281,112 +350,69 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->orderPayment->save();
             // /set additional data
             
-            // the saved Additional Info for the transaction
-            $ord_trans_addit_info = $this->orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
-            
             $this->readerWriter->createLog(
                 $this->orderPayment->getAdditionalInformation(),
                 'DMN order payment AdditionalInformation'
             );
             
-            if (empty($ord_trans_addit_info) || !is_array($ord_trans_addit_info)) {
-                $ord_trans_addit_info = [];
-            } else {
-                $last_record    = end($ord_trans_addit_info);
-                
-                $order_status   = !empty($last_record[Payment::TRANSACTION_STATUS])
-                    ? $last_record[Payment::TRANSACTION_STATUS] : '';
-                
-                $order_tr_type  = !empty($last_record[Payment::TRANSACTION_TYPE])
-                    ? $last_record[Payment::TRANSACTION_TYPE] : '';
-            }
             
-            // do not save same DMN data more than once
-            if (isset($this->params['TransactionID'])
-                && array_key_exists($this->params['TransactionID'], $ord_trans_addit_info)
-            ) {
-                $msg = 'Same transaction already saved. Stop proccess';
-                
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
+            
+//            // do not save same DMN data more than once
+//            if (isset($this->params['TransactionID'])
+//                && array_key_exists($this->params['TransactionID'], $ord_trans_addit_info)
+//            ) {
+//                $msg = 'Same transaction already saved. Stop proccess';
+//                
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+//                return $this->jsonOutput;
+//            }
             
             // prepare current transaction data for save
-            $this->prepareCurrTrInfo();
-            
-            // check for Subscription State DMN
-            $stop = $this->processSubscrDmn($ord_trans_addit_info);
-            
-            if ($stop) {
-                $msg = 'Process Subscr DMN ends for order #' . $this->orderIncrementId;
-                
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
+            if (!$this->prepareCurrTrInfo($ord_trans_addit_info, $status)) {
                 return $this->jsonOutput;
             }
-            // /check for Subscription State DMN
             
-            if (!in_array($status, ['declined', 'error', 'approved', 'success'])) { // UNKNOWN DMN
-                $msg = 'DMN for Order #' . $this->orderIncrementId . ' was not recognized.';
             
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
+            
+//            if (!in_array($status, ['declined', 'error', 'approved', 'success'])) { // UNKNOWN DMN
+//                $msg = 'DMN for Order #' . $this->orderIncrementId . ' was not recognized.';
+//            
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+//                return $this->jsonOutput;
+//            }
             // /try to find Status
             
-            if (empty($this->params['transactionType'])) {
-                $msg = 'DMN error - missing Transaction Type.';
-            
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
-            
-            if (empty($this->params['TransactionID'])) {
-                $msg = 'DMN error - missing Transaction ID.';
-            
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
+//            if (empty($this->params['transactionType'])) {
+//                $msg = 'DMN error - missing Transaction Type.';
+//            
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+//                return $this->jsonOutput;
+//            }
+//            
+//            if (empty($this->params['TransactionID'])) {
+//                $msg = 'DMN error - missing Transaction ID.';
+//            
+//                $this->readerWriter->createLog($msg);
+//                $this->jsonOutput->setData($msg);
+//
+//                return $this->jsonOutput;
+//            }
             
             $tr_type_param = strtolower($this->params['transactionType']);
 
-            # Subscription transaction DMN
-            if (!empty($this->params['dmnType'])
-                && 'subscriptionPayment' == $this->params['dmnType']
-                && !empty($this->params['TransactionID'])
-            ) {
-                $this->order->addStatusHistoryComment(
-                    __('<b>Subscription Payment</b> with Status ') . $this->params['Status']
-                        . __(' was made. <br/>Plan ID: ') . $this->params['planId']
-                        . __(', <br/>Subscription ID: ') . $this->params['subscriptionId']
-                        . __(', <br/>Amount: ') . $this->params['totalAmount'] . ' ' . $this->params['currency'] 
-                        . __(', <br/>TransactionId: ') . $this->params['TransactionID']
-                );
-                
-                $this->orderResourceModel->save($this->order);
-                
-                $msg = 'DMN process end for order #' . $this->orderIncrementId;
             
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-
-                return $this->jsonOutput;
-            }
-            # /Subscription transaction DMN
             
             // do not overwrite Order status
-            $stop = $this->keepOrderStatusFromOverride( $order_tr_type, $order_status, $status);
-            
-            if ($stop) {
+//            $stop = $this->keepOrderStatusFromOverride($order_tr_type, $order_status, $status);
+//            
+//            if ($stop) {
+            if ($this->keepOrderStatusFromOverride($order_tr_type, $order_status, $status)) {
                 return $this->jsonOutput;
             }
             // /do not overwrite Order status
@@ -397,9 +423,21 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             // PENDING TRANSACTION
             if ($status === "pending") {
-                $this->order
-                    ->setState(Order::STATE_NEW)
-                    ->setStatus('pending');
+//                $this->order
+//                    ->setState(Order::STATE_NEW)
+//                    ->setStatus('pending');
+                
+                $this->order->addStatusHistoryComment(
+                    '<b>' . __($this->params['transactionType']) . '</b> request.<br/>'
+                        . __("Response status: ") . ' <b>' . $this->params['Status'] . '</b>.<br/>'
+                        . __('Payment Method: ') . $this->params['payment_method'] . '.<br/>'
+                        . __('Transaction ID: ') . $this->params['TransactionID'] . '.<br/>'
+                        . __('Related Transaction ID: ') . $this->params['relatedTransactionId'] . '.<br/>'
+                        . __('Transaction Amount: ') . number_format($this->params['totalAmount'], 2, '.', '')
+                        . ' ' . $this->params['currency'] . '.'
+                        . $this->refund_msg,
+                    $this->sc_transaction_type
+                );
             }
             
             // APPROVED TRANSACTION
@@ -467,17 +505,20 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->order->addStatusHistoryComment($msg);
         }
         
-        $resp_save_data = $this->finalSaveData($ord_trans_addit_info);
-        
-        if (!$resp_save_data) {
+//        $resp_save_data = $this->finalSaveData($ord_trans_addit_info);
+//        
+//        if (!$resp_save_data) {
+        if (!$this->finalSaveData($ord_trans_addit_info)) {
             return $this->jsonOutput;
         }
         
-        $this->readerWriter->createLog('DMN process end for order #' . $this->orderIncrementId);
-        $this->jsonOutput->setData('DMN process end for order #' . $this->orderIncrementId);
-
         # try to create Subscription plans
         $this->createSubscription($this->orderIncrementId);
+        
+        $msg = 'DMN process end for Order #' . $this->orderIncrementId;
+        
+        $this->readerWriter->createLog($msg);
+        $this->jsonOutput->setData($msg);
 
         return $this->jsonOutput;
     }
@@ -535,7 +576,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->readerWriter->createLog('processSaleAndSettleDMN()');
         
-        $invCollection  = $this->order->getInvoiceCollection();
+        $invCollection = $this->order->getInvoiceCollection();
+        
         // wait for magento to finish its work and prevent DB deadlock
         do {
             $this->loop_tries++;
@@ -1013,6 +1055,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->orderResourceModel->save($this->order);
         $this->readerWriter->createLog($this->order->getStatus(), 'Process Subscr DMN Order Status', 'DEBUG');
         
+        $msg = 'Process Subscr DMN ends for order #' . $this->orderIncrementId;
+                
+        $this->readerWriter->createLog($msg);
+        $this->jsonOutput->setData($msg);
+
         return true;
     }
 
@@ -1331,7 +1378,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
 
-            return $this->jsonOutput;
+//            return $this->jsonOutput;
+            return false;
         }
         
         $identificator  = max([$this->quoteId, $this->orderIncrementId]);
@@ -1506,9 +1554,57 @@ class Dmn extends Action implements CsrfAwareActionInterface
     }
     
     /**
+     * Prepare the data for the current Transaction, but first check for errors.
+     * 
+     * @param array $ord_trans_addit_info   The existing transaction data for the Order.
+     * @param string $status                The DMN Status.
+     * 
+     * @return bool
      */
-    private function prepareCurrTrInfo()
+    private function prepareCurrTrInfo($ord_trans_addit_info, $status)
     {
+        // error - missing TransactionID
+        if (!isset($this->params['TransactionID'])) {
+            $msg = 'DMN error - missing Transaction ID.';
+
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return false;
+        }
+        
+        // error - DMN with repeating TransactionID and Status.
+        if (array_key_exists($this->params['TransactionID'], $ord_trans_addit_info)
+            && $ord_trans_addit_info[$this->params['TransactionID']] == $this->params['Status']
+        ) {
+            $msg = 'Same transaction already saved. Stop proccess';
+
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return false;
+        }
+        
+        // error - not allowed Status
+        if (!in_array($status, ['declined', 'error', 'approved', 'success', 'pending'])) {
+            $msg = 'DMN for Order #' . $this->orderIncrementId . ' was not recognized.';
+
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return false;
+        }
+        
+        // error - missing transactionType
+        if (empty($this->params['transactionType'])) {
+            $msg = 'DMN error - missing Transaction Type.';
+
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return false;
+        }
+
         $this->curr_trans_info = [
             Payment::TRANSACTION_ID             => '',
             Payment::TRANSACTION_AUTH_CODE      => '',
@@ -1537,6 +1633,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if (isset($this->params['totalAmount'])) {
             $this->curr_trans_info[Payment::TRANSACTION_TOTAL_AMOUN] = $this->params['totalAmount'];
         }
+        
+        return true;
     }
     
     /**
