@@ -4,12 +4,13 @@
 
 # 3.1.3
 ```
-    * Removed the updateOrder reques on SDK pre-payment event. In case of Quote problems, the page will reload.
+    * Removed the updateOrder reques on SDK pre-payment event. In case of Quote problems, the page will reloads.
     * Removed WebSDK options in plugin configuration.
     * Check for new plugin version each day and keep the information into the session.
     * Allow Nuvei GW to be used for Zero-Total Orders.
     * Disable DCC when Order total is Zero.
     * Save Order messages for Pending DMNs.
+    * Fixed the problem with duplicate Invoice when Settle an Order.
 ```
 
 # 3.1.2

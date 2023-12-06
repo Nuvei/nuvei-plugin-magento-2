@@ -566,8 +566,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
      */
     private function processSaleAndSettleDMN()
     {
-        $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
-        $dmn_total      = round((float) $this->params['totalAmount'], 2);
         $tr_type_param = strtolower($this->params['transactionType']);
         
         if (!in_array($tr_type_param, ['sale', 'settle']) || isset($this->params['dmnType'])) {
@@ -576,7 +574,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->readerWriter->createLog('processSaleAndSettleDMN()');
         
-        $invCollection = $this->order->getInvoiceCollection();
+        $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
+        $dmn_total      = round((float) $this->params['totalAmount'], 2);
+        $invCollection  = $this->order->getInvoiceCollection();
         
         // wait for magento to finish its work and prevent DB deadlock
         do {
@@ -611,7 +611,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $dmn_inv_id         = $this->httpRequest->getParam('invoice_id');
         $is_cpanel_settle   = false;
         
-        if (!empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
+        if (empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
             $is_cpanel_settle = true;
         }
         
@@ -620,7 +620,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //        ) {
 //            $is_cpanel_settle = true;
 //        }
-
+        
         if ($this->params["payment_method"] == 'cc_card') {
             $this->order->setCanVoidPayment(true);
             $this->orderPayment->setCanVoid(true);
@@ -628,7 +628,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         // add Partial Settle flag
         if ('settle' == $tr_type_param
-            && ($order_total - round(floatval($this->params['totalAmount']), 2) > 0.00)
+            && ($order_total - round((float) $this->params['totalAmount'], 2) > 0.00)
         ) {
             $this->is_partial_settle = true;
         }
