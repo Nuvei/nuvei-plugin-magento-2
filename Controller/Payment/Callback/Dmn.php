@@ -1902,6 +1902,22 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $fraud = true;
         }
         
+        // check for different total when currency is same
+        if ($order_curr == $this->params['currency']
+            && $order_total != $this->params['totalAmount']
+        ) {
+            $this->readerWriter->createLog(
+                [
+                    '$order_curr'           => $order_curr,
+                    '$order_total'          => $order_total,
+                    'params totalAmount'    => $this->params['customField1'],
+                ],
+                'fraudCheck'
+            );
+            
+            $fraud = true;
+        }
+        
         return $fraud;
     }
     

@@ -11,6 +11,7 @@
     * Disable DCC when Order total is Zero.
     * Save Order messages for Pending DMNs.
     * Fixed the problem with duplicate Invoice when Settle an Order.
+    * Added additional check for fraund Transactions.
 ```
 
 # 3.1.2

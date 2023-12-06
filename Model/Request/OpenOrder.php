@@ -365,6 +365,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'shippingAddress'   => $this->config->getQuoteShippingAddress(),
             'billingAddress'    => $billing_address,
             'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->config->getConfigValue('payment_action'),
+//            'isPartialApproval' => 1,
 
             'urlDetails'        => [
                 'backUrl'           => $this->config->getBackUrl(),
