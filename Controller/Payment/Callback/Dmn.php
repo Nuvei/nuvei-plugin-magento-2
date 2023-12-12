@@ -2,16 +2,17 @@
 
 namespace Nuvei\Checkout\Controller\Payment\Callback;
 
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Exception\PaymentException;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment\Transaction;
-use Nuvei\Checkout\Model\Payment;
-use Magento\Framework\App\Request\InvalidRequestException;
-use Magento\Framework\App\RequestInterface;
 use Nuvei\Checkout\Model\AbstractRequest;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\Exception\PaymentException;
+use Nuvei\Checkout\Model\Payment;
 
 /**
  * Nuvei Checkout payment redirect controller.
@@ -21,8 +22,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $is_partial_settle  = false;
     private $curr_trans_info    = []; // collect the info for the current transaction (action)
     private $refund_msg         = '';
-    private $orderIncrementId   = 0;
-    private $quoteId            = 0;
+    private $orderIncrementId   = 0; // use it for search criteria for the Order
+    private $quoteId            = 0; // use it for search criteria for the Order
+    private $transactionId      = ''; // use it for search criteria for the Order
     private $loop_tries         = 0; // count loops
     private $loop_wait_time     = 3; // sleep time in seconds
     private $loop_max_tries; // loop max tries count
@@ -714,11 +716,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //                )
 //                || $is_cpanel_settle
 //            )
-        if ('sale' == $tr_type_param
-            || $this->params["payment_method"] != 'cc_card'
-            || $is_cpanel_settle
-        ) {
-            $this->readerWriter->createLog('We can create Invoice');
+//        if ('sale' == $tr_type_param
+//            || $this->params["payment_method"] != 'cc_card'
+//            || $is_cpanel_settle
+//        ) {
+            $this->readerWriter->createLog('Try to create Invoice');
             
             $this->orderPayment
                 ->setIsTransactionPending(0)
@@ -771,7 +773,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 //            $this->orderPayment->addTransactionCommentsToOrder($tr_type, $msg);
             
             return;
-        }
+//        }
     }
     
     /**
@@ -1369,11 +1371,14 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 'quoteId'           => $this->quoteId,
                 'orderIncrementId'  => $this->orderIncrementId,
             ],
-            'getOrCreateOrder'
+            'getOrCreateOrder()'
         );
         
-        if (0 == $this->orderIncrementId && 0 == $this->quoteId) {
-            $msg = 'DMN error - orderIncrementId and quoteId are 0.';
+        if (empty($this->orderIncrementId)
+            && empty($this->quoteId)
+            && empty($this->transactionId)
+        ) {
+            $msg = 'DMN error - missing all Order identificators (orderIncrementId, quoteId, transactionId).';
 
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
@@ -1382,45 +1387,81 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return false;
         }
         
-        $identificator  = max([$this->quoteId, $this->orderIncrementId]);
+        $field = '';
+        $value = '';
+        
+        if (!empty($this->quoteId)) {
+            $field = 'quote_id';
+            $value = $this->quoteId;
+        }
+        elseif (!empty($this->orderIncrementId)) {
+            $field = 'increment_id';
+            $value = $this->orderIncrementId;
+        }
+        elseif (!empty($this->transactionId)) {
+            $field = TransactionInterface::TXN_ID;
+            $value = $this->transactionId;
+        }
         
         $this->readerWriter->createLog([
-            '$identificator value'  => $identificator,
-            '$identificator name'   => 0 == $this->quoteId ? 'increment_id' : 'quote_id',
+            '$identificator value'  => $value,
+            '$identificator name'   => $field,
         ]);
         
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter(
-                0 == $this->quoteId ? 'increment_id' : 'quote_id',
-                $identificator,
+                $field,
+                $value,
                 'eq'
             )->create();
 
-//        $tryouts    = 0;
-//        $max_tries  = 5;
-        
         do {
-//            $tryouts++;
             $this->loop_tries++;
             
-            $orderList = $this->orderRepo->getList($searchCriteria)->getItems();
-
-            if (!$orderList || empty($orderList)) {
-//                $this->readerWriter->createLog('DMN try ' . $tryouts
+            if (TransactionInterface::TXN_ID == $field) {
+                // transactions list
+                $list = $this->transactionRepository->getList($searchCriteria)->getItems();
+            }
+            else {
+                // orders list
+                $list = $this->orderRepo->getList($searchCriteria)->getItems();
+            }
+            
+            if (!$list || empty($list)) {
                 $this->readerWriter->createLog('DMN try ' . $this->loop_tries
                     . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.');
                 
                 sleep(3);
             }
 //        } while ($tryouts < $max_tries && empty($orderList));
-        } while ($this->loop_tries < $this->loop_max_tries && empty($orderList));
+        } while ($this->loop_tries < $this->loop_max_tries && empty($list));
         
-        // in case there is no Order
-        if (!is_array($orderList)
-            || empty($orderList)
-            || null == ($this->order = current($orderList)) // set $this->order here
+        // in case the list is empty or not array
+        if (!is_array($list)
+            || empty($list)
+//            || null == ($this->order = current($orderList)) // set $this->order here
         ) {
             $msg = 'DMN Callback error - there is no Order for this DMN data.';
+            
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+            $this->jsonOutput->setHttpResponseCode(400);
+            
+            $this->createAutoVoid();
+            
+            return false;
+        }
+        
+        if (TransactionInterface::TXN_ID == $field) {
+            $this->order = @current($list)->getOrder();
+        }
+        else {
+            $this->order = current($list);
+        }
+        
+        // in case the Order is not an object
+        if (!is_object($this->order)) {
+            $msg = 'DMN Callback error - $this->order is not an object.';
             
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
@@ -1464,13 +1505,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if ('nuvei' != $method) {
             $msg = 'DMN getOrCreateOrder() error - the order was not made with Nuvei module.';
             
-            $this->readerWriter->createLog(
-                [
-                    'orderIncrementId'  => $identificator,
-                    'module'            => $method,
-                ],
-                $msg
-            );
+            $this->readerWriter->createLog($method, $msg);
             $this->jsonOutput->setData($msg);
 
             return false;
@@ -1787,12 +1822,16 @@ class Dmn extends Action implements CsrfAwareActionInterface
     
     /**
      * Try to find Order ID and/or Quote ID from DMN parameters.
+     * Here we set some of the following private variables, who are 
+     * part of the Order data:
+     * 
+     * $orderIncrementId, $quoteId or $transactionId
      * 
      * @returns string|int
      */
     private function getOrderIdentificators()
     {
-        $this->readerWriter->createLog('getOrderIdentificators');
+        $this->readerWriter->createLog('getOrderIdentificators()');
         
         // for subsccription DMNs
         if (!empty($this->params['dmnType'])
@@ -1805,7 +1844,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($last_elem, '$last_elem');
             
             if (!empty($last_elem) && is_numeric($last_elem)) {
-                $this->readerWriter->createLog('set orderIncrementId');
+                $this->readerWriter->createLog('order identificator - orderIncrementId');
                 $this->orderIncrementId = $last_elem;
             }
             
@@ -1817,7 +1856,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && in_array($this->params['transactionType'], ['Auth', 'Sale'])
         ) {
             if (!empty($this->params["clientUniqueId"])) {
-                $this->readerWriter->createLog('set quoteId');
+                $this->readerWriter->createLog('order identificator - quoteId');
                 $this->quoteId = current(explode('_', $this->params["clientUniqueId"]));
                 return;
             }
@@ -1826,14 +1865,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         // for all other requests
-//        if (!empty($this->params["order"])) {
-//            $this->readerWriter->createLog('set orderIncrementId');
-//            $this->orderIncrementId = $this->params["order"];
-//            return;
-//        }
+        if (!empty($this->params["relatedTransactionId"])) {
+            $this->readerWriter->createLog('order identificator - transactionId');
+            
+            $this->transactionId = $this->params["relatedTransactionId"];
+            return;
+        }
         
         if (!empty($this->params["clientUniqueId"])) {
-            $this->readerWriter->createLog('set orderIncrementId');
+            $this->readerWriter->createLog('order identificator - orderIncrementId');
 //            $this->orderIncrementId = current(explode('_', $this->params["clientUniqueId"]));
             $this->orderIncrementId = $this->params["clientUniqueId"];
             return;
@@ -1841,17 +1881,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         if (!empty($this->params["merchant_unique_id"])) {
             // modified because of the PayPal Sandbox problem with duplicate Orders IDs
-            $this->readerWriter->createLog('set orderIncrementId');
+            $this->readerWriter->createLog('order identificator - orderIncrementId');
 //            $this->orderIncrementId = current(explode('_', $this->params["merchant_unique_id"]));
             $this->orderIncrementId = $this->params["merchant_unique_id"];
             return;
         }
-        
-//        if (!empty($this->params["orderId"])) {
-//            $this->readerWriter->createLog('set orderIncrementId');
-//            $this->orderIncrementId = $this->params["orderId"];
-//            return;
-//        }
         
         return;
     }
