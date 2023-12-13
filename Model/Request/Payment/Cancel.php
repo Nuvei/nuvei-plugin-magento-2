@@ -90,7 +90,6 @@ class Cancel extends AbstractPayment implements RequestInterface
                 $this->params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(
                     $order->getIncrementId(),
                     $order->getStoreId()//,
-//                        ['invoice_id' => $inv_id]
                 );
             }
 
@@ -107,23 +106,30 @@ class Cancel extends AbstractPayment implements RequestInterface
         $trans_to_void_data     = [];
         $last_voidable          = [];
         
-        if (is_array($ord_trans_addit_info) && !empty($ord_trans_addit_info)) {
-            foreach (array_reverse($ord_trans_addit_info) as $key => $trans) {
-                if (strtolower($trans[Payment::TRANSACTION_STATUS]) == 'approved'
-                    && in_array(strtolower($trans[Payment::TRANSACTION_TYPE]), ['auth', 'settle', 'sale'])
+        if (!is_array($ord_trans_addit_info) || empty($ord_trans_addit_info)) {
+            $msg = 'Void Error - wrong Order transaction additional info.';
+            
+            $this->readerWriter->createLog($ord_trans_addit_info, $msg);
+            
+            throw new PaymentException(__($msg));
+        }
+        
+        foreach (array_reverse($ord_trans_addit_info) as $key => $trans) {
+            if (strtolower($trans[Payment::TRANSACTION_STATUS]) == 'approved'
+                && in_array(strtolower($trans[Payment::TRANSACTION_TYPE]), ['auth', 'settle', 'sale'])
+                && empty($trans[Payment::IS_SUBSCR])
+            ) {
+                if (0 == $key) {
+                    $last_voidable = $trans;
+                }
+
+                // settle
+                if (!empty($trans['invoice_id'])
+                    && !empty($inv_id)
+                    && $trans['invoice_id'] == $inv_id
                 ) {
-                    if (0 == $key) {
-                        $last_voidable = $trans;
-                    }
-                    
-                    // settle
-                    if (!empty($trans['invoice_id'])
-                        && !empty($inv_id)
-                        && $trans['invoice_id'] == $inv_id
-                    ) {
-                        $trans_to_void_data = $trans;
-                        break;
-                    }
+                    $trans_to_void_data = $trans;
+                    break;
                 }
             }
         }
@@ -137,15 +143,17 @@ class Cancel extends AbstractPayment implements RequestInterface
         }
         
         if (empty($trans_to_void_data)) {
+            $msg = 'Void Error - Missing mandatory data for the Void.';
+            
             $this->readerWriter->createLog(
                 [
                     '$ord_trans_addit_info' => $ord_trans_addit_info,
                     '$trans_to_void_data'    => $trans_to_void_data,
                 ],
-                'Void Error - Missing mandatory data for the Void.'
+                $msg
             );
             
-            throw new PaymentException(__('Void Error - Missing mandatory data for the Void.'));
+            throw new PaymentException(__($msg));
         }
         
         $this->readerWriter->createLog($trans_to_void_data, 'Transaction to Cancel');

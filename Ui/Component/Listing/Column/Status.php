@@ -61,13 +61,13 @@ class Status extends Column
 //                    $this->readerWriter->createLog(
 //                        [
 //                            $item['increment_id'],
-//                            $orderPayment->getAdditionalInformation('nuvei_subscription_id'),
+//                            $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID),
 //                        ], 
 //                        'getAdditionalInformation'
 //                    );
                     
                     $dataSource['data']['items'][$key]['has_nuvei_subscr']
-                        = (bool) $orderPayment->getAdditionalInformation('nuvei_subscription_id');
+                        = (bool) $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID);
                 } catch (\Exception $e) {
                     $this->readerWriter->createLog($e->getMessage(), 'Exeception in Order Grid Status class:');
                     $dataSource['data']['items'][$key]['has_nuvei_subscr'] = 0;

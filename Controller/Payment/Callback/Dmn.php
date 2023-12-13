@@ -222,9 +222,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
              * $this->order
              * $this->orderPayment
              */
-//            $success = $this->getOrCreateOrder();
-//            
-//            if (!$success) {
             if (!$this->getOrCreateOrder()) {
                 return $this->jsonOutput;
             }
@@ -244,31 +241,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     ? $last_record[Payment::TRANSACTION_TYPE] : '';
             }
             
-            
-            
-            // TODO lets the Pending DMN continue and save Order note!
-//            if ('pending' == $status) {
-//                $msg = 'DMN report - Pending DMN, wait for the next one.';
-//            
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
-//                return $this->jsonOutput;
-//            }
-            
             # check for Subscription State DMN
             if ($this->processSubscrDmn($ord_trans_addit_info)) {
-//            $stop = $this->processSubscrDmn($ord_trans_addit_info);
-            
-//            if ($stop) {
-//                $msg = 'Process Subscr DMN ends for order #' . $this->orderIncrementId;
-//                
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
                 return $this->jsonOutput;
             }
-            # /check for Subscription State DMN
             
             # Subscription transaction DMN
             if (!empty($this->params['dmnType'])
@@ -1050,8 +1026,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         // save Subscription info into the Payment
-        $this->orderPayment->setAdditionalInformation('nuvei_subscription_state',   $subs_state);
-        $this->orderPayment->setAdditionalInformation('nuvei_subscription_id',      $this->params['subscriptionId']);
+        $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_STATE,    $subs_state);
+        $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_ID,       $this->params['subscriptionId']);
         $this->orderPayment->save();
         
         $this->orderResourceModel->save($this->order);
@@ -1647,6 +1623,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             Payment::TRANSACTION_TYPE           => '',
             Payment::TRANSACTION_UPO_ID         => '',
             Payment::TRANSACTION_TOTAL_AMOUN    => '',
+            Payment::IS_SUBSCR                  => '',
         ];
 
         // some subscription DMNs does not have TransactionID
@@ -1667,6 +1644,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         if (isset($this->params['totalAmount'])) {
             $this->curr_trans_info[Payment::TRANSACTION_TOTAL_AMOUN] = $this->params['totalAmount'];
+        }
+        if (!empty($this->params['dmnType'])
+            && 'subscriptionPayment' == $this->params['dmnType']
+        ) {
+            $this->curr_trans_info[Payment::IS_SUBSCR] = 1;
         }
         
         return true;

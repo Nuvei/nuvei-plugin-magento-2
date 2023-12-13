@@ -43,8 +43,15 @@ class Payment implements MethodInterface
     const TRANSACTION_PAYMENT_METHOD    = 'external_payment_method';
     const TRANSACTION_STATUS            = 'status';
     const TRANSACTION_TYPE              = 'transaction_type';
+    /**
+     * @deprecated
+     */
     const SUBSCR_IDS                    = 'subscr_ids'; // list with subscription IDs
-    const SUBSCR_DATA                   = 'nuvei_subscription_data'; // list with subscription IDs
+    
+    const SUBSCR_DATA                   = 'nuvei_subscription_data';
+    const SUBSCR_ID                     = 'nuvei_subscription_id'; // the subscription ID
+    const SUBSCR_STATE                  = 'nuvei_subscription_state'; // the state of the subscription
+    const IS_SUBSCR                     = 'is_subscription'; // set this flag in Order additional info
     const TRANSACTION_UPO_ID            = 'upo_id';
     const TRANSACTION_TOTAL_AMOUN       = 'total_amount';
     const REFUND_TRANSACTION_AMOUNT     = 'refund_amount';
@@ -331,8 +338,8 @@ class Payment implements MethodInterface
 
 //            $last_record    = end($ord_trans_addit_info);
 //            $subs_id        = $last_record[self::SUBSCR_IDS];
-            $subs_id    = $payment->getAdditionalInformation('nuvei_subscription_id');
-            $subs_state = $payment->getAdditionalInformation('nuvei_subscription_state');
+            $subs_id    = $payment->getAdditionalInformation(self::SUBSCR_ID);
+            $subs_state = $payment->getAdditionalInformation(self::SUBSCR_STATE);
             
             if (!is_numeric($subs_id) || $subs_id <= 0 || 'active' != $subs_state) {
                 $this->readerWriter->createLog(

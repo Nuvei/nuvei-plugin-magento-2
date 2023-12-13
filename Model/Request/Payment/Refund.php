@@ -120,6 +120,7 @@ class Refund extends AbstractPayment implements RequestInterface
             
             if (strtolower($trans[Payment::TRANSACTION_STATUS]) == 'approved'
                 && in_array($transaction_type, ['sale', 'settle'])
+                && empty($trans[Payment::IS_SUBSCR])
             ) {
                 $trans_to_refund_data = $trans;
                 break;
@@ -140,14 +141,6 @@ class Refund extends AbstractPayment implements RequestInterface
             'amount'                => (float) $this->amount,
             'relatedTransactionId'  => $trans_to_refund_data[Payment::TRANSACTION_ID],
             'merchant_unique_id'    => $order->getIncrementId(),
-//            'urlDetails'            => [
-//                'notificationUrl' => $this->config
-//                    ->getCallbackDmnUrl(
-//                        $order->getIncrementId(),
-//                        $order->getStoreId(),
-//                        ['invoice_id' => $inv_id]
-//                    ),
-//            ],
         ];
         
         // set notify url

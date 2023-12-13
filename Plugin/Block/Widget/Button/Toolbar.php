@@ -11,9 +11,9 @@ class Toolbar
     private $readerWriter;
     
     public function __construct(
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-        ,\Magento\Framework\App\RequestInterface $request
-        ,\Nuvei\Checkout\Model\ReaderWriter $readerWriter
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Magento\Framework\App\RequestInterface $request,
+        \Nuvei\Checkout\Model\ReaderWriter $readerWriter
     ) {
         $this->orderRepository  = $orderRepository;
         $this->request          = $request;
@@ -44,7 +44,7 @@ class Toolbar
             $order_total            = round((float) $order->getBaseGrandTotal(), 2);
             $orderPayment           = $order->getPayment();
             $ord_trans_addit_info   = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
-            $subs_state             = $orderPayment->getAdditionalInformation('nuvei_subscription_state');
+            $subs_state             = $orderPayment->getAdditionalInformation(Payment::SUBSCR_STATE);
             $payment_method         = '';
             
             if ($orderPayment->getMethod() !== Payment::METHOD_CODE) {
