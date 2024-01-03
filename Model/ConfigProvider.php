@@ -130,6 +130,7 @@ class ConfigProvider extends CcGenericConfigProvider
         $save_pm            = $this->moduleConfig->getSaveUposSetting($isPaymentPlan);
         $total              = $this->moduleConfig->getQuoteBaseTotal();
         $useDCC             = $this->moduleConfig->getConfigValue('use_dcc');
+        $locale             = substr($this->locale, 0, 2);
         
         if ($total == 0) {
             $useDCC = 'false';
@@ -163,13 +164,18 @@ class ConfigProvider extends CcGenericConfigProvider
                         'email'                     => $billing_address['email'],
                         'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
                         'showResponseMessage'       => false, // shows/hide the response popups
-                        'locale'                    => substr($this->locale, 0, 2),
+                        'locale'                    => $locale,
                         'autoOpenPM'                => (bool) $this->moduleConfig->getConfigValue('auto_expand_pms'),
                         'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
                         'maskCvv'                   => true,
                         'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
                         'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
                         'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
+                        'apmConfig'                 => [
+                            'googlePay' => [
+                                'locale' => $locale
+                            ]
+                        ]
                     ],
                 ],
             ],

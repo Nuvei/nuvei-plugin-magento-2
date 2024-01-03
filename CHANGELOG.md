@@ -13,6 +13,7 @@
     * Fixed the problem with duplicate Invoice when Settle an Order.
     * Added additional check for fraund Transactions.
     * Fixed the example for the "Checkout transalations" setting.
+    * Added locale for Gpay button.
 ```
 
 # 3.1.2

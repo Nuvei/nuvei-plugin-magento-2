@@ -218,14 +218,6 @@ define(
 
         var self = null;
         
-//        $.getScript(
-//            "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js",
-//            function( data, textStatus, jqxhr ) {
-//                window.nuveiCheckoutSdk	= checkout;
-//                $('#nuveiCheckoutCss').remove(); // remove the style, it is broken.
-//            }
-//        );
-
         return Component.extend({
             defaults: {
                 template: 'Nuvei_Checkout/payment/nuveiCheckout',
@@ -324,9 +316,9 @@ define(
                             self.nuveiCollectSdkParams();
                             self.checkoutSdkParams.sessionToken = resp.sessionToken;
                             self.checkoutSdkParams.amount       = self.checkoutSdkParams.amount.toString();
-
+                            
                             console.log('load checkout sdk', self.checkoutSdkParams);
-                            console.log('load checkout sdk nuvei_checkout length', $('#nuvei_checkout').length);
+                            console.log('is #nuvei_checkout exists', $('#nuvei_checkout').length);
                             
                             self.loadSdk();
                             return;
