@@ -593,12 +593,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $is_cpanel_settle = true;
         }
         
-//        if (!empty($this->params["merchant_unique_id"] && isset($this->params["order"]))
-//            && $this->params["merchant_unique_id"] != $this->params["order"]
-//        ) {
-//            $is_cpanel_settle = true;
-//        }
-        
         if ($this->params["payment_method"] == 'cc_card') {
             $this->order->setCanVoidPayment(true);
             $this->orderPayment->setCanVoid(true);
@@ -611,36 +605,16 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->is_partial_settle = true;
         }
         // in case of Sale check the currency and the amount
-        else {
-//            $order_curr = $this->order->getQuoteBaseCurrency();
-//            $fraud      = false;
-            // check the total
-//            if ($order_total != $dmn_total
-//                && isset($this->params['customField5'])
-//                && $order_total != $this->params['customField5']
-//            ) {
-//                $fraud = true;
-//            }
-//            
-//            // check the currency
-//            if ($order_curr != $this->params['currency']
-//                && isset($this->params['customField6'])
-//                && $order_curr != $this->params['customField6']
-//            ) {
-//                $fraud = true;
-//            }
-            
-            if ($this->fraudCheck()) {
-                $this->sc_transaction_type = 'fraud';
+        elseif ($this->fraudCheck()) {
+            $this->sc_transaction_type = 'fraud';
 
-                $this->order->addStatusHistoryComment(
-                    __('<b>Attention!</b> - There is a problem with the Order. The Order amount is ')
-                    . $this->order->getOrderCurrencyCode() . ' '
-                    . $order_total . ', ' . __('but the Paid amount is ')
-                    . $this->params['currency'] . ' ' . $dmn_total,
-                    $this->sc_transaction_type
-                );
-            }
+            $this->order->addStatusHistoryComment(
+                __('<b>Attention!</b> - There is a problem with the Order. The Order amount is ')
+                . $this->order->getOrderCurrencyCode() . ' '
+                . $order_total . ', ' . __('but the Paid amount is ')
+                . $this->params['currency'] . ' ' . $dmn_total,
+                $this->sc_transaction_type
+            );
         }
 
         // there are invoices
@@ -681,79 +655,57 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter->createLog('There are no Invoices');
         
         // there are not invoices, but we can create
-//        if (
-////            ( $this->order->canInvoice() || $is_cpanel_settle )
-////            && (
-//            (
-//                'sale' == $tr_type_param // Sale flow
-//                || ( // APMs flow
-//                    $this->params["order"] == $this->params["merchant_unique_id"]
-//                    && $this->params["payment_method"] != 'cc_card'
-//                )
-//                || $is_cpanel_settle
-//            )
-//        if ('sale' == $tr_type_param
-//            || $this->params["payment_method"] != 'cc_card'
-//            || $is_cpanel_settle
-//        ) {
-            $this->readerWriter->createLog('Try to create Invoice');
-            
-            $this->orderPayment
-                ->setIsTransactionPending(0)
-                ->setIsTransactionClosed(0);
-            
-            $invoice = $this->invoiceService->prepareInvoice($this->order);
-            $invoice->setCanVoidFlag(true);
-            
-            $invoice
-                ->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE)
-                ->setTransactionId($this->params['TransactionID'])
-                ->setState(Invoice::STATE_PAID);
-            
-            // in case of Cpanel Partial Settle
-            if ($is_cpanel_settle && (float) $this->params['totalAmount'] < $order_total) {
-                $order_total = round((float) $this->params['totalAmount'], 2);
-            }
-            
-            $invoice
-                ->setBaseSubtotal($this->order->getBaseSubtotal())
-                ->setSubtotal($this->order->getSubtotal())
-                ->setBaseGrandTotal($this->order->getBaseGrandTotal())
-                ->setGrandTotal($this->order->getGrandTotal());
-            
-            $invoice->register();
-            $invoice->getOrder()->setIsInProcess(true);
-            $invoice->pay();
-            
-            $transactionSave = $this->transaction
-                ->addObject($invoice)
-                ->addObject($invoice->getOrder());
-            
-            $transactionSave->save();
+        $this->readerWriter->createLog('Try to create Invoice');
 
-            $this->curr_trans_info['invoice_id'] = $invoice->getId();
+        $this->orderPayment
+            ->setIsTransactionPending(0)
+            ->setIsTransactionClosed(0);
 
-            // set transaction
-            $transaction = $this->transObj
-                ->setPayment($this->orderPayment)
-                ->setOrder($this->order)
-                ->setTransactionId($this->params['TransactionID'])
-                ->setFailSafe(true)
-                ->build(Transaction::TYPE_CAPTURE);
+        $invoice = $this->invoiceService->prepareInvoice($this->order);
+        $invoice->setCanVoidFlag(true);
 
-            $transaction->save();
+        $invoice
+            ->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE)
+            ->setTransactionId($this->params['TransactionID'])
+            ->setState(Invoice::STATE_PAID);
 
-//            $tr_type    = $this->orderPayment->addTransaction(Transaction::TYPE_CAPTURE);
-//            $msg        = $this->orderPayment->prependMessage($message);
-//
-//            $this->orderPayment->addTransactionCommentsToOrder($tr_type, $msg);
-            
-            return;
-//        }
+        // in case of Cpanel Partial Settle
+        if ($is_cpanel_settle && (float) $this->params['totalAmount'] < $order_total) {
+            $order_total = round((float) $this->params['totalAmount'], 2);
+        }
+
+        $invoice
+            ->setBaseSubtotal($this->order->getBaseSubtotal())
+            ->setSubtotal($this->order->getSubtotal())
+            ->setBaseGrandTotal($this->order->getBaseGrandTotal())
+            ->setGrandTotal($this->order->getGrandTotal());
+
+        $invoice->register();
+        $invoice->getOrder()->setIsInProcess(true);
+        $invoice->pay();
+
+        $transactionSave = $this->transaction
+            ->addObject($invoice)
+            ->addObject($invoice->getOrder());
+
+        $transactionSave->save();
+
+        $this->curr_trans_info['invoice_id'] = $invoice->getId();
+
+        // set transaction
+        $transaction = $this->transObj
+            ->setPayment($this->orderPayment)
+            ->setOrder($this->order)
+            ->setTransactionId($this->params['TransactionID'])
+            ->setFailSafe(true)
+            ->build(Transaction::TYPE_CAPTURE);
+
+        $transaction->save();
+
+        return;
     }
     
     /**
-     *
      * @param string $tr_type_param
      * @return void
      */
@@ -821,11 +773,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
         // Cancel active Subscriptions, if there are any
         $succsess = $this->paymentModel->cancelSubscription($this->orderPayment);
-
-        // if we cancel any subscription set state Close
-//        if ($succsess) {
-//            $this->order->setData('state', Order::STATE_CLOSED);
-//        }
     }
     
     /**
@@ -1498,11 +1445,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->readerWriter->createLog(
             [
-                $order_request_time,
-                $dmnTrType,
-                $curr_time
+                '$order_request_time'   => $order_request_time,
+                '$dmnTrType'            => $dmnTrType,
+                '$curr_time'            => $curr_time
             ],
-            'create_auto_void'
+            'create_auto_void()'
         );
         
         // not allowed Auto-Void
@@ -1846,8 +1793,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        // for all other requests
-        if (!empty($this->params["relatedTransactionId"])) {
+        // for CPanel requests
+        if (strpos($this->params["clientUniqueId"], 'gwp_') !== false
+            && !empty($this->params["relatedTransactionId"])
+        ) {
             $this->readerWriter->createLog('order identificator - transactionId');
             
             $this->transactionId = $this->params["relatedTransactionId"];

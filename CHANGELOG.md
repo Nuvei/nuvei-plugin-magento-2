@@ -12,6 +12,7 @@
     * Save Order messages for Pending DMNs.
     * Fixed the problem with duplicate Invoice when Settle an Order.
     * Added additional check for fraund Transactions.
+    * Fixed the example for the "Checkout transalations" setting.
 ```
 
 # 3.1.2

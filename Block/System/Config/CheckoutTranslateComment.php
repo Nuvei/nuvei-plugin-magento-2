@@ -15,10 +15,8 @@ class CheckoutTranslateComment implements \Magento\Config\Model\Config\CommentIn
     {
         return __('Set your translations like in the example:') . '<br/>'
             . '<code>{</br>'
-                . '&nbsp;&nbsp;&nbsp;"de": {</br>'
-                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"doNotHonor": "you dont have enough money",'
-                    . '</br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"DECLINE": "declined"'
-                . '</br>&nbsp;&nbsp;&nbsp;},'
+                . '"doNotHonor":"you dont have enough money",</br>'
+                . '"DECLINE":"declined"'
             . '</br>}</code>'
             . '</br>'
             . __('For more information, please check the <a href="'

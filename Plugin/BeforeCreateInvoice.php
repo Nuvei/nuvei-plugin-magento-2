@@ -14,7 +14,6 @@ class BeforeCreateInvoice
 {
     private $objectManager;
     private $readerWriter;
-//    private $request;
     private $params;
     
     public function __construct(
@@ -39,20 +38,20 @@ class BeforeCreateInvoice
             return;
         }
         
-        $this->readerWriter->createLog(
-            [
-                'getBaseGrandTotal' => $order->getBaseGrandTotal(),
-                'getBaseTotalInvoiced' => $order->getBaseTotalInvoiced(),
-                'getBaseDiscountAmount' => $order->getBaseDiscountAmount(),
-                'getBaseShippingInclTax' => $order->getBaseShippingInclTax(),
-                'getBaseShippingAmount' => $order->getBaseShippingAmount(),
-                'getBaseShippingInvoiced' => $order->getBaseShippingInvoiced(),
-                'getBaseShippingDiscountAmount' => $order->getBaseShippingDiscountAmount(),
-                'getBaseTaxAmount' => $order->getBaseTaxAmount(),
-            ],
-            'Order amounts',
-            'DEBUG'
-        );
+//        $this->readerWriter->createLog(
+//            [
+//                'getBaseGrandTotal' => $order->getBaseGrandTotal(),
+//                'getBaseTotalInvoiced' => $order->getBaseTotalInvoiced(),
+//                'getBaseDiscountAmount' => $order->getBaseDiscountAmount(),
+//                'getBaseShippingInclTax' => $order->getBaseShippingInclTax(),
+//                'getBaseShippingAmount' => $order->getBaseShippingAmount(),
+//                'getBaseShippingInvoiced' => $order->getBaseShippingInvoiced(),
+//                'getBaseShippingDiscountAmount' => $order->getBaseShippingDiscountAmount(),
+//                'getBaseTaxAmount' => $order->getBaseTaxAmount(),
+//            ],
+//            'Order amounts',
+//            'DEBUG'
+//        );
         
         $order_shipping_inc_tax     = round($order->getBaseShippingInclTax(), 2);
         $order_shipping_invoiced    = round((float) $order->getBaseShippingInvoiced(), 2);
@@ -155,7 +154,6 @@ class BeforeCreateInvoice
 
         $resp = $request
             ->setPayment($payment)
-//            ->setInvoiceId($invoice->getId())
             ->setInvoiceAmount($inv_amount)
             ->process();
         
@@ -165,7 +163,6 @@ class BeforeCreateInvoice
             $this->readerWriter->createLog($msg);
             throw new \Magento\Framework\Exception\LocalizedException($msg);
         }
-        
         
         return;
     }
