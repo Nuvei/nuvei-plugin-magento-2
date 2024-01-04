@@ -88,6 +88,10 @@ class Cancel extends AbstractPayment implements RequestInterface
      */
     protected function getParams()
     {
+        // we can create Void for Settle and Auth only!
+        $orderPayment   = $this->orderPayment;
+        $order          = $orderPayment->getOrder();
+        
         // AutoVoid flow when we pass all params from the DMN Class
         if (!empty($this->params) && is_array($this->params)) {
             // set notify url
@@ -103,10 +107,7 @@ class Cancel extends AbstractPayment implements RequestInterface
             return $this->params;
         }
         
-        // we can create Void for Settle and Auth only!!!
-        $orderPayment           = $this->orderPayment;
         $ord_trans_addit_info   = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
-        $order                  = $orderPayment->getOrder();
         $inv_id                 = $this->request->getParam('invoice_id');
         $trans_to_void_data     = [];
         $last_voidable          = [];

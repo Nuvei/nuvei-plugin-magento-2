@@ -16,6 +16,7 @@
     * Added locale for Gpay button.
     * In case of declined Void or Refund DMN, return the previous Order Status in Payment class.
     * Changes in the Void processing logic.
+    * Fix for the Payment Cancel model.
 ```
 
 # 3.1.2
