@@ -309,9 +309,8 @@ class Payment implements MethodInterface
         );
         
         $order->setStatus(self::SC_PROCESSING);
-//        $this->orderResourceModel->save($order);
-        
         $request->process();
+        
         return $this;
     }
     

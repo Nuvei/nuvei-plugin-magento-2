@@ -265,10 +265,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 
                 $ord_trans_addit_info[$this->params['TransactionID']] = $this->curr_trans_info;
                 
-                
-//                $resp_save_data = $this->finalSaveData($ord_trans_addit_info);
-//        
-//                if (!$resp_save_data) {
                 if (!$this->finalSaveData($ord_trans_addit_info)) {
                     return $this->jsonOutput;
                 }
@@ -281,9 +277,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 return $this->jsonOutput;
             }
             # /Subscription transaction DMN
-            
-            
-            // /Try to create the Order.
             
             # For Auth and Settle check the internal Nuvei Order ID
             if (isset($this->params['transactionType'])
@@ -333,63 +326,14 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 'DMN order payment AdditionalInformation'
             );
             
-            
-            
-//            // do not save same DMN data more than once
-//            if (isset($this->params['TransactionID'])
-//                && array_key_exists($this->params['TransactionID'], $ord_trans_addit_info)
-//            ) {
-//                $msg = 'Same transaction already saved. Stop proccess';
-//                
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
-//                return $this->jsonOutput;
-//            }
-            
             // prepare current transaction data for save
             if (!$this->prepareCurrTrInfo($ord_trans_addit_info, $status)) {
                 return $this->jsonOutput;
             }
             
-            
-            
-//            if (!in_array($status, ['declined', 'error', 'approved', 'success'])) { // UNKNOWN DMN
-//                $msg = 'DMN for Order #' . $this->orderIncrementId . ' was not recognized.';
-//            
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
-//                return $this->jsonOutput;
-//            }
-            // /try to find Status
-            
-//            if (empty($this->params['transactionType'])) {
-//                $msg = 'DMN error - missing Transaction Type.';
-//            
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
-//                return $this->jsonOutput;
-//            }
-//            
-//            if (empty($this->params['TransactionID'])) {
-//                $msg = 'DMN error - missing Transaction ID.';
-//            
-//                $this->readerWriter->createLog($msg);
-//                $this->jsonOutput->setData($msg);
-//
-//                return $this->jsonOutput;
-//            }
-            
             $tr_type_param = strtolower($this->params['transactionType']);
-
-            
             
             // do not overwrite Order status
-//            $stop = $this->keepOrderStatusFromOverride($order_tr_type, $order_status, $status);
-//            
-//            if ($stop) {
             if ($this->keepOrderStatusFromOverride($order_tr_type, $order_status, $status)) {
                 return $this->jsonOutput;
             }
@@ -401,10 +345,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             // PENDING TRANSACTION
             if ($status === "pending") {
-//                $this->order
-//                    ->setState(Order::STATE_NEW)
-//                    ->setStatus('pending');
-                
                 $this->order->addStatusHistoryComment(
                     '<b>' . __($this->params['transactionType']) . '</b> request.<br/>'
                         . __("Response status: ") . ' <b>' . $this->params['Status'] . '</b>.<br/>'
@@ -455,15 +395,28 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             // DECLINED/ERROR TRANSACTION
             if (in_array($status, ['declined', 'error'])) {
-                $this->processDeclinedSaleOrSettleDmn();
+                foreach(array_reverse($ord_trans_addit_info) as $tr_data) {
+                    if (in_array($tr_data['transaction_type'], ['Sale', 'Settle'])) {
+                        $this->sc_transaction_type = Payment::SC_SETTLED;
+                        break;
+                    }
+                    if ('Auth' == $tr_data['transaction_type']) {
+                        $this->sc_transaction_type = Payment::SC_AUTH;
+                        break;
+                    }
+                }
+                
+                $this->order->setStatus($this->sc_transaction_type);
+                
+                $this->processDeclinedDmn();
                 
                 $this->params['ErrCode']      = (isset($this->params['ErrCode'])) ? $this->params['ErrCode'] : "Unknown";
                 $this->params['ExErrCode']    = (isset($this->params['ExErrCode'])) ? $this->params['ExErrCode'] : "Unknown";
                 
                 $this->order->addStatusHistoryComment(
                     '<b>' . $this->params['transactionType'] . '</b> '
-                        . __("request, response status is") . ' <b>' . $this->params['Status'] . '</b>.<br/>('
-                        . __('Code: ') . $this->params['ErrCode'] . ', '
+                        . __("request, response status is") . ' <b>' . $this->params['Status'] . '</b>.<br/>'
+                        . __('Code: ') . $this->params['ErrCode'] . ',<br/>'
                         . __('Reason: ') . $this->params['ExErrCode'] . '.',
                     $this->sc_transaction_type
                 );
@@ -772,7 +725,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->order->setData('state', Order::STATE_CLOSED);
 
         // Cancel active Subscriptions, if there are any
-        $succsess = $this->paymentModel->cancelSubscription($this->orderPayment);
+        $this->paymentModel->cancelSubscription($this->orderPayment);
     }
     
     /**
@@ -822,9 +775,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->curr_trans_info['invoice_id'] = $this->httpRequest->getParam('invoice_id');
     }
     
-    private function processDeclinedSaleOrSettleDmn()
+    private function processDeclinedDmn()
     {
-        $this->readerWriter->createLog('processDeclinedSaleOrSettleDmn()');
+        $this->readerWriter->createLog('processDeclinedDmn()');
         
         $invCollection  = $this->order->getInvoiceCollection();
         $dmn_inv_id     = (int) $this->httpRequest->getParam('invoice_id');
@@ -845,7 +798,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
                         break;
                     }
                 }
-            } elseif ('Sale' == $this->params['transactionType']) {
+            }
+            elseif ('Sale' == $this->params['transactionType']) {
                 $invCollection                          = $this->order->getInvoiceCollection();
                 $invoice                                = current($invCollection);
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
@@ -858,59 +812,23 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 
                 $this->invoiceRepository->save($invoice);
             }
+            // Void or Refund
+            else {
+                // find the previous Order status and return it
+                
+//                $this->order->setStatus($this->sc_transaction_type);
+                
+            }
         } catch (\Exception $ex) {
-            $this->readerWriter->createLog($ex->getMessage(), 'processDeclinedSaleOrSettleDmn() Exception.');
+            $this->readerWriter->createLog($ex->getMessage(), 'processDeclinedDmn() Exception.');
             return;
         }
-        
-        // there are invoices
-//        if (count($invCollection) > 0) {
-//            $this->readerWriter->createLog(count($invCollection), 'The Invoices count is');
-//
-//            foreach ($this->order->getInvoiceCollection() as $invoice) {
-//                // Sale
-//                if (0 == $dmn_inv_id) {
-//                    $this->curr_trans_info['invoice_id'][] = $invoice->getId();
-//
-//                    $this->sc_transaction_type = Payment::SC_CANCELED;
-//
-//                    $invoice
-//                        ->setTransactionId($this->params['TransactionID'])
-//                        ->setState(Invoice::STATE_CANCELED)
-//                        ->pay()
-//                        ->save()
-//                    ;
-//
-//
-//
-//                } elseif ($dmn_inv_id == $invoice->getId()) { // Settle
-//                    $this->curr_trans_info['invoice_id'][] = $invoice->getId();
-//
-//                    $this->sc_transaction_type = Payment::SC_AUTH;
-//
-//                    $this->readerWriter->createLog('Declined Settle');
-//
-//                    $invoice
-////                        ->setTransactionId($this->params['TransactionID'])
-////                        ->setState(Invoice::STATE_CANCELED)
-//                        ->setState(Invoice::STATE_OPEN)
-////                        ->pay()
-////                        ->save()
-//                    ;
-//
-//                    $this->invoiceRepository->save($invoice);
-//
-//                    break;
-//                }
-//            }
-//        }
     }
     
     /**
      * Work with Subscription status DMN.
      *
      * @param array $ord_trans_addit_info
-     *
      * @return bool
      */
     private function processSubscrDmn($ord_trans_addit_info)

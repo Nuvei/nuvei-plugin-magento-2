@@ -14,6 +14,7 @@
     * Added additional check for fraund Transactions.
     * Fixed the example for the "Checkout transalations" setting.
     * Added locale for Gpay button.
+    * In case of declined Void or Refund DMN, return the previous Order Status.
 ```
 
 # 3.1.2
