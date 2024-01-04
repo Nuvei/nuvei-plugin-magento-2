@@ -395,23 +395,23 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             // DECLINED/ERROR TRANSACTION
             if (in_array($status, ['declined', 'error'])) {
-                foreach(array_reverse($ord_trans_addit_info) as $tr_data) {
-                    if (in_array($tr_data['transaction_type'], ['Sale', 'Settle'])) {
-                        $this->sc_transaction_type = Payment::SC_SETTLED;
-                        break;
-                    }
-                    if ('Auth' == $tr_data['transaction_type']) {
-                        $this->sc_transaction_type = Payment::SC_AUTH;
-                        break;
-                    }
-                }
-                
-                $this->order->setStatus($this->sc_transaction_type);
+//                foreach(array_reverse($ord_trans_addit_info) as $tr_data) {
+//                    if (in_array($tr_data['transaction_type'], ['Sale', 'Settle'])) {
+//                        $this->sc_transaction_type = Payment::SC_SETTLED;
+//                        break;
+//                    }
+//                    if ('Auth' == $tr_data['transaction_type']) {
+//                        $this->sc_transaction_type = Payment::SC_AUTH;
+//                        break;
+//                    }
+//                }
+//                
+//                $this->order->setStatus($this->sc_transaction_type);
                 
                 $this->processDeclinedDmn();
                 
-                $this->params['ErrCode']      = (isset($this->params['ErrCode'])) ? $this->params['ErrCode'] : "Unknown";
-                $this->params['ExErrCode']    = (isset($this->params['ExErrCode'])) ? $this->params['ExErrCode'] : "Unknown";
+                $this->params['ErrCode']    = isset($this->params['ErrCode']) ? $this->params['ErrCode'] : "Unknown";
+                $this->params['ExErrCode']  = isset($this->params['ExErrCode']) ? $this->params['ExErrCode'] : "Unknown";
                 
                 $this->order->addStatusHistoryComment(
                     '<b>' . $this->params['transactionType'] . '</b> '
@@ -436,9 +436,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->order->addStatusHistoryComment($msg);
         }
         
-//        $resp_save_data = $this->finalSaveData($ord_trans_addit_info);
-//        
-//        if (!$resp_save_data) {
         if (!$this->finalSaveData($ord_trans_addit_info)) {
             return $this->jsonOutput;
         }
@@ -668,26 +665,25 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        $this->readerWriter->createLog('processVoidDmn()');
+        $this->readerWriter->createLog($this->order->getStatus(), 'processVoidDmn()');
         
-        // wait Magento to set its Canceled status so our DMN can change it to Nuvei Voided
-        do {
+        // wait Magento to set processing status
+        while(!in_array($this->order->getStatus(), [Payment::SC_PROCESSING, Order::STATE_PROCESSING])
+            && $this->loop_tries < $this->loop_max_tries
+        ) {
             $this->loop_tries++;
             
-            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
-                $this->readerWriter->createLog(
-                    [
-                        'order status'  => $this->order->getStatus(),
-                        'tryouts'       => $this->loop_tries,
-                    ],
-                    'processVoidDmn() wait for Magento to set Proccessing status.'
-                );
-                
-                sleep($this->loop_wait_time);
-                $this->getOrCreateOrder();
-            }
+            $this->readerWriter->createLog(
+                [
+                    'order status'  => $this->order->getStatus(),
+                    'tryouts'       => $this->loop_tries,
+                ],
+                'processVoidDmn() wait for Magento to set Proccessing status.'
+            );
+
+            sleep($this->loop_wait_time);
+            $this->getOrCreateOrder();
         }
-        while(Payment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
         
         $this->transactionType        = Transaction::TYPE_VOID;
         $this->sc_transaction_type    = Payment::SC_VOIDED;
@@ -784,7 +780,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         try {
             if ('Settle' == $this->params['transactionType']) {
-                $this->sc_transaction_type = Payment::SC_AUTH;
+                $this->order->setStatus(Payment::SC_AUTH);
+//                $this->sc_transaction_type = Payment::SC_AUTH;
                 
                 foreach ($invCollection as $invoice) {
                     if ($dmn_inv_id == $invoice->getId()) {
@@ -803,7 +800,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $invCollection                          = $this->order->getInvoiceCollection();
                 $invoice                                = current($invCollection);
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
-                $this->sc_transaction_type              = Payment::SC_CANCELED;
+//                $this->sc_transaction_type              = Payment::SC_CANCELED;
+                
+                $this->order->setStatus(Payment::SC_CANCELED);
 
                 $invoice
                     ->setTransactionId($this->params['TransactionID'])
@@ -811,13 +810,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 ;
                 
                 $this->invoiceRepository->save($invoice);
-            }
-            // Void or Refund
-            else {
-                // find the previous Order status and return it
-                
-//                $this->order->setStatus($this->sc_transaction_type);
-                
             }
         } catch (\Exception $ex) {
             $this->readerWriter->createLog($ex->getMessage(), 'processDeclinedDmn() Exception.');

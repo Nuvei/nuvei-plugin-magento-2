@@ -230,8 +230,9 @@ class Payment implements MethodInterface
     public function refund(InfoInterface $payment, $amount)
     {
         $order  = $payment->getOrder();
+        $status = $order->getStatus();
+        
         $order->setStatus(Payment::SC_PROCESSING);
-//        $this->orderResourceModel->save($order);
         
         /** @var RequestInterface $request */
         $request = $this->paymentRequestFactory->create(
@@ -241,9 +242,11 @@ class Payment implements MethodInterface
         );
         
         $resp = $request->process();
-//        $this->readerWriter->createLog($resp, 'Paymen->refund()');
         
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
+            // revert old Order Status
+            $order->setStatus($status);
+            
             if (!empty($resp['gwErrorReason'])) {
                 throw new \Magento\Framework\Exception\LocalizedException(__($resp['gwErrorReason']));
             }
@@ -286,8 +289,16 @@ class Payment implements MethodInterface
         $order  = $payment->getOrder();
         $total  = $order->getBaseGrandTotal();
         $status = $order->getStatus();
+        // set processing status
+        $order->setStatus(self::SC_PROCESSING);
         
-        $this->readerWriter->createLog([$total, $status], 'Payment Void.');
+        $this->readerWriter->createLog(
+            [
+                '$total'    => $total,
+                '$status'   => $status
+            ],
+            'Payment Void.'
+        );
         
         // Void of Zero Total amount
         if (0 == (float) $total && self::SC_AUTH == $status) {
@@ -308,8 +319,19 @@ class Payment implements MethodInterface
             $payment
         );
         
-        $order->setStatus(self::SC_PROCESSING);
-        $request->process();
+        $resp = $request->process();
+        
+        if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
+            // revert old Order Status
+            $order->setStatus($status);
+            
+            if (!empty($resp['gwErrorReason'])) {
+                throw new \Magento\Framework\Exception\LocalizedException(__($resp['gwErrorReason']));
+            }
+            
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Void request error. Please, check Nuvei log for more information.'));
+        }
         
         return $this;
     }
@@ -325,18 +347,6 @@ class Payment implements MethodInterface
         $this->readerWriter->createLog('cancelSubscription()');
         
         try {
-//            $ord_trans_addit_info = $payment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
-//
-//            if (empty($ord_trans_addit_info) || !is_array($ord_trans_addit_info)) {
-//                $this->readerWriter->createLog(
-//                    $ord_trans_addit_info,
-//                    'cancelSubscription() Error - $ord_trans_addit_info is empty or not an array.'
-//                );
-//                return false;
-//            }
-
-//            $last_record    = end($ord_trans_addit_info);
-//            $subs_id        = $last_record[self::SUBSCR_IDS];
             $subs_id    = $payment->getAdditionalInformation(self::SUBSCR_ID);
             $subs_state = $payment->getAdditionalInformation(self::SUBSCR_STATE);
             
@@ -487,8 +497,6 @@ class Payment implements MethodInterface
      */
     public function canCapture()
     {
-//        $this->readerWriter->createLog(@$_REQUEST, 'Payment->canCapture()');
-        
         return true;
     }
 
@@ -501,8 +509,6 @@ class Payment implements MethodInterface
      */
     public function canCapturePartial()
     {
-//        $this->readerWriter->createLog(@$_REQUEST, 'Payment->canCapturePartial()');
-        
         return true;
     }
 
@@ -614,7 +620,10 @@ class Payment implements MethodInterface
     {
         return $this->executeCommand(
             'fetch_transaction_information',
-            ['payment' => $payment, 'transactionId' => $transactionId]
+            [
+                'payment'       => $payment,
+                'transactionId' => $transactionId
+            ]
         );
     }
 

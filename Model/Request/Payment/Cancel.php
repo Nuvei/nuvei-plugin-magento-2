@@ -55,6 +55,11 @@ class Cancel extends AbstractPayment implements RequestInterface
         return $this;
     }
     
+    public function process()
+    {
+        return $this->sendRequest(true);
+    }
+    
     /**
      * {@inheritdoc}
      *

@@ -77,13 +77,13 @@ class BeforeCreateInvoice
             
             // debug log
             $items_amounts[$item->getId()] = [
-                'getBasePrice'          => $item->getBasePrice(),
-                'getBasePriceInclTax'   => $item->getBasePriceInclTax(),
-                'getBaseDiscountAmount' => $item->getBaseDiscountAmount(),
-                'getBaseDiscountInvoiced' => $item->getBaseDiscountInvoiced(),
-                'getBaseTaxAmount' => $item->getBaseTaxAmount(),
-                'getBaseTaxInvoiced' => $item->getBaseTaxInvoiced(),
-                'getQtyOrdered' => $item->getQtyOrdered(),
+                'getBasePrice'              => $item->getBasePrice(),
+                'getBasePriceInclTax'       => $item->getBasePriceInclTax(),
+                'getBaseDiscountAmount'     => $item->getBaseDiscountAmount(),
+                'getBaseDiscountInvoiced'   => $item->getBaseDiscountInvoiced(),
+                'getBaseTaxAmount'          => $item->getBaseTaxAmount(),
+                'getBaseTaxInvoiced'        => $item->getBaseTaxInvoiced(),
+                'getQtyOrdered'             => $item->getQtyOrdered(),
             ];
 
             $inv_amount += ($item_price_no_tax * $items_cnt)
@@ -158,7 +158,7 @@ class BeforeCreateInvoice
             ->process();
         
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
-            $msg = __('Settle request error, you can check Nuvei log for more information.');
+            $msg = __('Settle request error. Please, check Nuvei log for more information.');
             
             $this->readerWriter->createLog($msg);
             throw new \Magento\Framework\Exception\LocalizedException($msg);
