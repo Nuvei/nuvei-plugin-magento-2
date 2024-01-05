@@ -27,10 +27,3 @@ php bin/magento setup:static-content:deploy
 php bin/magento maintenance:disable
 php bin/magento cache:flush
 ```
-
----
-
-https://www.nuvei.com/
-
-© 2007 - 2023 Nuvei
-All rights reserved.
