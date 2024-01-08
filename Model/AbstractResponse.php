@@ -14,11 +14,9 @@ abstract class AbstractResponse
      * Response handlers.
      */
     const TOKEN_HANDLER                         = 'token';
-    const PAYMENT_SETTLE_HANDLER                = 'payment_settle';
     const CREATE_USER_HANDLER                   = 'create_user';
     const GET_USER_DETAILS_HANDLER              = 'get_user_details';
     const PAYMENT_REFUND_HANDLER                = 'payment_refund';
-    const PAYMENT_VOID_HANDLER                  = 'payment_void';
     const GET_MERCHANT_PAYMENT_METHODS_HANDLER  = 'get_merchant_payment_methods';
     const GET_UPOS_HANDLER                      = 'get_user_upos';
     const GET_MERCHANT_PAYMENT_PLANS_HANDLER    = 'get_plans_list';

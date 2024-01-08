@@ -321,6 +321,7 @@ class Payment implements MethodInterface
         
         $resp = $request->process();
         
+        // some error
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
             // revert old Order Status
             $order->setStatus($status);
@@ -771,7 +772,10 @@ class Payment implements MethodInterface
         
         $this->executeCommand(
             'capture',
-            ['payment' => $payment, 'amount' => $amount]
+            [
+                'payment'   => $payment, 
+                'amount'    => $amount
+            ]
         );
 
         return $this;

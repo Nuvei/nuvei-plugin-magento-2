@@ -79,6 +79,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $transactionRepository;
     private $params;
     private $readerWriter;
+    private $filterBuilder;
 
     /**
      * Object constructor.
@@ -105,7 +106,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         \Nuvei\Checkout\Model\Payment $paymentModel,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Magento\Sales\Model\Order\Payment\Transaction\Repository $transactionRepository,
-        \Magento\Directory\Model\CurrencyFactory $currencyFactory
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
+        \Magento\Framework\Api\FilterBuilder $filterBuilder
     ) {
         $this->moduleConfig             = $moduleConfig;
         $this->captureCommand           = $captureCommand;
@@ -128,6 +130,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter             = $readerWriter;
         $this->transactionRepository    = $transactionRepository;
         $this->currencyFactory          = $currencyFactory;
+        $this->filterBuilder            = $filterBuilder;
         
         parent::__construct($context);
         
@@ -567,9 +570,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
             );
         }
 
-        // there are invoices
+        // in case of Settle, there are invoices - exit
         if (count($invCollection) > 0 && !$is_cpanel_settle) {
             $this->readerWriter->createLog('There are Invoices');
+            
+            // get Order transactions
+            $this->saveCorrectTrId('capture');
             
             foreach ($invCollection as $invoice) {
                 // Settle
@@ -596,16 +602,17 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
+        // in case of Sale we have to create the Invoice and the Transaction here
+        $this->readerWriter->createLog('There are no Invoices');
+        
         // Force Invoice creation when we have CPanel Partial Settle
         if (!$this->order->canInvoice() && !$is_cpanel_settle) {
             $this->readerWriter->createLog('We can NOT create invoice.');
             return;
         }
         
-        $this->readerWriter->createLog('There are no Invoices');
-        
         // there are not invoices, but we can create
-        $this->readerWriter->createLog('Try to create Invoice');
+//        $this->readerWriter->createLog('Try to create Invoice');
 
         $this->orderPayment
             ->setIsTransactionPending(0)
@@ -642,7 +649,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
         $this->curr_trans_info['invoice_id'] = $invoice->getId();
 
-        // set transaction
+        // set transaction, for Settle we do not have Parent Transaction ID
         $transaction = $this->transObj
             ->setPayment($this->orderPayment)
             ->setOrder($this->order)
@@ -650,7 +657,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             ->setFailSafe(true)
             ->build(Transaction::TYPE_CAPTURE);
 
-        $transaction->save();
+        $transaction->save(); // return the transaction object
 
         return;
     }
@@ -720,6 +727,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $this->order->setData('state', Order::STATE_CLOSED);
 
+        $this->saveCorrectTrId('void');
+        
         // Cancel active Subscriptions, if there are any
         $this->paymentModel->cancelSubscription($this->orderPayment);
     }
@@ -769,6 +778,77 @@ class Dmn extends Action implements CsrfAwareActionInterface
         // /set Order Refund amounts
 
         $this->curr_trans_info['invoice_id'] = $this->httpRequest->getParam('invoice_id');
+        
+        $this->saveCorrectTrId('refund');
+    }
+    
+    /**
+     * Save the correct transaction id after Settle, Void and Refund
+     * into Order transaction.
+     * 
+     * @string $type The transaction type to edit. Possible values - capture, void.
+     */
+    private function saveCorrectTrId($type)
+    {
+        $missing_tr = true;
+        
+        $filters[] = $this->filterBuilder->setField('payment_id')
+            ->setValue($this->orderPayment->getId())
+            ->create();
+
+        $filters[] = $this->filterBuilder->setField('order_id')
+            ->setValue($this->order->getId())
+            ->create();
+
+        $searchCriteria = $this->searchCriteriaBuilder->addFilters($filters)
+            ->create();
+
+        $transactionList = $this->transactionRepository->getList($searchCriteria);
+        
+        $this->readerWriter->createLog(
+            [
+                '$this->orderPayment->getId()'  => $this->orderPayment->getId(),
+                '$this->order->getId()'         => $this->order->getId(),
+                'count $transactionList'        => count($transactionList),
+//                '$transactionList'              => (array) $transactionList,
+            ]
+        );
+        
+        foreach ($transactionList as $trObj) {
+            $trType = $trObj->getTxnType();
+            $trId   = $trObj->getTxnId();
+            
+            $this->readerWriter->createLog([$trType, $trId]);
+            
+            if ($trType == $type
+                && strpos($trId, $type) !== false
+            ) {
+                $missing_tr = false;
+                
+                $trObj
+                    ->setTxnId($this->params['TransactionID'])
+                    ->setParentTxnId($this->params['relatedTransactionId'])
+                    ->save();
+            }
+        }
+        
+        if ($missing_tr && 'void' == $type) {
+            // set transaction
+            $transaction = $this->transObj
+                ->setPayment($this->orderPayment)
+                ->setOrder($this->order)
+                ->setTransactionId($this->params['TransactionID'])
+                ->setFailSafe(true)
+                ->build(Transaction::TYPE_VOID);
+
+            $transaction->save();
+            
+            $this->readerWriter->createLog($transaction->getTransactionId());
+            
+            $transaction
+                ->setParentTxnId($this->params['relatedTransactionId'])
+                ->save();
+        }
     }
     
     private function processDeclinedDmn()
@@ -1266,14 +1346,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 
                 sleep(3);
             }
-//        } while ($tryouts < $max_tries && empty($orderList));
         } while ($this->loop_tries < $this->loop_max_tries && empty($list));
         
         // in case the list is empty or not array
-        if (!is_array($list)
-            || empty($list)
-//            || null == ($this->order = current($orderList)) // set $this->order here
-        ) {
+        if (!is_array($list) || empty($list)) {
             $msg = 'DMN Callback error - there is no Order for this DMN data.';
             
             $this->readerWriter->createLog($msg);
@@ -1286,7 +1362,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         if (TransactionInterface::TXN_ID == $field) {
-            $this->order = @current($list)->getOrder();
+            $this->order = current($list)->getOrder();
         }
         else {
             $this->order = current($list);
@@ -1304,18 +1380,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             return false;
         }
-        
-//        $this->order = current($orderList);
-        
-//        if (null === $this->order) {
-//            $msg = 'DMN error - Order object is null.';
-//            
-//            $this->readerWriter->createLog($orderList, $msg);
-//            $this->jsonOutput->setData($msg);
-//            $this->jsonOutput->setHttpResponseCode(400);
-//
-//            return false;
-//        }
         
         $this->orderPayment = $this->order->getPayment();
         

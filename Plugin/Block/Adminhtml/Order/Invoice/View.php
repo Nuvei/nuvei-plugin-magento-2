@@ -66,7 +66,7 @@ class View
             if (!in_array($payment_method, Payment::PAYMETNS_SUPPORT_REFUND)
                 || in_array(
                     $ord_status,
-                    [Payment::SC_REFUNDED, Payment::SC_PROCESSING]
+                    [Payment::SC_REFUNDED, Payment::SC_PROCESSING, Payment::SC_VOIDED]
                 )
                 || $invoiceDetails->getState() == Invoice::STATE_CANCELED
             ) {

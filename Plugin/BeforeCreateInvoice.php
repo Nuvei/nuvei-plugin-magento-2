@@ -91,18 +91,18 @@ class BeforeCreateInvoice
                 + ($item_tax * $items_cnt);
         }
         
-        $this->readerWriter->createLog(
-            [
-                '$inv_amount'       => $inv_amount,
-                '$items_amounts'    => $items_amounts,
-            ],
-            'amounts',
-            "DEBUG"
-        );
-            
         if (0 == $inv_amount) {
             $this->readerWriter->createLog(
                 'Calculated Invoice amoutn is Zero.'
+            );
+            
+            $this->readerWriter->createLog(
+                [
+                    '$inv_amount'       => $inv_amount,
+                    '$items_amounts'    => $items_amounts,
+                ],
+                'amounts',
+                "DEBUG"
             );
             
             throw new \Magento\Framework\Exception\LocalizedException(__('Calculated Invoice amoutn is Zero.'));

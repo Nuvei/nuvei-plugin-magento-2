@@ -17,6 +17,9 @@
     * In case of declined Void or Refund DMN, return the previous Order Status in Payment class.
     * Changes in the Void processing logic.
     * Fix for the Payment Cancel model.
+    * Removed Response\Payment\ Settle and Cancel classes.
+    * Fix for wrong Transaction IDs in Order View -> Transactions section in the admin.
+    * Fix for the logic who removes the Void button in Invoices section.
 ```
 
 # 3.1.2
