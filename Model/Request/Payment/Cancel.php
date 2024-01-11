@@ -109,6 +109,7 @@ class Cancel extends AbstractPayment implements RequestInterface
         
         $ord_trans_addit_info   = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
         $inv_id                 = $this->request->getParam('invoice_id');
+        $prev_order_status      = Payment::SC_PROCESSING;
         $trans_to_void_data     = [];
         $last_voidable          = [];
         
@@ -180,6 +181,13 @@ class Cancel extends AbstractPayment implements RequestInterface
             throw new PaymentException(__('Void error - Transaction does not contain total amount.'));
         }
         
+        if (in_array($trans_to_void_data['transaction_type'], ['Settle', 'Sale'])) {
+            $prev_order_status = Payment::SC_SETTLED;
+        }
+        else {
+            $prev_order_status = Payment::SC_AUTH;
+        }
+        
         $params = [
             'clientUniqueId'        => $order->getIncrementId(),
             'currency'              => $order->getBaseCurrencyCode(),
@@ -189,7 +197,7 @@ class Cancel extends AbstractPayment implements RequestInterface
             'comment'               => '',
             'merchant_unique_id'    => $order->getIncrementId(),
             'customData'            => [
-                'prev_status'   => $order->getStatus()
+                'prev_status'   => $prev_order_status
             ],
         ];
         
@@ -202,9 +210,7 @@ class Cancel extends AbstractPayment implements RequestInterface
                 );
         }
 
-        $params = array_merge_recursive($params, parent::getParams());
-
-        return $params;
+        return array_merge_recursive($params, parent::getParams());
     }
 
     /**

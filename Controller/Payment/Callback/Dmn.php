@@ -446,6 +446,13 @@ class Dmn extends Action implements CsrfAwareActionInterface
         # try to create Subscription plans
         $this->createSubscription($this->orderIncrementId);
         
+        # Cancel active Subscriptions, if there are any
+        if (in_array($status, ['approved', 'success'])
+            && 'void' == $tr_type_param
+        ) {
+            $this->paymentModel->cancelSubscription($this->orderPayment);
+        }
+        
         $msg = 'DMN process end for Order #' . $this->orderIncrementId;
         
         $this->readerWriter->createLog($msg);
@@ -731,9 +738,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->order->setData('state', Order::STATE_CLOSED);
 
         $this->saveCorrectTrId('void');
-        
-        // Cancel active Subscriptions, if there are any
-        $this->paymentModel->cancelSubscription($this->orderPayment);
     }
     
     /**
