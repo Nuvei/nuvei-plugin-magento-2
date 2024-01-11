@@ -116,7 +116,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             : $this->quoteFactory->create()->load($this->quoteId);
         
         $this->items = $this->quote->getItems();
-//        $items_base_data    = [];
         
         // check if each item is in stock
         $items_base_data = $this->isProductAvailable();
@@ -141,7 +140,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'subs_data'     => $this->subs_data,
         ]);
         
-        // will we call updateOrder?
+        # will we call updateOrder?
         $callUpdateOrder    = false;
         $order_total        = (float) $this->config->getQuoteBaseTotal($this->quoteId);
         
@@ -156,7 +155,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $callUpdateOrder = false;
         }
         
-        // if my some reason missing transactionType
+        // if by some reason missing transactionType
         if (empty($order_data['transactionType'])) {
             $this->readerWriter->createLog('$order_data[transactionType] is empty, call openOrder');
             $callUpdateOrder = false;
@@ -179,7 +178,14 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         ) {
             $callUpdateOrder = false;
         }
-        // /will we call updateOrder?
+        
+        // in this case pass again the endpoints
+        if (empty($order_data['apmWindowType'])
+            || $this->config->getConfigValue('apm_window_type') != $order_data['apmWindowType']
+        ) {
+            $callUpdateOrder = false;
+        }
+        # /will we call updateOrder?
         
         if ($callUpdateOrder) {
             $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
@@ -206,6 +212,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
             'itemsBaseInfoHash' => md5(serialize($items_base_data)),
+            'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
         ];
         
         if (isset($req_resp['userTokenId'])) {
@@ -231,7 +238,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $this->readerWriter->createLog([
             'quote id' => $this->quoteId,
-            'quote CREATE_ORDER_DATA' => $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA),
+            'quote CREATE_ORDER_DATA' => $this->quote->getPayment()
+                ->getAdditionalInformation(Payment::CREATE_ORDER_DATA),
         ]);
         
         return $this;
@@ -402,7 +410,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         // auto_close_popup
         if (1 == $this->config->getConfigValue('auto_close_popup')
-            && 'redirect' != $this->config->getConfigValue('apm_window_type')
+            && 'redirect' != $this->config->getConfigValue('apm_window_type', 'checkout')
         ) {
             $params['urlDetails']['successUrl'] = $params['urlDetails']['pendingUrl']
                                                 = $params['urlDetails']['failureUrl']
