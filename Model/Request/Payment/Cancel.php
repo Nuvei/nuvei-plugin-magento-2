@@ -154,7 +154,8 @@ class Cancel extends AbstractPayment implements RequestInterface
             $this->readerWriter->createLog(
                 [
                     '$ord_trans_addit_info' => $ord_trans_addit_info,
-                    '$trans_to_void_data'    => $trans_to_void_data,
+                    '$trans_to_void_data'   => $trans_to_void_data,
+                    'error'                 => $msg,
                 ],
                 $msg
             );
@@ -162,9 +163,11 @@ class Cancel extends AbstractPayment implements RequestInterface
             throw new PaymentException(__($msg));
         }
         
-        $this->readerWriter->createLog($trans_to_void_data, 'Transaction to Cancel');
+        $this->readerWriter->createLog([$order->getBaseTotalInvoiced(), $trans_to_void_data], 'Transaction to Cancel');
         
-        $amount     = (float) $trans_to_void_data[Payment::TRANSACTION_TOTAL_AMOUN];
+//        $amount     = (float) $trans_to_void_data[Payment::TRANSACTION_TOTAL_AMOUN];
+//        $amount     = round($order->getBaseTotalInvoiced(), 2);
+        $amount     = round($order->getBaseGrandTotal(), 2);
         $auth_code  = !empty($trans_to_void_data[Payment::TRANSACTION_AUTH_CODE])
             ? $trans_to_void_data[Payment::TRANSACTION_AUTH_CODE] : '';
         
@@ -185,6 +188,9 @@ class Cancel extends AbstractPayment implements RequestInterface
             'authCode'              => $auth_code,
             'comment'               => '',
             'merchant_unique_id'    => $order->getIncrementId(),
+            'customData'            => [
+                'prev_status'   => $order->getStatus()
+            ],
         ];
         
         // set notify url

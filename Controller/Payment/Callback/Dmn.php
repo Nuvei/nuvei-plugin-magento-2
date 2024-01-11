@@ -343,8 +343,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             // /do not overwrite Order status
 
             // compare them later
-            $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
-            $dmn_total      = round((float) $this->params['totalAmount'], 2);
+//            $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
+//            $dmn_total      = round((float) $this->params['totalAmount'], 2);
             
             // PENDING TRANSACTION
             if ($status === "pending") {
@@ -366,9 +366,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $this->sc_transaction_type = Payment::SC_PROCESSING;
                 
                 // try to recognize DMN type
-//                $this->processAuthDmn($order_total, $dmn_total, $params); // AUTH
                 $this->processAuthDmn(); // AUTH
-//                $this->processSaleAndSettleDMN($order_total, $dmn_total, $last_record); // SALE and SETTLE
                 $this->processSaleAndSettleDMN(); // SALE and SETTLE
                 $this->processVoidDmn($tr_type_param); // VOID
                 $this->processRefundDmn($ord_trans_addit_info); // REFUND/CREDIT
@@ -413,8 +411,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 
                 $this->processDeclinedDmn();
                 
-                $this->params['ErrCode']    = isset($this->params['ErrCode']) ? $this->params['ErrCode'] : "Unknown";
-                $this->params['ExErrCode']  = isset($this->params['ExErrCode']) ? $this->params['ExErrCode'] : "Unknown";
+                $this->params['ErrCode']    = isset($this->params['ErrCode']) 
+                    ? $this->params['ErrCode'] : "Unknown";
+                $this->params['ExErrCode']  = isset($this->params['ExErrCode']) 
+                    ? $this->params['ExErrCode'] : "Unknown";
                 
                 $this->order->addStatusHistoryComment(
                     '<b>' . $this->params['transactionType'] . '</b> '
@@ -541,8 +541,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $dmn_inv_id         = $this->httpRequest->getParam('invoice_id');
         $is_cpanel_settle   = false;
+        $customData         = isset($this->params["customData"])
+            ? json_decode($this->params["customData"], true) : [];
         
-        if (empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
+//        if (empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
+        if (empty($customData['sender']) || 'store' != $customData['sender']) {
             $is_cpanel_settle = true;
         }
         
@@ -636,7 +639,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             ->setSubtotal($this->order->getSubtotal())
             ->setBaseGrandTotal($this->order->getBaseGrandTotal())
             ->setGrandTotal($this->order->getGrandTotal());
-
+        
         $invoice->register();
         $invoice->getOrder()->setIsInProcess(true);
         $invoice->pay();
@@ -861,7 +864,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         try {
             if ('Settle' == $this->params['transactionType']) {
                 $this->order->setStatus(Payment::SC_AUTH);
-//                $this->sc_transaction_type = Payment::SC_AUTH;
                 
                 foreach ($invCollection as $invoice) {
                     if ($dmn_inv_id == $invoice->getId()) {
@@ -890,6 +892,13 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 ;
                 
                 $this->invoiceRepository->save($invoice);
+            }
+            elseif (!empty($this->params['customData'])) {
+                $customData = json_decode($this->params['customData'], true);
+                
+                if (!empty($customData['prev_status'])) {
+                    $this->order->setStatus($customData['prev_status']);
+                }
             }
         } catch (\Exception $ex) {
             $this->readerWriter->createLog($ex->getMessage(), 'processDeclinedDmn() Exception.');

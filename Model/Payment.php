@@ -293,12 +293,25 @@ class Payment implements MethodInterface
         $order->setStatus(self::SC_PROCESSING);
         
         $this->readerWriter->createLog(
-            [
-                '$total'    => $total,
-                '$status'   => $status
-            ],
+//            [
+//                '$total'    => $total,
+//                'paid'      => $order->getBaseAmountPaid(),
+//                '$status'   => $status,
+//                'request'   => $_REQUEST,
+//                'inv?'  => (array) @$payment->getInvoicePayment(),
+//                'inv??'  => (array) @$payment->getPaymentInvoice(),
+//                'inv id'  => (array) @$payment->getInvoiceId(),
+//                '$payment'  => (array) $payment,
+//            ],
             'Payment Void.'
         );
+        
+//        foreach($order->getInvoiceCollection()->getItems() as $inv) {
+//            $this->readerWriter->createLog(
+//                (array) $inv,
+//                'invoices'
+//            );
+//        }
         
         // Void of Zero Total amount
         if (0 == (float) $total && self::SC_AUTH == $status) {
@@ -323,9 +336,6 @@ class Payment implements MethodInterface
         
         // some error
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
-            // revert old Order Status
-            $order->setStatus($status);
-            
             if (!empty($resp['gwErrorReason'])) {
                 throw new \Magento\Framework\Exception\LocalizedException(__($resp['gwErrorReason']));
             }

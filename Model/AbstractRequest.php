@@ -274,7 +274,10 @@ abstract class AbstractRequest
             'merchantDetails'   => [
                 'customField4' => time(),
             ],
-            'customData'        => 'store-request',
+            'customData'        => [
+                'sender'    => 'store',
+            ]
+//            'store-request',
         ];
 
         return $params;
@@ -291,7 +294,7 @@ abstract class AbstractRequest
         // validate params
         $this->readerWriter->createLog('prepareParams(), before validate request parameters.');
         
-        // directly check the mails
+        # directly check the mails
         if (isset($params['billingAddress']['email'])) {
             if (!filter_var($params['billingAddress']['email'], $this->params_validation_email['flag'])) {
                 $this->readerWriter->createLog('REST API ERROR: The parameter Billing Address Email is not valid.');
@@ -335,7 +338,7 @@ abstract class AbstractRequest
                 ];
             }
         }
-        // directly check the mails END
+        # /directly check the mails
         
         foreach ($params as $key1 => $val1) {
             if (!is_array($val1) && !empty($val1) && array_key_exists($key1, $this->params_validation)) {
@@ -444,6 +447,8 @@ abstract class AbstractRequest
         $endpoint   = $this->getEndpoint();
         $headers    = $this->getHeaders();
         $params     = $this->prepareParams();
+        // convert customData to sring after params in it are collected
+        $params['customData'] = json_encode($params['customData']);
 
         $this->curl->setHeaders($headers);
 
