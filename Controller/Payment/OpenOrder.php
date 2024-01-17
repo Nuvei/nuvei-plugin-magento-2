@@ -8,7 +8,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
-use Nuvei\Checkout\Model\Payment;
+//use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
 
 /**
@@ -85,46 +85,12 @@ class OpenOrder extends Action
         
         $request = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         
-        # when use Checkout SDK and its pre-payment do not call OpenOrder class at all
+        # when use Checkout SDK and its pre-payment
         if ('checkout' == $this->moduleConfig->getUsedSdk()
             && $this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment'
         ) {
-            $quoteId = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
-//            $quote              = empty($quoteId) ? $this->cart->getQuote() : $this->quoteFactory->create()->load($quoteId);
-//            $order_data         = $quote->getPayment()
-//                    ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
-//            $items              = $quote->getItems();
-//            $items_base_data    = [];
-//            
-//            $this->readerWriter->createLog($order_data);
-//
-//            if (!empty($items) && is_array($items)) {
-//                foreach ($items as $item) {
-//                    $items_base_data[] = [
-//                        'id'    => $item->getId(),
-//                        'name'  => $item->getName(),
-//                        'qty'   => $item->getQty(),
-//                        'price' => $item->getPrice(),
-//                    ];
-//                }
-//            }
-//
-//            $this->readerWriter->createLog($items_base_data);
-//            
-//            // success
-//            if (!empty($order_data['itemsBaseInfoHash'])
-//                && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
-//            ) {
-//                return $result->setData([
-//                    "success" => 1,
-//                ]);
-//            }
-//            
-//            return $result->setData([
-//                "success" => 0,
-//            ]);
-            
-            $resp = $request
+            $quoteId    = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
+            $resp       = $request
                 ->setQuoteId($quoteId)
                 ->prePaymentCheck();
             

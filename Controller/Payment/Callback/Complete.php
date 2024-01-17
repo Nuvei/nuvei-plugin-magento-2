@@ -90,22 +90,23 @@ class Complete extends Action implements CsrfAwareActionInterface
     public function execute()
     {
         $params = $this->getRequest()->getParams();
-        $this->readerWriter->createLog($params, 'Success params:');
+        
+        $this->readerWriter->createLog($params, 'Complete class params');
         
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-        $form_key       = filter_input(INPUT_GET, 'form_key');
+        $form_key       = $params['form_key'];
 
         try {
-//                $reservedOrderId = $this->checkoutSession->getQuote()->getReservedOrderId();
-//                $this->readerWriter->createLog($reservedOrderId, '$reservedOrderId');
-                
             if ((int) $this->checkoutSession->getQuote()->getIsActive() === 1) {
                 // if the option for save the order in the Redirect is ON, skip placeOrder !!!
                 $result = $this->placeOrder();
                 
                 if ($result->getSuccess() !== true) {
                     $this->readerWriter->createLog(
-                        $result->getMessage(),
+                        [
+                            'message'           => $result->getMessage(),
+                            'payment method'    => $this->checkoutSession->getQuote()->getPayment()->getMethod(),
+                        ],
                         'Complete Callback error - place order error',
                         'WARN'
                     );
@@ -171,7 +172,10 @@ class Complete extends Action implements CsrfAwareActionInterface
             );
         } catch (\Exception $exception) {
             $this->readerWriter->createLog(
-                $exception->getMessage(),
+                [
+                    'Message'   => $exception->getMessage(),
+                    'Trace'     => $exception->getTrace(),
+                ],
                 'Success Callback Response Exception',
                 'WARN'
             );

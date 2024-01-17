@@ -20,6 +20,7 @@
     * Removed Response\Payment\ Settle and Cancel classes.
     * Fix for wrong Transaction IDs in Order View -> Transactions section in the admin.
     * Fix for the logic who removes the Void button in Invoices section.
+    * Fix for Magento 2.3.x and missing Quote Payment Method when use APM redirect window.
 ```
 
 # 3.1.2

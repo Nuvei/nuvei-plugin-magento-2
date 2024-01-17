@@ -289,14 +289,21 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     {
         $this->readerWriter->createLog('prePaymentCheck');
         
-        $quote = empty($this->quoteId) ? $this->cart->getQuote() 
-            : $this->quoteFactory->create()->load($this->quoteId);
+        $quote = empty($this->quoteId) 
+            ? $this->cart->getQuote() : $this->quoteFactory->create()->load($this->quoteId);
         
         $order_data = $quote->getPayment()
             ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
         
         $this->items        = $quote->getItems();
         $items_base_data    = $this->isProductAvailable();
+        $this->error        = 1;
+        $magentoVersionInt  = str_replace('.', '', $this->config->getMagentoVersion());
+        $quotePM            = '';
+        
+        if ($quote->getPayment()) {
+            $quotePM = $quote->getPayment()->getMethod();
+        }
         
         // success
         if (!empty($order_data['itemsBaseInfoHash'])
@@ -304,18 +311,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         ) {
             $this->error = 0;
             
-            return $this;
-//            return $result->setData([
-//                "success" => 1,
-//            ]);
+            // mod for Magenteo 2.3.x to set in Quote the Payment Method
+            if (240 > $magentoVersionInt && $quotePM != Payment::METHOD_CODE) {
+                $quote->setPaymentMethod(Payment::METHOD_CODE);
+                $quote->getPayment()->importData(['method' => Payment::METHOD_CODE]);
+                $quote->save();
+            }
         }
-
-        $this->error = 1;
         
         return $this;
-//        return $result->setData([
-//            "success" => 0,
-//        ]);
     }
     
     /**
