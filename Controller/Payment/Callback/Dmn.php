@@ -396,19 +396,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             // DECLINED/ERROR TRANSACTION
             if (in_array($status, ['declined', 'error'])) {
-//                foreach(array_reverse($ord_trans_addit_info) as $tr_data) {
-//                    if (in_array($tr_data['transaction_type'], ['Sale', 'Settle'])) {
-//                        $this->sc_transaction_type = Payment::SC_SETTLED;
-//                        break;
-//                    }
-//                    if ('Auth' == $tr_data['transaction_type']) {
-//                        $this->sc_transaction_type = Payment::SC_AUTH;
-//                        break;
-//                    }
-//                }
-//                
-//                $this->order->setStatus($this->sc_transaction_type);
-                
                 $this->processDeclinedDmn();
                 
                 $this->params['ErrCode']    = isset($this->params['ErrCode']) 
@@ -427,13 +414,13 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             $ord_trans_addit_info[$this->params['TransactionID']] = $this->curr_trans_info;
         } catch (\Exception $e) {
-            $msg = $e->getMessage();
-
             $this->readerWriter->createLog(
-                $msg . "\n\r" . $e->getTraceAsString(),
+                $e->getMessage() . "\n\r" . $e->getTraceAsString(),
                 'DMN Excception:',
                 'WARN'
             );
+            
+            $msg = __('There was an exception, please check the log for more information!');
 
             $this->jsonOutput->setData('Error: ' . $msg);
             $this->order->addStatusHistoryComment($msg);
@@ -797,6 +784,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
      */
     private function saveCorrectTrId($type)
     {
+        $this->readerWriter->createLog('saveCorrectTrId()');
+        
         $missing_tr = true;
         
         $filters[] = $this->filterBuilder->setField('payment_id')
@@ -827,15 +816,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
             $this->readerWriter->createLog([$trType, $trId]);
             
-            if ($trType == $type
-                && strpos($trId, $type) !== false
-            ) {
+            if ($trType == $type && strpos($trId, $type) !== false) {
                 $missing_tr = false;
                 
                 $trObj
                     ->setTxnId($this->params['TransactionID'])
                     ->setParentTxnId($this->params['relatedTransactionId'])
                     ->save();
+                
+                break;
             }
         }
         
@@ -856,6 +845,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 ->setParentTxnId($this->params['relatedTransactionId'])
                 ->save();
         }
+        
+        $this->readerWriter->createLog('Correct trId was saved.');
     }
     
     private function processDeclinedDmn()
@@ -1082,7 +1073,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
      *
      * @return mixed
      */
-//    private function validateChecksum($params, $orderIncrementId)
     private function validateChecksum()
     {
         if (empty($this->params["advanceResponseChecksum"]) && empty($this->params['responsechecksum'])) {
@@ -1179,8 +1169,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
      * @param int   $orderIncrementId
      * @return void
      */
-    
-//    private function createSubscription($params, $orderIncrementId)
     private function createSubscription($orderIncrementId)
     {
         $this->readerWriter->createLog('createSubscription()');
@@ -1236,17 +1224,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $subsc_data = $payment_subs_data;
         }
         
-//        if (!empty($last_record[Payment::TRANSACTION_UPO_ID])
-//            && is_numeric($last_record[Payment::TRANSACTION_UPO_ID])
-//        ) {
-//            $subsc_data = $last_record['start_subscr_data'];
-//        }
-        
-//        if (empty($subsc_data) || !is_array($subsc_data)) {
-//            $this->readerWriter->createLog($subsc_data, 'createSubscription() problem with the subscription data.');
-//            return false;
-//        }
-
         // create subscriptions for each of the Products
         $request = $this->requestFactory->create(AbstractRequest::CREATE_SUBSCRIPTION_METHOD);
         
@@ -1255,11 +1232,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $subsc_data['currency']            = $this->params['currency'];
             
         try {
-//            $params = array_merge(
-//                $this->request->getParams(),
-//                $this->request->getPostValue()
-//            );
-
             $resp = $request
                 ->setOrderId($orderIncrementId)
                 ->setData($subsc_data)
@@ -1309,7 +1281,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
 
-//            return $this->jsonOutput;
             return false;
         }
         
@@ -1595,7 +1566,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
      * @param string $order_tr_type
      * @param string $order_status
      *
-     * return bool
+     * @return bool
      */
     private function keepOrderStatusFromOverride($order_tr_type, $order_status, $status)
     {
@@ -1707,20 +1678,20 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return false;
         }
         
+        $this->readerWriter->createLog(
+            $ord_trans_addit_info, 
+            'DMN before save $ord_trans_addit_info', 'DEBUG'
+        );
+        
         try {
-            $this->readerWriter->createLog(
-                $ord_trans_addit_info, 
-                'DMN before save $ord_trans_addit_info', 'DEBUG'
-            );
-            
             // set additional data
             $this->orderPayment
                 ->setAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA, $ord_trans_addit_info)
                 ->save();
 
-            $this->readerWriter->createLog('DMN after save $ord_trans_addit_info', 'DEBUG');
-
             $this->orderResourceModel->save($this->order);
+            
+            $this->readerWriter->createLog('DMN after save $ord_trans_addit_info', 'DEBUG');
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             
