@@ -8,6 +8,7 @@
                 <value id="magento" type="host">https://magento.com</value>
                 <value id="safecharge-checkout-sdk" type="host">https://cdn.safecharge.com</value>
                 <value id="safecharge-int-checkout-sdk" type="host">https://cdn-int.safecharge.com</value>
+                <value id="gpay-script" type="host">https://play.google.com</value>
             </values>
         </policy>
         
@@ -18,6 +19,7 @@
                 <value id="safecharge-ppp-int" type="host">https://ppp-test.safecharge.com</value>
                 <value id="nuvei-ppp-int" type="host">https://ppp-test.nuvei.com</value>
                 <value id="safecharge-ppp" type="host">https://secure.safecharge.com</value>
+                <value id="gpay-connect" type="host">https://play.google.com</value>
             </values>
         </policy>
         
@@ -32,6 +34,7 @@
          <policy id="style-src">
             <values>
             	<value id="safecharge-checkout-sdk-style" type="host">https://cdn.safecharge.com</value>
+            	<value id="google-fonts-style" type="host"> https://fonts.googleapis.com</value>
             </values>
         </policy>
         

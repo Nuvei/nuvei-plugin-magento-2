@@ -1,6 +1,11 @@
 # Magento 2 Nuvei Checkout Module
-
 ---
+
+# 3.1.3-p1
+```
+    * Load SimplyConnect directly, not in a custom variable.
+    * Added few more URLs to SCP whitelist.
+```
 
 # 3.1.3
 ```
