@@ -47,14 +47,16 @@ class View
             $orderPayment   = $order->getPayment();
             $ord_status     = $order->getStatus();
             $payment_method = $orderPayment->getAdditionalInformation(Payment::TRANSACTION_PAYMENT_METHOD);
+            $invCollection  = $order->getInvoiceCollection();
 
             if ($orderPayment->getMethod() != Payment::METHOD_CODE) {
                 $this->readerWriter->createLog('beforeSetLayout - this is not a Nuvei Order.');
                 return;
             }
                 
-//            $this->readerWriter->createLog('beforeSetLayout');
+//            $this->readerWriter->createLog(count($invCollection));
 
+            // Remove Credit Memo button
             if (!in_array($payment_method, Payment::PAYMETNS_SUPPORT_REFUND)
                 || in_array($ord_status, [Payment::SC_VOIDED, Payment::SC_PROCESSING])
             ) {
@@ -69,6 +71,7 @@ class View
                     [Payment::SC_REFUNDED, Payment::SC_PROCESSING, Payment::SC_VOIDED]
                 )
                 || $invoiceDetails->getState() == Invoice::STATE_CANCELED
+                || count($invCollection) > 1
             ) {
                 $this->readerWriter->createLog('beforeSetLayout remove void button');
 

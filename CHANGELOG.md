@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.1.4
+```
+    * Include the 3.1.3-p1 patch.
+    * Remove Void button from Invoice View in case ot multiple invoices for the Order.
+```
+
 # 3.1.3-p1
 ```
     * Load SimplyConnect directly, not in a custom variable.
