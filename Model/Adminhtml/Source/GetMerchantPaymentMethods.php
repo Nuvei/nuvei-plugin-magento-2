@@ -76,13 +76,13 @@ class GetMerchantPaymentMethods extends Action implements ArrayInterface
             
             $title = $data['paymentMethod'];
             
-            if (!empty($data['paymentMethodDisplayName']['message'])) {
-                $title = $data['paymentMethodDisplayName']['message'];
+            if (!empty($data['paymentMethodDisplayName'][0]['message'])) {
+                $title = $data['paymentMethodDisplayName'][0]['message'];
             }
             
             $pms_array[] = [
                 'value' => $data['paymentMethod'],
-                'label' => $data['paymentMethodDisplayName']['message']
+                'label' => $title,
             ];
         }
         
@@ -101,13 +101,15 @@ class GetMerchantPaymentMethods extends Action implements ArrayInterface
             $request    = $this->requestFactory->create(AbstractRequest::GET_MERCHANT_PAYMENT_METHODS_METHOD);
             $apmMethods = $request
                 ->setBillingAddress($this->getRequest()->getParam('billingAddress'))
-                ->process();
+                ->process(true);
 
-            if (!is_object($apmMethods)) {
+//            if (!is_object($apmMethods)) {
+            if (empty($apmMethods['paymentMethods'])) {
                 return [];
             }
             
-            return $apmMethods->getPaymentMethods();
+//            return $apmMethods->getPaymentMethods();
+            return $apmMethods['paymentMethods'];
         } catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'Get APMs exception');
             return [];

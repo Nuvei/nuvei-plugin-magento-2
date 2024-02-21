@@ -80,11 +80,13 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     }
 
     /**
+     * @param bool $continueProcess When it is true, return return response immediately.
+     * 
      * @return AbstractResponse
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws PaymentException
      */
-    public function process()
+    public function process($continueProcess = false)
     {
         if (!$this->config->getConfigValue('active')) {
             $this->readerWriter->createLog('GetMerchantPaymentMethods Error - '
@@ -115,6 +117,10 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
         
         if (empty($this->quoteId)) {
             $this->quoteId = $this->config->getQuoteId();
+        }
+        
+        if ($continueProcess) {
+            return $this->sendRequest($continueProcess);
         }
         
         $this->sendRequest();

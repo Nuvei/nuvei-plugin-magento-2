@@ -5,6 +5,7 @@
 ```
     * Include the 3.1.3-p1 patch.
     * Remove Void button from Invoice View in case ot multiple invoices for the Order.
+    * Fixed broken list in plugin's "Block Payment methods" setting.
 ```
 
 # 3.1.3-p1
