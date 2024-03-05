@@ -57,35 +57,37 @@ define(
             }
         });
         
-        var usedSdk     = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
-        var fileName    = 'nuvei' + window.checkoutConfig.payment['nuvei'].sdk;
+        var usedSdk         = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
+        var fileName        = 'nuvei' + window.checkoutConfig.payment['nuvei'].sdk;
+        var webSdkUrl       = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js';
+        var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js";
+        
+        // set Tag URLs for QA sites
+        try {
+            if ('magentoautomation.sccdev-qa.com' === window.location.host
+                || 'oldmagentoautomation.gw-4u.com' === window.location.host
+            ) {
+                webSdkUrl       = 'https://devmobile.sccdev-qa.com/checkoutNext/websdk/safecharge.js';
+                simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js';
+            }
+        }
+        catch (_exception) {
+            console.log('Nuvei Error', _exception);
+        }
         
         // load WebSDK
         if ('web' == usedSdk) {
             rendererList.push({
                 type: 'nuvei',
-                component: 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js'
+                component: webSdkUrl
             });
         }
         // load SimplyConnect
         else {
             // Load Nuvei Chekout SDK and add it ot a local variable
-//            console.log(checkout);
-//            
-////            var magentoTmpCheckout	= window.checkout;
-//            var nuveiCheckoutSdkScr	= document.createElement('script');
-//
-//            nuveiCheckoutSdkScr.src     = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js";
-//            nuveiCheckoutSdkScr.onload  = function () {
-////                window.nuveiCheckoutSdk     = checkout;
-////                window.checkout             = magentoTmpCheckout;
-//            };
-//            
-//            document.head.appendChild(nuveiCheckoutSdkScr);
-
             rendererList.push({
                 type: 'nuvei',
-                component: "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js"
+                component: simplyConectUrl
             });
         }
         

@@ -1,6 +1,11 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.1.4-p1
+```
+    * Added new SDK's URLs for the QA site.
+```
+
 # 3.1.4
 ```
     * Include the 3.1.3-p1 patch.
