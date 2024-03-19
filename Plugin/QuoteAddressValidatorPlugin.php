@@ -10,8 +10,8 @@ class QuoteAddressValidatorPlugin
 {
     /**
      * @param QuoteAddressValidator $subject
-     * @param CartInterface $cart
-     * @param AddressInterface $address
+     * @param CartInterface         $cart
+     * @param AddressInterface      $address
      */
     public function beforeValidateForCart(
         QuoteAddressValidator $subject,

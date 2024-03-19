@@ -19,10 +19,10 @@ class CheckoutTranslateComment implements \Magento\Config\Model\Config\CommentIn
                 . '"DECLINE":"declined"'
             . '</br>}</code>'
             . '</br>'
-            . __('For more information, please check the <a href="'
+            . __(
+                'For more information, please check the <a href="'
                 . 'https://docs.nuvei.com/documentation/accept-payment/simply-connect/'
-                    . 'ui-customization/#text-and-translation" target="_blank">Documentation</a>.')
-            
-            ;
+                . 'ui-customization/#text-and-translation" target="_blank">Documentation</a>.'
+            );
     }
 }

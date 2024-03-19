@@ -20,7 +20,7 @@ class PaymentAction implements ArrayInterface
             ''              => __('Please, select an option...'),
             'Sale'          => __('Authorize and Capture'),
             'Auth'          => __('Authorize'),
-//            'autoSettle'    => __('Authorize and Auto Settle'),
+        //            'autoSettle'    => __('Authorize and Auto Settle'),
         ];
     }
 }

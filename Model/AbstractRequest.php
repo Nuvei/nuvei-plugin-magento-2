@@ -164,10 +164,10 @@ abstract class AbstractRequest
     /**
      * Object constructor.
      *
-     * @param Config            $config
-     * @param Curl              $curl
-     * @param Factory           $responseFactory
-     * @param ReaderWriter      $readerWriter
+     * @param Config       $config
+     * @param Curl         $curl
+     * @param Factory      $responseFactory
+     * @param ReaderWriter $readerWriter
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,
@@ -277,7 +277,7 @@ abstract class AbstractRequest
             'customData'        => [
                 'sender'    => 'store',
             ]
-//            'store-request',
+            //            'store-request',
         ];
 
         return $params;
@@ -294,7 +294,7 @@ abstract class AbstractRequest
         // validate params
         $this->readerWriter->createLog('prepareParams(), before validate request parameters.');
         
-        # directly check the mails
+        // directly check the mails
         if (isset($params['billingAddress']['email'])) {
             if (!filter_var($params['billingAddress']['email'], $this->params_validation_email['flag'])) {
                 $this->readerWriter->createLog('REST API ERROR: The parameter Billing Address Email is not valid.');
@@ -306,8 +306,10 @@ abstract class AbstractRequest
             }
             
             if (strlen($params['billingAddress']['email']) > $this->params_validation_email['length']) {
-                $this->readerWriter->createLog('REST API ERROR: The parameter Billing Address Email must be maximum '
-                    . $this->params_validation_email['length'] . ' symbols.');
+                $this->readerWriter->createLog(
+                    'REST API ERROR: The parameter Billing Address Email must be maximum '
+                    . $this->params_validation_email['length'] . ' symbols.'
+                );
                 
                 return [
                     'status' => 'ERROR',
@@ -328,8 +330,10 @@ abstract class AbstractRequest
             }
             
             if (strlen($params['shippingAddress']['email']) > $this->params_validation_email['length']) {
-                $this->readerWriter->createLog('REST API ERROR: The parameter Shipping Address Email must be maximum '
-                    . $this->params_validation_email['length'] . ' symbols.');
+                $this->readerWriter->createLog(
+                    'REST API ERROR: The parameter Shipping Address Email must be maximum '
+                    . $this->params_validation_email['length'] . ' symbols.'
+                );
                 
                 return [
                     'status' => 'ERROR',
@@ -338,7 +342,7 @@ abstract class AbstractRequest
                 ];
             }
         }
-        # /directly check the mails
+        // /directly check the mails
         
         foreach ($params as $key1 => $val1) {
             if (!is_array($val1) && !empty($val1) && array_key_exists($key1, $this->params_validation)) {
@@ -375,7 +379,7 @@ abstract class AbstractRequest
                 }
             }
         }
-        # validate parameters END
+        // validate parameters END
         
         $checksumKeys = $this->getChecksumKeys();
         if (empty($checksumKeys)) {
@@ -393,11 +397,11 @@ abstract class AbstractRequest
                     continue;
                 }
                 
-//                $msg = __('Required key %1 for checksum calculation is missing.', $checksumKey);
+                //                $msg = __('Required key %1 for checksum calculation is missing.', $checksumKey);
                 
                 $this->readerWriter->createLog($checksumKey, 'Required key for checksum calculation is missing.', 'WARN');
                 continue;
-//                throw new PaymentException($msg);
+                //                throw new PaymentException($msg);
             }
 
             if (is_array($params[$checksumKey])) {
@@ -410,7 +414,7 @@ abstract class AbstractRequest
         }
 
         $concat .= $this->config->getMerchantSecretKey();
-//        $concat = utf8_encode($concat);
+        //        $concat = utf8_encode($concat);
         $concat = $concat;
         
         $params['checksum'] = hash($this->config->getConfigValue('hash'), $concat);
@@ -452,10 +456,12 @@ abstract class AbstractRequest
 
         $this->curl->setHeaders($headers);
 
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             'Request Endpoint'  => $endpoint,
             'Request params'    => $params
-        ]);
+            ]
+        );
         
         $this->curl->post($endpoint, $params);
         
@@ -496,16 +502,20 @@ abstract class AbstractRequest
         $resp_body        = json_decode($this->curl->getBody(), true);
         $requestStatus    = $this->getResponseStatus($resp_body);
         
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             'Request Status'    => $requestStatus,
             'Response data'     => $resp_body
-        ]);
+            ]
+        );
 
         // we do not want exception when UpdateOrder return Error
         if ($accept_error_status === false && $requestStatus === false) {
-            throw new PaymentException($this->getErrorMessage(
-                !empty($resp_body['reason']) ? $resp_body['reason'] : ''
-            ));
+            throw new PaymentException(
+                $this->getErrorMessage(
+                    !empty($resp_body['reason']) ? $resp_body['reason'] : ''
+                )
+            );
         }
         
         if (empty($resp_body['status'])) {
@@ -523,7 +533,7 @@ abstract class AbstractRequest
      * Prepare and return short Items data
      * and the data for the Subscription plan, if there is
      *
-     * @param Quote $quote
+     * @param  Quote $quote
      * @return array
      */
     protected function prepareSubscrData($quote)
@@ -556,11 +566,13 @@ abstract class AbstractRequest
                     'planId'            => $item->getProduct()
                         ->getData(\Nuvei\Checkout\Model\Config::PAYMENT_PLANS_ATTR_NAME),
                     'initialAmount'     => 0,
-                    'recurringAmount'   => number_format($item->getProduct()
-                        ->getData(\Nuvei\Checkout\Model\Config::PAYMENT_SUBS_REC_AMOUNT), 2, '.', ''),
+                    'recurringAmount'   => number_format(
+                        $item->getProduct()
+                            ->getData(\Nuvei\Checkout\Model\Config::PAYMENT_SUBS_REC_AMOUNT), 2, '.', ''
+                    ),
                 ];
 
-                # optional data
+                // optional data
                 $recurr_unit    = $item->getProduct()
                     ->getData(\Nuvei\Checkout\Model\Config::PAYMENT_SUBS_RECURR_UNITS);
                 
@@ -584,7 +596,7 @@ abstract class AbstractRequest
                     ->getData(\Nuvei\Checkout\Model\Config::PAYMENT_SUBS_END_AFTER_PERIOD);
 
                 $subs_data[$product->getId()]['endAfter'][strtolower($end_after_unit)] = $end_after_period;
-                # optional data END
+                // optional data END
             }
         }
         
@@ -604,22 +616,20 @@ abstract class AbstractRequest
         
         $responseStatus             = strtolower(!empty($body['status']) ? $body['status'] : '');
         
-        $responseTransactionStatus  = strtolower(!empty($body['transactionStatus'])
-            ? $body['transactionStatus'] : '');
+        $responseTransactionStatus  = strtolower(
+            !empty($body['transactionStatus'])
+            ? $body['transactionStatus'] : ''
+        );
         
-        $responseTransactionType    = strtolower(!empty($body['transactionType'])
-            ? $body['transactionType'] : '');
+        $responseTransactionType    = strtolower(
+            !empty($body['transactionType'])
+            ? $body['transactionType'] : ''
+        );
 
-        if (!(
-                (
-                    !in_array($responseTransactionType, ['auth', 'sale'])
-                    && $responseStatus === 'success' && $responseTransactionType !== 'error'
-                )
-                || (
-                    in_array($responseTransactionType, ['auth', 'sale'])
-                    && $responseTransactionStatus === 'approved'
-                )
-            )
+        if (!((!in_array($responseTransactionType, ['auth', 'sale'])
+            && $responseStatus === 'success' && $responseTransactionType !== 'error')
+            || (in_array($responseTransactionType, ['auth', 'sale'])
+            && $responseTransactionStatus === 'approved')        )
         ) {
             return false;
         }

@@ -38,12 +38,12 @@ class OpenOrder extends Action
     /**
      * Redirect constructor.
      *
-     * @param Context           $context
-     * @param ModuleConfig      $moduleConfig
-     * @param JsonFactory       $jsonResultFactory
-     * @param RequestFactory    $requestFactory
-     * @param ReaderWriter      $readerWriter
-     * @param Cart              $cart
+     * @param Context        $context
+     * @param ModuleConfig   $moduleConfig
+     * @param JsonFactory    $jsonResultFactory
+     * @param RequestFactory $requestFactory
+     * @param ReaderWriter   $readerWriter
+     * @param Cart           $cart
      */
     public function __construct(
         Context $context,
@@ -75,17 +75,21 @@ class OpenOrder extends Action
             ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
         
         if (!$this->moduleConfig->getConfigValue('active')) {
-            $this->readerWriter->createLog('OpenOrder error - '
-                . 'Nuvei checkout module is not active at the moment!');
+            $this->readerWriter->createLog(
+                'OpenOrder error - '
+                . 'Nuvei checkout module is not active at the moment!'
+            );
             
-            return $result->setData([
+            return $result->setData(
+                [
                 'error_message' => __('OpenOrder error - Nuvei checkout module is not active at the moment!')
-            ]);
+                ]
+            );
         }
         
         $request = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         
-        # when use Checkout SDK and its pre-payment
+        // when use Checkout SDK and its pre-payment
         if ('checkout' == $this->moduleConfig->getUsedSdk()
             && $this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment'
         ) {
@@ -94,12 +98,14 @@ class OpenOrder extends Action
                 ->setQuoteId($quoteId)
                 ->prePaymentCheck();
             
-            return $result->setData([
+            return $result->setData(
+                [
                 "success" => 0 == $resp->error ? 1 : 0,
-            ]);
+                ]
+            );
         }
         
-        # when use Web SDK we have to call the OpenOrder class because have to decide will we create UPO
+        // when use Web SDK we have to call the OpenOrder class because have to decide will we create UPO
         $save_upo   = $this->getRequest()->getParam('saveUpo') ?? null;
         $pmType     = $this->getRequest()->getParam('pmType') ?? '';
         
@@ -108,8 +114,8 @@ class OpenOrder extends Action
         }
         
         $resp = $request
-                ->setSaveUpo($save_upo)
-                ->process();
+            ->setSaveUpo($save_upo)
+            ->process();
         
         // some error
         if (isset($resp->error, $resp->reason)
@@ -128,11 +134,13 @@ class OpenOrder extends Action
         }
         
         // success
-        return $result->setData([
+        return $result->setData(
+            [
             "error"         => 0,
             "sessionToken"  => $resp->sessionToken,
             "amount"        => $resp->ooAmount,
             "message"       => "Success"
-        ]);
+            ]
+        );
     }
 }

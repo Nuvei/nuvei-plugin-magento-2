@@ -14,10 +14,10 @@ class GetUserUPOs extends AbstractRequest implements RequestInterface
     private $email;
     
     /**
-     * @param ReaderWriter     $readerWriter
-     * @param Config           $config
-     * @param Curl             $curl
-     * @param ResponseFactory  $responseFactory
+     * @param ReaderWriter    $readerWriter
+     * @param Config          $config
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
      */
     public function __construct(
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
@@ -63,7 +63,7 @@ class GetUserUPOs extends AbstractRequest implements RequestInterface
     }
     
     /**
-     * @param string $email
+     * @param  string $email
      * @return $this
      */
     public function setEmail($email)

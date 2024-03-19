@@ -133,19 +133,19 @@ class Config
     /**
      * Object initialization.
      *
-     * @param ScopeConfigInterface      $scopeConfig Scope config object.
-     * @param StoreManagerInterface     $storeManager Store manager object.
-     * @param ProductMetadataInterface  $productMetadata
-     * @param ModuleListInterface       $moduleList
-     * @param CheckoutSession           $checkoutSession
-     * @param UrlInterface              $urlBuilder
-     * @param FormKey                   $formKey
-     * @param DirectoryList             $directory
-     * @param Header                    $httpHeader
-     * @param RemoteAddress             $remoteIp
-     * @param Session                   $customerSession
-     * @param CookieManagerInterface    $cookie
-     * @param QuoteFactory              $quoteFactory
+     * @param ScopeConfigInterface     $scopeConfig     Scope config object.
+     * @param StoreManagerInterface    $storeManager    Store manager object.
+     * @param ProductMetadataInterface $productMetadata
+     * @param ModuleListInterface      $moduleList
+     * @param CheckoutSession          $checkoutSession
+     * @param UrlInterface             $urlBuilder
+     * @param FormKey                  $formKey
+     * @param DirectoryList            $directory
+     * @param Header                   $httpHeader
+     * @param RemoteAddress            $remoteIp
+     * @param Session                  $customerSession
+     * @param CookieManagerInterface   $cookie
+     * @param QuoteFactory             $quoteFactory
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -234,7 +234,7 @@ class Config
             $device_details['ipAddress']    = (string) $this->remoteIp->getRemoteAddress();
             $ua                                = $this->httpHeader->getHttpUserAgent();
         } catch (\Exception $ex) {
-//            $this->createLog($ex->getMessage(), 'getDeviceDetails Exception');
+            //            $this->createLog($ex->getMessage(), 'getDeviceDetails Exception');
             return $device_details;
         }
         
@@ -280,6 +280,7 @@ class Config
     
     /**
      * Return store manager.
+     *
      * @return StoreManagerInterface
      */
     public function getStoreManager()
@@ -289,6 +290,7 @@ class Config
 
     /**
      * Return store manager.
+     *
      * @return StoreManagerInterface
      */
     public function getCheckoutSession()
@@ -309,7 +311,7 @@ class Config
     /**
      * Return config field value.
      *
-     * @param string $fieldKey Field key.
+     * @param string $fieldKey  Field key.
      * @param string $sub_group The beginning of the the Sub group
      *
      * @return mixed
@@ -451,7 +453,7 @@ class Config
      * Return bool value depends of that if payment method debug mode
      * is enabled or not.
      *
-     * @param bool $return_value - by default is false, set true to get int value
+     * @param  bool $return_value - by default is false, set true to get int value
      * @return bool
      */
     public function isDebugEnabled($return_value = false)
@@ -560,9 +562,9 @@ class Config
     }
 
     /**
-     * @param int   $incrementId
-     * @param int   $storeId
-     * @param array $url_params
+     * @param  int   $incrementId
+     * @param  int   $storeId
+     * @param  array $url_params
      * @params int  $quoteId Passed from plugin REST API call.
      *
      * @return string
@@ -573,27 +575,27 @@ class Config
             ->getStore(null === $incrementId ? $this->storeId : $storeId)
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         
-//        $params = [
-//            'order'     => null === $incrementId ? $this->getReservedOrderId($quoteId) : $incrementId,
-//            'form_key'  => $this->formKey->getFormKey(),
-//            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
-//        ];
+        //        $params = [
+        //            'order'     => null === $incrementId ? $this->getReservedOrderId($quoteId) : $incrementId,
+        //            'form_key'  => $this->formKey->getFormKey(),
+        //            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+        //        ];
         
-//        $params_str = '';
-//        
-//        if (!empty($url_params) && is_array($url_params)) {
-//            $params = array_merge($params, $url_params);
-//        }
+        //        $params_str = '';
+        //        
+        //        if (!empty($url_params) && is_array($url_params)) {
+        //            $params = array_merge($params, $url_params);
+        //        }
         
-//        foreach ($params as $key => $val) {
-//            if (empty($val)) {
-//                continue;
-//            }
-//            
-//            $params_str .= $key . '/' . $val . '/';
-//        }
+        //        foreach ($params as $key => $val) {
+        //            if (empty($val)) {
+        //                continue;
+        //            }
+        //            
+        //            $params_str .= $key . '/' . $val . '/';
+        //        }
         
-//        return $url . 'nuvei_checkout/payment/callback_dmn/' . $params_str;
+        //        return $url . 'nuvei_checkout/payment/callback_dmn/' . $params_str;
         return $url . 'nuvei_checkout/payment/callback_dmn/';
     }
 
@@ -616,7 +618,7 @@ class Config
     }
     
     /**
-     * @param int $quoteId Optional.
+     * @param  int $quoteId Optional.
      * @return string
      */
     public function getReservedOrderId($quoteId = '')
@@ -636,6 +638,7 @@ class Config
 
     /**
      * Get default country code.
+     *
      * @return string
      */
     public function getDefaultCountry()
@@ -644,7 +647,7 @@ class Config
     }
     
     /**
-     * @param int $quoteId Eventually passed form REST API call
+     * @param  int $quoteId Eventually passed form REST API call
      * @return string
      */
     public function getQuoteCountryCode($quoteId = 0)
@@ -670,7 +673,7 @@ class Config
     /**
      * Get base currency code from the Quote. This must be same as the Magento Base currency.
      *
-     * @param int $quoteId Eventually passed from REST API call.
+     * @param  int $quoteId Eventually passed from REST API call.
      * @return string
      */
     public function getQuoteBaseCurrency($quoteId = 0)
@@ -704,7 +707,7 @@ class Config
     /**
      * Get the Quote Base Grand Total, based on Display currency.
      *
-     * @param int $quoteId Eventually passed from REST API call.
+     * @param  int $quoteId Eventually passed from REST API call.
      * @return string
      */
     public function getQuoteBaseTotal($quoteId = 0)
@@ -726,7 +729,7 @@ class Config
     }
     
     /**
-     * @param string $quoteId Eventually passed form REST API call
+     * @param  string $quoteId Eventually passed form REST API call
      * @return array
      * @throws Exception
      */
@@ -774,7 +777,7 @@ class Config
     }
     
     /**
-     * @param string $quoteId Eventually passed form REST API call
+     * @param  string $quoteId Eventually passed form REST API call
      * @return array
      */
     public function getQuoteShippingAddress($quoteId = '')
@@ -803,10 +806,10 @@ class Config
         ];
     }
     
-//    public function getNuveiUseCcOnly()
-//    {
-//        return $this->checkoutSession->getNuveiUseCcOnly();
-//    }
+    //    public function getNuveiUseCcOnly()
+    //    {
+    //        return $this->checkoutSession->getNuveiUseCcOnly();
+    //    }
     
     public function setNuveiUseCcOnly($val)
     {
@@ -814,8 +817,8 @@ class Config
     }
     
     /**
-     * @param bool $empty_on_fail
-     * @param string $quoteId Eventually passed form REST API call.
+     * @param bool   $empty_on_fail
+     * @param string $quoteId       Eventually passed form REST API call.
      * 
      * @return string
      */

@@ -22,9 +22,9 @@ class Toolbar
     
     /**
      * @param ToolbarContext $toolbar
-     * @param AbstractBlock $context
-     * @param ButtonList $buttonList
-     * @param Config $config
+     * @param AbstractBlock  $context
+     * @param ButtonList     $buttonList
+     * @param Config         $config
      *
      * @return array
      */
@@ -51,7 +51,7 @@ class Toolbar
                 return [$context, $buttonList];
             }
             
-//            $this->readerWriter->createLog($buttonList->getItems()[0]);
+            //            $this->readerWriter->createLog($buttonList->getItems()[0]);
             
             if (!empty($ord_trans_addit_info) && is_array($ord_trans_addit_info)) {
                 foreach ($ord_trans_addit_info as $trans) {
@@ -82,23 +82,23 @@ class Toolbar
             }
             
             // add Cancel Subscription button
-//            if ('active' == $subs_state) {
-//                $message    = __('Are you sure you want to cancel the Subscription?');
-//                $url        = $context->getUrl(
-//                    'nuvei_checkout/sales_order/cancelSubscription',
-//                    ['order_id' => $orderId]
-//                ) . '?isAjax=false';
-//                
-////                $buttonList->getItems()[0]['void_payment']['onclick'] = "confirmSetLocation('{$message}', '{$url}')";
-//                
-//                $buttonList->add('order_nuvei_cancel_subs',
-//                    [
-//                        'label'     => __('Cancel Nuvei Subscription'),
-//                        'onclick'   => "confirmSetLocation('{$message}', '{$url}')",
-//                        'class'     => 'review'
-//                    ]
-//                );
-//            }
+            //            if ('active' == $subs_state) {
+            //                $message    = __('Are you sure you want to cancel the Subscription?');
+            //                $url        = $context->getUrl(
+            //                    'nuvei_checkout/sales_order/cancelSubscription',
+            //                    ['order_id' => $orderId]
+            //                ) . '?isAjax=false';
+            //                
+            ////                $buttonList->getItems()[0]['void_payment']['onclick'] = "confirmSetLocation('{$message}', '{$url}')";
+            //                
+            //                $buttonList->add('order_nuvei_cancel_subs',
+            //                    [
+            //                        'label'     => __('Cancel Nuvei Subscription'),
+            //                        'onclick'   => "confirmSetLocation('{$message}', '{$url}')",
+            //                        'class'     => 'review'
+            //                    ]
+            //                );
+            //            }
             
             if (!in_array($payment_method, Payment::PAYMETNS_SUPPORT_REFUND)
                 || in_array($ord_status, [Payment::SC_VOIDED, Payment::SC_PROCESSING])
@@ -125,7 +125,7 @@ class Toolbar
                         Payment::SC_REFUNDED, 
                         Payment::SC_PROCESSING, 
                         Payment::SC_VOIDED, 
-//                        Payment::SC_AUTH, 
+                    //                        Payment::SC_AUTH, 
                         'closed'
                     ]
                 )

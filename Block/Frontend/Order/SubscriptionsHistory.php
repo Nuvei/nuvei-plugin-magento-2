@@ -37,11 +37,11 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
     private $get_params;
     
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Framework\View\Element\Template\Context           $context
      * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Sales\Model\Order\Config $orderConfig
-     * @param array $data
+     * @param \Magento\Customer\Model\Session                            $customerSession
+     * @param \Magento\Sales\Model\Order\Config                          $orderConfig
+     * @param array                                                      $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
@@ -114,7 +114,7 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
     }
 
     /**
-     * @param object $order
+     * @param  object $order
      * @return string
      */
     public function getViewUrl($order)
@@ -123,7 +123,7 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
     }
 
     /**
-     * @param object $order
+     * @param  object $order
      * @return string
      */
     public function getTrackUrl($order)
@@ -132,7 +132,7 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
     }
 
     /**
-     * @param object $order
+     * @param  object $order
      * @return string
      */
     public function getReorderUrl($order)

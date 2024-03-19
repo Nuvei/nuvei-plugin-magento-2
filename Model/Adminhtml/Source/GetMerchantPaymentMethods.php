@@ -22,10 +22,10 @@ class GetMerchantPaymentMethods extends Action implements ArrayInterface
     /**
      * Redirect constructor.
      *
-     * @param Context           $context
-     * @param ModuleConfig      $moduleConfig
-     * @param RequestFactory    $requestFactory
-     * @param ReaderWriter      $readerWriter
+     * @param Context        $context
+     * @param ModuleConfig   $moduleConfig
+     * @param RequestFactory $requestFactory
+     * @param ReaderWriter   $readerWriter
      */
     public function __construct(
         Context $context,
@@ -48,8 +48,10 @@ class GetMerchantPaymentMethods extends Action implements ArrayInterface
     public function execute()
     {
         if (!$this->moduleConfig->getConfigValue('active')) {
-            $this->readerWriter->createLog('GetMerchantPaymentMethods error - '
-                . 'Nuvei checkout module is not active at the moment!');
+            $this->readerWriter->createLog(
+                'GetMerchantPaymentMethods error - '
+                . 'Nuvei checkout module is not active at the moment!'
+            );
             
             return [];
         }
@@ -103,12 +105,12 @@ class GetMerchantPaymentMethods extends Action implements ArrayInterface
                 ->setBillingAddress($this->getRequest()->getParam('billingAddress'))
                 ->process(true);
 
-//            if (!is_object($apmMethods)) {
+            //            if (!is_object($apmMethods)) {
             if (empty($apmMethods['paymentMethods'])) {
                 return [];
             }
             
-//            return $apmMethods->getPaymentMethods();
+            //            return $apmMethods->getPaymentMethods();
             return $apmMethods['paymentMethods'];
         } catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'Get APMs exception');
@@ -119,7 +121,7 @@ class GetMerchantPaymentMethods extends Action implements ArrayInterface
     public function toOptionArray(): array
     {
         $pms = $this->execute();
-//        $this->readerWriter->createLog($pms);
+        //        $this->readerWriter->createLog($pms);
         return $pms;
     }
 }

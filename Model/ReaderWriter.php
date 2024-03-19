@@ -29,7 +29,7 @@ class ReaderWriter
     /**
      * Prepare and save log.
      *
-     * @param mixed $data       Data to save. Can be simple message also.
+     * @param mixed  $data      Data to save. Can be simple message also.
      * @param string $title     Title or description.
      * @param string $log_level Company Log level.
      *
@@ -110,9 +110,9 @@ class ReaderWriter
                 }
             }
             
-//            if(!empty($backtrace[0]['function'])) {
-//                $member_name = $backtrace[0]['function'] . '|';
-//            }
+            //            if(!empty($backtrace[0]['function'])) {
+            //                $member_name = $backtrace[0]['function'] . '|';
+            //            }
             
             if (!empty($backtrace[0]['line'])) {
                 $source_line_number = $backtrace[0]['line'] . $tab;
@@ -122,7 +122,7 @@ class ReaderWriter
         $string .= $record_time . $tab
             . $log_level . $tab
             . $this->traceId . $tab
-//            . 'Checkout ' . $this->config->getSourcePlatformField() . '|'
+        //            . 'Checkout ' . $this->config->getSourcePlatformField() . '|'
             . $source_file_name
             . $member_name
             . $source_line_number;
@@ -143,27 +143,27 @@ class ReaderWriter
         
         try {
             switch ($this->config->isDebugEnabled(true)) {
-                case 3: // save log file per days
-                    $log_file_name = 'Nuvei-' . date('Y-m-d');
-                    break;
+            case 3: // save log file per days
+                $log_file_name = 'Nuvei-' . date('Y-m-d');
+                break;
                 
-                case 2: // save single log file
-                    $log_file_name = 'Nuvei';
-                    break;
+            case 2: // save single log file
+                $log_file_name = 'Nuvei';
+                break;
                 
-                case 1: // save both files
-                    $log_file_name = 'Nuvei';
-                    $this->saveFile($logsPath, 'Nuvei-' . date('Y-m-d') . '.log', $string, FILE_APPEND);
-                    break;
+            case 1: // save both files
+                $log_file_name = 'Nuvei';
+                $this->saveFile($logsPath, 'Nuvei-' . date('Y-m-d') . '.log', $string, FILE_APPEND);
+                break;
                 
-                default:
-                    return;
+            default:
+                return;
             }
             
-//            $writer = new \Laminas\Log\Writer\Stream(BP . '/var/log/nuvei_checkout.log');
-//            $logger = new \Laminas\Log\Logger();
-//            $logger->addWriter($writer);
-//            $logger->info($string);
+            //            $writer = new \Laminas\Log\Writer\Stream(BP . '/var/log/nuvei_checkout.log');
+            //            $logger = new \Laminas\Log\Logger();
+            //            $logger->addWriter($writer);
+            //            $logger->info($string);
             
             return $this->saveFile($logsPath, $log_file_name . '.log', $string, FILE_APPEND);
         } catch (\Exception $e) {
@@ -175,9 +175,9 @@ class ReaderWriter
      * A single place to save files.
      *
      * @param string $path
-     * @param string $name The file name with extension. Append it to the $path.
-     * @param mixed $data
-     * @param int $option A PHP constant like FILE_APPEND.
+     * @param string $name   The file name with extension. Append it to the $path.
+     * @param mixed  $data
+     * @param int    $option A PHP constant like FILE_APPEND.
      *
      * @return bool
      */
@@ -209,7 +209,7 @@ class ReaderWriter
     /**
      * Get contents of Nuvei plugin help files. Usually the contains JSONs.
      *
-     * @param string $file_name
+     * @param  string $file_name
      * @return string
      */
     public function readFile($file_name)
@@ -232,7 +232,7 @@ class ReaderWriter
     /**
      * Is a file readable.
      *
-     * @param string $file
+     * @param  string $file
      * @return bool
      */
     public function isReadable($file)
@@ -253,7 +253,7 @@ class ReaderWriter
     /**
      * Do file exists.
      *
-     * @param string $file
+     * @param  string $file
      * @return bool
      */
     public function fileExists($file)

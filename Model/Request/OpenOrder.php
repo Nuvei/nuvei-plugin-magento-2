@@ -3,6 +3,7 @@
 namespace Nuvei\Checkout\Model\Request;
 
 use Magento\Framework\Exception\PaymentException;
+use Magento\Framework\Serialize\SerializerInterface;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Lib\Http\Client\Curl;
@@ -56,14 +57,14 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     /**
      * OpenOrder constructor.
      *
-     * @param Config            $config
-     * @param Curl              $curl
-     * @param ResponseFactory   $responseFactory
-     * @param Factory           $requestFactory
-     * @param Cart              $cart
-     * @param ReaderWriter      $readerWriter
-     * @param PaymentsPlans     $paymentsPlans
-     * @param StockState        $stockState
+     * @param Config          $config
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
+     * @param Factory         $requestFactory
+     * @param Cart            $cart
+     * @param ReaderWriter    $readerWriter
+     * @param PaymentsPlans   $paymentsPlans
+     * @param StockState      $stockState
      */
     public function __construct(
         Config $config,
@@ -134,13 +135,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->subs_data    = $this->items_data['subs_data'] ?? [];
         $order_data         = $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             'quoteId'       => $this->quoteId,
             'order_data'    => $order_data,
             'subs_data'     => $this->subs_data,
-        ]);
+            ]
+        );
         
-        # will we call updateOrder?
+        // will we call updateOrder?
         $callUpdateOrder    = false;
         $order_total        = (float) $this->config->getQuoteBaseTotal($this->quoteId);
         
@@ -164,8 +167,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         // when the total is 0 transaction type must be Auth!
         if ($order_total == 0
             && (empty($order_data['transactionType'])
-                || 'Auth' != $order_data['transactionType']
-            )
+            || 'Auth' != $order_data['transactionType']        )
         ) {
             $this->readerWriter->createLog('$order_total is and transactionType is Auth, call openOrder');
             $callUpdateOrder = false;
@@ -185,7 +187,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         ) {
             $callUpdateOrder = false;
         }
-        # /will we call updateOrder?
+        // /will we call updateOrder?
         
         if ($callUpdateOrder) {
             $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
@@ -206,12 +208,12 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->ooAmount     = $req_resp['merchantDetails']['customField1'];
         $this->subsData     = $this->subs_data; // pass the private variable to the public one, used into the API
 
-        # save the session token in the Quote
+        // save the session token in the Quote
         $add_info = [
             'sessionToken'      => $req_resp['sessionToken'],
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
-            'itemsBaseInfoHash' => md5(serialize($items_base_data)),
+            'itemsBaseInfoHash' => hash('md5', SerializerInterface::serialize($items_base_data)),
             'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
         ];
         
@@ -234,13 +236,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         );
         
         $this->quote->save();
-        # /save the session token in the Quote
+        // /save the session token in the Quote
         
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             'quote id' => $this->quoteId,
             'quote CREATE_ORDER_DATA' => $this->quote->getPayment()
                 ->getAdditionalInformation(Payment::CREATE_ORDER_DATA),
-        ]);
+            ]
+        );
         
         return $this;
     }
@@ -255,7 +259,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     /**
      * This is about the REST user.
      * 
-     * @param bool|null $isUserLogged
+     * @param  bool|null $isUserLogged
      * @return $this
      */
     public function setIsUserLogged($isUserLogged = null)
@@ -276,10 +280,11 @@ class OpenOrder extends AbstractRequest implements RequestInterface
      * When we call this class after REST API request,
      * it is good to know what SDK is used on the custom front-end.
      * 
-     * @param string $callerSdk
+     * @param  string $callerSdk
      * @return object
      */
-    public function setCallerSdk($callerSdk) {
+    public function setCallerSdk($callerSdk)
+    {
         $this->callerSdk = $callerSdk;
         
         return $this;
@@ -307,7 +312,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         // success
         if (!empty($order_data['itemsBaseInfoHash'])
-            && $order_data['itemsBaseInfoHash'] == md5(serialize($items_base_data))
+            && $order_data['itemsBaseInfoHash'] == hash('md5', SerializerInterface::serialize($items_base_data))
         ) {
             $this->error = 0;
             
@@ -377,7 +382,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'shippingAddress'   => $this->config->getQuoteShippingAddress(),
             'billingAddress'    => $billing_address,
             'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->config->getConfigValue('payment_action'),
-//            'isPartialApproval' => 1,
+        //            'isPartialApproval' => 1,
 
             'urlDetails'        => [
                 'backUrl'           => $this->config->getBackUrl(),
@@ -400,14 +405,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                 $params['merchantDetails'],
                 $this->config->getCallbackDmnUrl(null, null, [], $quoteId)
             ],
-            'OpenOrder');
+            'OpenOrder'
+        );
         
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {
             $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(null, null, [], $quoteId);
         }
         
-        # send userTokenId and save UPO
+        // send userTokenId and save UPO
         if ($this->sendUserTokenId()) {
             $params['userTokenId'] = $params['billingAddress']['email'];
         }
@@ -522,7 +528,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     /**
      * Get attribute options
      *
-     * @param \Magento\Eav\Api\Data\AttributeInterface $attribute
+     * @param  \Magento\Eav\Api\Data\AttributeInterface $attribute
      * @return array
      */
     private function getOptions(\Magento\Eav\Api\Data\AttributeInterface $attribute) : array
@@ -605,7 +611,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                         'A product is not availavle.'
                     );
 
-//                        return $this;
+                    //                        return $this;
                     return $items_base_data;
                 }
             }

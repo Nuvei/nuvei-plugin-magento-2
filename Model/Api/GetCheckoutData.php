@@ -38,23 +38,25 @@ class GetCheckoutData implements GetCheckoutDataInterface
     }
     
     /**
-     * @param int $quoteId
+     * @param int    $quoteId
      * @param string $neededData Available options - NUVEI_REST_API_PLUGIN_METHODS
      * 
      * @return string
      */
     public function getData($quoteId, $neededData)
     {
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             $quoteId, 
             $neededData, 
             $this->apiRequest->getBodyParams()
-        ]);
+            ]
+        );
         
-//        $result = $this->jsonResultFactory->create()
-//            ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
+        //        $result = $this->jsonResultFactory->create()
+        //            ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
         
-        # check for errors
+        // check for errors
         if (!$this->moduleConfig->getConfigValue('active')) {
             $msg = 'Mudule is not active.';
             $this->readerWriter->createLog($msg);
@@ -81,7 +83,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 'message' => $msg,
             ];
         }
-        # /check for errors
+        // /check for errors
         
         $method = $this->getMethodName($neededData);
         $resp   = $this->$method($quoteId);
@@ -91,7 +93,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
     }
     
     /**
-     * @param string $neededData The incoming neededData parameter
+     * @param  string $neededData The incoming neededData parameter
      * @return string
      */
     private function getMethodName($neededData)
@@ -113,12 +115,12 @@ class GetCheckoutData implements GetCheckoutDataInterface
     /**
      * Collect and return the data for WebSDK (fields) implementation
      * 
-     * @param int $quoteId
+     * @param  int $quoteId
      * @return array
      */
     private function getWebSdkData($quoteId)
     {
-        # 1. Open new order
+        // 1. Open new order
         $webApiparams   = $this->apiRequest->getBodyParams();
         $isUserLogged   = isset($webApiparams['isUserLogged']) ? (bool) $webApiparams['isUserLogged'] : false;
         $oo_data        = $this->openOrder($quoteId, $isUserLogged, 'webSdk'); // get an array
@@ -127,9 +129,9 @@ class GetCheckoutData implements GetCheckoutDataInterface
         if (!empty($oo_data['message'])) {
             return $oo_data;
         }
-        # /1. Open new order
+        // /1. Open new order
         
-        # 2. Get merchant APMs
+        // 2. Get merchant APMs
         $apmMethods     = [];
         $request        = $this->requestFactory->create(AbstractRequest::GET_MERCHANT_PAYMENT_METHODS_METHOD);
         $billingAddress = $this->moduleConfig->getQuoteBillingAddress($quoteId);
@@ -161,9 +163,9 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 }
             }
         }
-        # /2. Get merchant APMs
+        // /2. Get merchant APMs
         
-        # 3. Optionally get merchant UPOs
+        // 3. Optionally get merchant UPOs
         $upos = [];
         
         if ($this->moduleConfig->canShowUpos() && $isUserLogged) {
@@ -180,9 +182,9 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 }
             }
         }
-        # /3. Optionally get merchant UPOs
+        // /3. Optionally get merchant UPOs
         
-        # 4. Prepare WebSDK data
+        // 4. Prepare WebSDK data
         $locale = $this->scopeConfig->getValue(
             'general/locale/code',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
@@ -193,7 +195,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'total'             => $oo_data['amount'],
             'apms'              => $apmMethods,
             'upos'              => $upos,
-//            'getRemoveUpoUrl'           => $this->urlBuilder->getUrl('nuvei_payments/payment/DeleteUpo'),
+        //            'getRemoveUpoUrl'           => $this->urlBuilder->getUrl('nuvei_payments/payment/DeleteUpo'),
             'countryId'         => $this->moduleConfig->getQuoteCountryCode($quoteId),
             'useUPOs'           => $this->moduleConfig->getSaveUposSetting(empty($oo_data['subsData']) ? false : true),
             // we need this for the WebSDK
@@ -204,7 +206,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'webMasterId'       => $this->moduleConfig->getSourcePlatformField(),
             'sourceApplication' => $this->moduleConfig->getSourceApplication(),
             'userTokenId'       => $isUserLogged ? $billingAddress['email'] : '',
-//            'applePayLabel'             => $this->moduleConfig->getMerchantApplePayLabel(),
+        //            'applePayLabel'             => $this->moduleConfig->getMerchantApplePayLabel(),
             'currencyCode'      => $this->moduleConfig->getQuoteBaseCurrency($quoteId),
         ];
         
@@ -215,12 +217,12 @@ class GetCheckoutData implements GetCheckoutDataInterface
     /**
      * Collect and return the data for SimplyConnect (checkouSDK) implementation
      * 
-     * @param int $quoteId
+     * @param  int $quoteId
      * @return array
      */
     private function getSimplyConnectData($quoteId)
     {
-        # 1. Open new order
+        // 1. Open new order
         $webApiparams   = $this->apiRequest->getBodyParams();
         $isUserLogged   = isset($webApiparams['isUserLogged']) ? (bool) $webApiparams['isUserLogged'] : false;
         $oo_data        = $this->openOrder($quoteId, $isUserLogged, 'simplyConnect'); // get an array
@@ -229,9 +231,9 @@ class GetCheckoutData implements GetCheckoutDataInterface
         if (!empty($oo_data['message'])) {
             return $oo_data;
         }
-        # /1. Open new order
+        // /1. Open new order
         
-        # 2. Prepare checkoutSDK data
+        // 2. Prepare checkoutSDK data
         $locale = $this->scopeConfig->getValue(
             'general/locale/code',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
@@ -318,7 +320,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
      * Collect and return the data for success APM redirect.
      * Expected parameters: chosenApmMethod, 
      * 
-     * @param int $quoteId
+     * @param  int $quoteId
      * @return array
      */
     private function getApmRedirectUrl($quoteId)
@@ -354,14 +356,14 @@ class GetCheckoutData implements GetCheckoutDataInterface
     }
     
     /**
-     * @param int $quoteId
+     * @param  int $quoteId
      * @return array
      */
     private function updateOrder($quoteId)
     {
         $this->readerWriter->createLog('REST updateOrder()');
         
-        # 1. Open new order
+        // 1. Open new order
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $ooResp     = $request
             ->setQuoteId($quoteId)
@@ -389,7 +391,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
     /**
      * Just a repeating part of code for WebSDK and checkoutSDK.
      * 
-     * @param int $quoteId
+     * @param int  $quoteId
      * @param bool $isUserLogged
      * 
      * @return array

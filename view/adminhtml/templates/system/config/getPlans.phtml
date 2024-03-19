@@ -8,10 +8,10 @@
             jQuery('#loading_span .loaded').hide();
             
             jQuery.ajax({
-                url: '<?= $block->escapeUrl($block->getAjaxUrl()); ?>',
+                url: '<?php echo $block->escapeUrl($block->getAjaxUrl()); ?>',
                 showLoader: true,
                 data: {
-                    form_key:'<?= /* @noEscape */ $block->getFormKey(); ?>'
+                    form_key:'<?php echo /* @noEscape */ $block->getFormKey(); ?>'
                 },
                 type: "POST",
                 
@@ -32,14 +32,14 @@
     });
 </script>
 
-<?= $block->getButtonHtml(); ?>&nbsp;
+<?php echo $block->getButtonHtml(); ?>&nbsp;
 
 <span class="collect-indicator" id="loading_span">
     <img class="loaded" 
          hidden="hidden" 
          alt="loaded" 
          style="margin:-3px 5px" 
-         src="<?= $block->escapeUrl($block->getViewFileUrl('images/rule_component_apply.gif')); ?>"/>
+         src="<?php echo $block->escapeUrl($block->getViewFileUrl('images/rule_component_apply.gif')); ?>"/>
     
     <span id="plans_message"></span>
 </span>

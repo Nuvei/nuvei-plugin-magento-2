@@ -33,12 +33,12 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     private $quoteId;
     
     /**
-     * @param Config            $moduleConfig
-     * @param Curl              $curl
-     * @param ResponseFactory   $responseFactory
-     * @param Factory           $requestFactory
-     * @param StoreInterface    $store
-     * @param ReaderWriter      $readerWriter
+     * @param Config          $moduleConfig
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
+     * @param Factory         $requestFactory
+     * @param StoreInterface  $store
+     * @param ReaderWriter    $readerWriter
      */
     public function __construct(
         Config $moduleConfig,
@@ -89,8 +89,10 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     public function process($continueProcess = false)
     {
         if (!$this->config->getConfigValue('active')) {
-            $this->readerWriter->createLog('GetMerchantPaymentMethods Error - '
-                . 'Nuvei payments module is not active at the moment!');
+            $this->readerWriter->createLog(
+                'GetMerchantPaymentMethods Error - '
+                . 'Nuvei payments module is not active at the moment!'
+            );
             return [];
         }
         if (empty($this->config->getMerchantId())) {
@@ -131,7 +133,7 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     }
     
     /**
-     * @param string|null $billing_address
+     * @param  string|null $billing_address
      * @return $this
      */
     public function setBillingAddress($billing_address)
@@ -143,7 +145,7 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     /**
      * Use this method for REST API calls.
      * 
-     * @param string $sessionToken
+     * @param  string $sessionToken
      * @return $this
      */
     public function setSessionToken($sessionToken)
@@ -155,7 +157,7 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     /**
      * Use this method for REST API calls.
      * 
-     * @param string $currency
+     * @param  string $currency
      * @return $this
      */
     public function setCurrency($currency)
@@ -167,7 +169,7 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
     /**
      * Use this method for REST API calls.
      * 
-     * @param string $quoteId
+     * @param  string $quoteId
      * @return $this
      */
     public function setQuoteId($quoteId)
@@ -192,18 +194,18 @@ class GetMerchantPaymentMethods extends AbstractRequest implements RequestInterf
             $sessionToken   = !empty($tokenResponse['sessionToken']) ? $tokenResponse['sessionToken'] : '';
         }
         // call from the REST API
-//        else {
-//            $country_code = isset($this->billing_address['countryId']) ? $this->billing_address['countryId'] : '';
-//            if (empty($country_code)) {
-//                $country_code = $this->config->getQuoteCountryCode($this->quoteId);
-//            }
-//            
-//            $params['countryCode'] = $country_code;
-//            
-//            if (!empty($this->currency)) {
-//                $params['currencyCode'] = $this->currency;
-//            }
-//        }
+        //        else {
+        //            $country_code = isset($this->billing_address['countryId']) ? $this->billing_address['countryId'] : '';
+        //            if (empty($country_code)) {
+        //                $country_code = $this->config->getQuoteCountryCode($this->quoteId);
+        //            }
+        //            
+        //            $params['countryCode'] = $country_code;
+        //            
+        //            if (!empty($this->currency)) {
+        //                $params['currencyCode'] = $this->currency;
+        //            }
+        //        }
         
         if (!empty($this->quoteId)) {
             $params['countryCode'] = !empty($this->billing_address['countryId'])

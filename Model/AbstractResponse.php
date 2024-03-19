@@ -58,9 +58,9 @@ abstract class AbstractResponse
     /**
      * AbstractResponse constructor.
      *
-     * @param int           $requestId
-     * @param Curl          $curl
-     * @param readerWriter  $readerWriter
+     * @param int          $requestId
+     * @param Curl         $curl
+     * @param readerWriter $readerWriter
      */
     public function __construct(
         $requestId,
@@ -84,9 +84,11 @@ abstract class AbstractResponse
         $this->readerWriter->createLog($resp_data['Body'], 'Response data:');
 
         if ($requestStatus === false) {
-            throw new PaymentException($this->getErrorMessage(
-                !empty($resp_data['Body']['reason']) ? $resp_data['Body']['reason'] : ''
-            ));
+            throw new PaymentException(
+                $this->getErrorMessage(
+                    !empty($resp_data['Body']['reason']) ? $resp_data['Body']['reason'] : ''
+                )
+            );
         }
 
         $this->validateResponseData();
@@ -140,14 +142,10 @@ abstract class AbstractResponse
         $responseTransactionStatus  = strtolower(!empty($body['transactionStatus']) ? $body['transactionStatus'] : '');
         $responseTransactionType    = strtolower(!empty($body['transactionType']) ? $body['transactionType'] : '');
 
-        if (!(
-                (!in_array($responseTransactionType, ['auth', 'sale'])
-                    && $responseStatus === 'success' && $responseTransactionType !== 'error'
-                )
-                || (in_array($responseTransactionType, ['auth', 'sale'])
-                    && $responseTransactionStatus === 'approved'
-                )
-            )
+        if (!((!in_array($responseTransactionType, ['auth', 'sale'])
+            && $responseStatus === 'success' && $responseTransactionType !== 'error')
+            || (in_array($responseTransactionType, ['auth', 'sale'])
+            && $responseTransactionStatus === 'approved')        )
         ) {
             return false;
         }

@@ -16,8 +16,8 @@ class Error extends \Magento\Framework\App\Action\Action implements \Magento\Fra
     /**
      * Error constructor.
      *
-     * @param Context       $context
-     * @param ReaderWriter  $readerWriter
+     * @param Context      $context
+     * @param ReaderWriter $readerWriter
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,

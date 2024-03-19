@@ -23,12 +23,12 @@ class PaymentApm extends AbstractRequest implements RequestInterface
     private $quoteFactory;
 
     /**
-     * @param Config            $config
-     * @param Curl              $curl
-     * @param ResponseFactory   $responseFactory
-     * @param Factory           $requestFactory
-     * @param ReaderWriter      $readerWriter
-     * @param QuoteFactory      $quoteFactory
+     * @param Config          $config
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
+     * @param Factory         $requestFactory
+     * @param ReaderWriter    $readerWriter
+     * @param QuoteFactory    $quoteFactory
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,
@@ -79,7 +79,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
     }
 
     /**
-     * @param string $paymentMethod
+     * @param  string $paymentMethod
      * @return $this
      */
     public function setPaymentMethod($paymentMethod)
@@ -92,7 +92,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      * Because this array includes also chosenApmMethod and savePm
      * params we will unset them here.
      * 
-     * @param array $paymentMethodFields
+     * @param  array $paymentMethodFields
      * @return $this
      */
     public function setPaymentMethodFields($paymentMethodFields)
@@ -161,10 +161,12 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         $quotePayment   = $quote->getPayment();
         $order_data     = $quotePayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             'quote id' => $this->quoteId,
             '$order_data' => $order_data,
-        ]);
+            ]
+        );
         
         if (empty($order_data['sessionToken'])) {
             $msg = 'PaymentApm Error - missing Session Token.';
@@ -176,20 +178,20 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         
         $billingAddress     = $this->config->getQuoteBillingAddress($this->quoteId);
         $amount             = (string) number_format($this->config->getQuoteBaseTotal($this->quoteId), 2, '.', '');
-//        $reservedOrderId    = $quotePayment->getAdditionalInformation(Payment::TRANSACTION_ORDER_ID)
-//            ?: $this->config->getReservedOrderId();
+        //        $reservedOrderId    = $quotePayment->getAdditionalInformation(Payment::TRANSACTION_ORDER_ID)
+        //            ?: $this->config->getReservedOrderId();
         
         $params = [
             'clientUniqueId'    => $quoteId . '_' . time(),
-//            'clientUniqueId'    => $reservedOrderId . '_' . time(),
+        //            'clientUniqueId'    => $reservedOrderId . '_' . time(),
             'currency'          => $this->config->getQuoteBaseCurrency($this->quoteId),
             'amount'            => $amount,
             
-//            'items'             => [[
-//                'name'      => 'magento_order',
-//                'price'     => $amount,
-//                'quantity'  => 1,
-//            ]],
+        //            'items'             => [[
+        //                'name'      => 'magento_order',
+        //                'price'     => $amount,
+        //                'quantity'  => 1,
+        //            ]],
             
             'urlDetails'        => [
                 'successUrl'        => !empty($this->urlDetails['successUrl'])
@@ -211,7 +213,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {
             $params['urlDetails']['notificationUrl'] = $this->config
-//                ->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId);
+            //                ->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId);
                 ->getCallbackDmnUrl(null, null, [], $this->quoteId);
         }
         

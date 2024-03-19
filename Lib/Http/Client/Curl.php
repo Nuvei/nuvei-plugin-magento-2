@@ -12,7 +12,7 @@ class Curl extends \Magento\Framework\HTTP\Client\Curl
      *
      * @param string $method
      * @param string $uri
-     * @param array $params
+     * @param array  $params
      *
      * @return void
      */
@@ -89,11 +89,11 @@ class Curl extends \Magento\Framework\HTTP\Client\Curl
         }
 
         switch ($contentType) {
-            case 'application/json':
-                $this->curlOption(CURLOPT_POSTFIELDS, json_encode($params));
-                break;
-            default:
-                $this->curlOption(CURLOPT_POSTFIELDS, http_build_query($params));
+        case 'application/json':
+            $this->curlOption(CURLOPT_POSTFIELDS, json_encode($params));
+            break;
+        default:
+            $this->curlOption(CURLOPT_POSTFIELDS, http_build_query($params));
         }
     }
 }

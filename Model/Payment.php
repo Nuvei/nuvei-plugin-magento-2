@@ -125,14 +125,14 @@ class Payment implements MethodInterface
     /**
      * Payment constructor.
      *
-     * @param PaymentRequestFactory         $paymentRequestFactory
-     * @param ModuleConfig                  $moduleConfig
-     * @param Order                         $orderResourceModel
-     * @param ReaderWriter                  $readerWriter
-     * @param ManagerInterface              $eventManager
-     * @param PaymentDataObjectFactory      $paymentDataObjectFactory
-     * @param CommandManagerInterface|null  $commandExecutor
-     * @param CommandPoolInterface|null     $commandPool
+     * @param PaymentRequestFactory        $paymentRequestFactory
+     * @param ModuleConfig                 $moduleConfig
+     * @param Order                        $orderResourceModel
+     * @param ReaderWriter                 $readerWriter
+     * @param ManagerInterface             $eventManager
+     * @param PaymentDataObjectFactory     $paymentDataObjectFactory
+     * @param CommandManagerInterface|null $commandExecutor
+     * @param CommandPoolInterface|null    $commandPool
      */
     public function __construct(
         PaymentRequestFactory $paymentRequestFactory,
@@ -164,13 +164,13 @@ class Payment implements MethodInterface
      */
     public function assignData(DataObject $data)
     {
-//        $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
-//
-//        $chosenApmMethod = !empty($additionalData[self::KEY_CHOSEN_APM_METHOD])
-//            ? $additionalData[self::KEY_CHOSEN_APM_METHOD] : null;
-//        
-//        $info = $this->getInfoInstance();
-//        $info->setAdditionalInformation(self::KEY_CHOSEN_APM_METHOD, $chosenApmMethod);
+        //        $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
+        //
+        //        $chosenApmMethod = !empty($additionalData[self::KEY_CHOSEN_APM_METHOD])
+        //            ? $additionalData[self::KEY_CHOSEN_APM_METHOD] : null;
+        //        
+        //        $info = $this->getInfoInstance();
+        //        $info->setAdditionalInformation(self::KEY_CHOSEN_APM_METHOD, $chosenApmMethod);
 
         return $this;
     }
@@ -189,7 +189,7 @@ class Payment implements MethodInterface
     /**
      * Check if payment method can be used for provided currency.
      *
-     * @param string $currencyCode
+     * @param  string $currencyCode
      * @return bool
      * 
      * @inheritdoc
@@ -212,7 +212,7 @@ class Payment implements MethodInterface
      */
     public function authorize(InfoInterface $payment, $amount)
     {
-//        $this->processPayment($payment, $amount);
+        //        $this->processPayment($payment, $amount);
         return $this;
     }
 
@@ -234,7 +234,11 @@ class Payment implements MethodInterface
         
         $order->setStatus(Payment::SC_PROCESSING);
         
-        /** @var RequestInterface $request */
+        /**
+* 
+         *
+ * @var RequestInterface $request 
+*/
         $request = $this->paymentRequestFactory->create(
             AbstractRequest::PAYMENT_REFUND_METHOD,
             $payment,
@@ -252,7 +256,8 @@ class Payment implements MethodInterface
             }
             
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Refund request error, you can check Nuvei log for more information.'));
+                __('Refund request error, you can check Nuvei log for more information.')
+            );
         }
 
         return $this;
@@ -278,7 +283,7 @@ class Payment implements MethodInterface
     /**
      * Refund payment method.
      *
-     * @param InfoInterface $payment
+     * @param  InfoInterface $payment
      * @return Payment
      * @throws \Magento\Framework\Exception\LocalizedException
      *
@@ -293,25 +298,25 @@ class Payment implements MethodInterface
         $order->setStatus(self::SC_PROCESSING);
         
         $this->readerWriter->createLog(
-//            [
-//                '$total'    => $total,
-//                'paid'      => $order->getBaseAmountPaid(),
-//                '$status'   => $status,
-//                'request'   => $_REQUEST,
-//                'inv?'  => (array) @$payment->getInvoicePayment(),
-//                'inv??'  => (array) @$payment->getPaymentInvoice(),
-//                'inv id'  => (array) @$payment->getInvoiceId(),
-//                '$payment'  => (array) $payment,
-//            ],
+        //            [
+        //                '$total'    => $total,
+        //                'paid'      => $order->getBaseAmountPaid(),
+        //                '$status'   => $status,
+        //                'request'   => $_REQUEST,
+        //                'inv?'  => (array) @$payment->getInvoicePayment(),
+        //                'inv??'  => (array) @$payment->getPaymentInvoice(),
+        //                'inv id'  => (array) @$payment->getInvoiceId(),
+        //                '$payment'  => (array) $payment,
+        //            ],
             'Payment Void.'
         );
         
-//        foreach($order->getInvoiceCollection()->getItems() as $inv) {
-//            $this->readerWriter->createLog(
-//                (array) $inv,
-//                'invoices'
-//            );
-//        }
+        //        foreach($order->getInvoiceCollection()->getItems() as $inv) {
+        //            $this->readerWriter->createLog(
+        //                (array) $inv,
+        //                'invoices'
+        //            );
+        //        }
         
         // Void of Zero Total amount
         if (0 == (float) $total && self::SC_AUTH == $status) {
@@ -326,7 +331,11 @@ class Payment implements MethodInterface
         }
         // /Void of Zero Total amount
         
-        /** @var RequestInterface $request */
+        /**
+* 
+         *
+ * @var RequestInterface $request 
+*/
         $request = $this->paymentRequestFactory->create(
             AbstractRequest::PAYMENT_VOID_METHOD,
             $payment
@@ -341,7 +350,8 @@ class Payment implements MethodInterface
             }
             
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Void request error. Please, check Nuvei log for more information.'));
+                __('Void request error. Please, check Nuvei log for more information.')
+            );
         }
         
         return $this;
@@ -350,7 +360,7 @@ class Payment implements MethodInterface
     /**
      * Cancel Subscriptions.
      *
-     * @param object $payment
+     * @param  object $payment
      * @return bool
      */
     public function cancelSubscription(InfoInterface $payment)
@@ -372,7 +382,7 @@ class Payment implements MethodInterface
                 return false;
             }
             
-//            $this->readerWriter->createLog($ord_trans_addit_info, 'cancelSubscription()');
+            //            $this->readerWriter->createLog($ord_trans_addit_info, 'cancelSubscription()');
 
             if (empty($subs_id)) {
                 $this->readerWriter->createLog(
@@ -417,7 +427,7 @@ class Payment implements MethodInterface
     /**
      * Check void availability
      * 
-     * @return bool
+     * @return   bool
      * @internal param \Magento\Framework\DataObject $payment
      * 
      * @inheritdoc
@@ -455,7 +465,6 @@ class Payment implements MethodInterface
      * @return string
      * 
      * @inheritdoc
-     *
      */
     public function getTitle()
     {
@@ -465,7 +474,7 @@ class Payment implements MethodInterface
     /**
      * Store id setter
      * 
-     * @param int $storeId
+     * @param  int $storeId
      * @return void
      * 
      * @inheritdoc
@@ -618,14 +627,13 @@ class Payment implements MethodInterface
      * TODO ???
      * 
      * @param InfoInterface $payment
-     * @param string $transactionId
+     * @param string        $transactionId
      * 
      * @return array
      * 
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * 
      * @inheritdoc
-     *
      */
     public function fetchTransactionInfo(InfoInterface $payment, $transactionId)
     {
@@ -677,7 +685,7 @@ class Payment implements MethodInterface
     /**
      * To check billing country is allowed for the payment method
      *
-     * @param string $country
+     * @param  string $country
      * @return bool
      * 
      * @inheritdoc
@@ -720,7 +728,7 @@ class Payment implements MethodInterface
     /**
      * Retrieve payment information model object
      *
-     * @param InfoInterface $info
+     * @param  InfoInterface $info
      * @return void
      * 
      * @inheritdoc
@@ -737,7 +745,7 @@ class Payment implements MethodInterface
      * Order payment abstract method
      *
      * @param InfoInterface $payment
-     * @param float $amount
+     * @param float         $amount
      * 
      * @return $this
      * 
@@ -757,7 +765,7 @@ class Payment implements MethodInterface
      * Capture payment abstract method
      *
      * @param InfoInterface $payment
-     * @param float $amount
+     * @param float         $amount
      * 
      * @return $this
      * 
@@ -807,7 +815,7 @@ class Payment implements MethodInterface
     /**
      * Attempt to accept a payment that us under review
      *
-     * @param InfoInterface $payment
+     * @param  InfoInterface $payment
      * @return false
      * @throws \Magento\Framework\Exception\LocalizedException
      *
@@ -823,7 +831,7 @@ class Payment implements MethodInterface
     /**
      * Attempt to deny a payment that us under review
      *
-     * @param InfoInterface $payment
+     * @param  InfoInterface $payment
      * @return false
      * @throws \Magento\Framework\Exception\LocalizedException
      *
@@ -839,7 +847,7 @@ class Payment implements MethodInterface
     /**
      * Retrieve information from payment configuration
      *
-     * @param string $field
+     * @param string                                     $field
      * @param int|string|null|\Magento\Store\Model\Store $storeId
      *
      * @return mixed
@@ -854,7 +862,7 @@ class Payment implements MethodInterface
     /**
      * Check whether payment method can be used
      *
-     * @param CartInterface|null $quote
+     * @param  CartInterface|null $quote
      * @return bool
      *
      * @inheritdoc
@@ -867,42 +875,42 @@ class Payment implements MethodInterface
         
         return true;
 
-//        $checkResult = new DataObject();
-//        $checkResult->setData('is_available', true);
-//        try {
-//            $infoInstance = $this->getInfoInstance();
-//            if ($infoInstance !== null) {
-//                $validator = $this->getValidatorPool()->get('availability');
-//                $result = $validator->validate(
-//                    [
-//                        'payment' => $this->paymentDataObjectFactory->create($infoInstance)
-//                    ]
-//                );
-//
-//                $checkResult->setData('is_available', $result->isValid());
-//            }
+        //        $checkResult = new DataObject();
+        //        $checkResult->setData('is_available', true);
+        //        try {
+        //            $infoInstance = $this->getInfoInstance();
+        //            if ($infoInstance !== null) {
+        //                $validator = $this->getValidatorPool()->get('availability');
+        //                $result = $validator->validate(
+        //                    [
+        //                        'payment' => $this->paymentDataObjectFactory->create($infoInstance)
+        //                    ]
+        //                );
+        //
+        //                $checkResult->setData('is_available', $result->isValid());
+        //            }
 //        // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-//        } catch (\Exception $e) {
-//            // pass
-//        }
-//
-//        // for future use in observers
-//        $this->eventManager->dispatch(
-//            'payment_method_is_active',
-//            [
-//                'result' => $checkResult,
-//                'method_instance' => $this,
-//                'quote' => $quote
-//            ]
-//        );
-//
-//        return $checkResult->getData('is_available');
+        //        } catch (\Exception $e) {
+        //            // pass
+        //        }
+        //
+        //        // for future use in observers
+        //        $this->eventManager->dispatch(
+        //            'payment_method_is_active',
+        //            [
+        //                'result' => $checkResult,
+        //                'method_instance' => $this,
+        //                'quote' => $quote
+        //            ]
+        //        );
+        //
+        //        return $checkResult->getData('is_available');
     }
 
     /**
      * Is active
      *
-     * @param int|null $storeId
+     * @param  int|null $storeId
      * @return bool
      *
      * @inheritdoc
@@ -919,11 +927,10 @@ class Payment implements MethodInterface
      * @param string $paymentAction
      * @param object $stateObject
      *
-     * @return $this
+     * @return                                        $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * 
      * @inheritdoc
-     *
      */
     public function initialize($paymentAction, $stateObject)
     {
@@ -969,7 +976,11 @@ class Payment implements MethodInterface
             return null;
         }
 
-        /** @var InfoInterface|null $payment */
+        /**
+* 
+         *
+ * @var InfoInterface|null $payment 
+*/
         $payment = null;
         if (isset($arguments['payment']) && $arguments['payment'] instanceof InfoInterface) {
             $payment = $arguments['payment'];
@@ -992,7 +1003,7 @@ class Payment implements MethodInterface
     /**
      * Whether payment command is supported and can be executed
      *
-     * @param string $commandCode
+     * @param  string $commandCode
      * @return bool
      */
     private function canPerformCommand($commandCode)

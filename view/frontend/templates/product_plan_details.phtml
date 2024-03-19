@@ -1,23 +1,23 @@
-<?php if (1 == $block->isProductWithPlan()):
+<?php if (1 == $block->isProductWithPlan()) :
     $nuvei_texts = $block->getTexts(); ?>
 
     <div id="nuvei_plan_details" style="display: none;">
-        <h4><?= $block->escapeHtml($nuvei_texts['table_title']); ?></h4>
+        <h4><?php echo $block->escapeHtml($nuvei_texts['table_title']); ?></h4>
         <table border="1">
             <tr>
-                <td><?= $block->escapeHtml($nuvei_texts['rec_length']); ?></td>
+                <td><?php echo $block->escapeHtml($nuvei_texts['rec_length']); ?></td>
                 <td id="nuvei_rec_length">&nbsp;</td>
             </tr>
             <tr>
-                <td><?= $block->escapeHtml($nuvei_texts['rec_period']); ?></td>
+                <td><?php echo $block->escapeHtml($nuvei_texts['rec_period']); ?></td>
                 <td id="nuvei_rec_period">&nbsp;</td>
             </tr>
             <tr>
-                <td><?= $block->escapeHtml($nuvei_texts['rec_amount']); ?></td>
+                <td><?php echo $block->escapeHtml($nuvei_texts['rec_amount']); ?></td>
                 <td id="nuvei_rec_amount">&nbsp;</td>
             </tr>
             <tr>
-                <td><?= $block->escapeHtml($nuvei_texts['trial_period']); ?></td>
+                <td><?php echo $block->escapeHtml($nuvei_texts['trial_period']); ?></td>
                 <td id="nuvei_trial_period">&nbsp;</td>
             </tr>
         </table>
@@ -43,9 +43,9 @@
                 $.ajax({
                     dataType: "json",
                     type: 'post',
-                    url: '<?= $block->escapeUrl($nuvei_texts['nuvei_ajax_url']); ?>',
+                    url: '<?php echo $block->escapeUrl($nuvei_texts['nuvei_ajax_url']); ?>',
                     data: {
-                        prodId      : '<?= /* @noEscape */ $nuvei_texts['nuvei_prod_id']; ?>',
+                        prodId      : '<?php echo /* @noEscape */ $nuvei_texts['nuvei_prod_id']; ?>',
                         params      : strParams
                     },
                     cache: false,
@@ -102,9 +102,9 @@
                     var attrId          = _self.attr('id').replace('attribute', '');
                     var nuveiAttrVal    = _self.val();
                     
-                    console.log('nuvei change option', [attrId, nuveiAttrVal, '<?= $nuvei_texts['nuvei_attr_id']; ?>']);
+                    console.log('nuvei change option', [attrId, nuveiAttrVal, '<?php echo $nuvei_texts['nuvei_attr_id']; ?>']);
                     
-                    if('<?= $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>' == attrId
+                    if('<?php echo $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>' == attrId
                         && '' != nuveiAttrVal
                     ) {
                         nuveiShowPlanDetails(attrId + '=' + nuveiAttrVal);
@@ -121,7 +121,7 @@
 //                    var _self = $(this);
 //                    
 //                    if(_self.val() != 0 && _self.val() != '') {
-//                        nuveiShowPlanDetails(<?= $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>
+//                        nuveiShowPlanDetails(<?php echo $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>
 //                            + '=' + _self.val());
 //                    }
 //                    

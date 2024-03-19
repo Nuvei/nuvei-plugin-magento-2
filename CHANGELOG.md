@@ -1,6 +1,11 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.1.5
+```
+    * Code scanned and cleaned with PHPCS and PHPCBF.
+```
+
 # 3.1.4-p1
 ```
     * Added new SDK's URLs for the QA site.

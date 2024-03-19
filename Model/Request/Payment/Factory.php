@@ -37,19 +37,19 @@ class Factory
      */
     public function __construct(
         ObjectManagerInterface $objectManager
-//        ,\Nuvei\Checkout\Model\Config $config
+        //        ,\Nuvei\Checkout\Model\Config $config
     ) {
         $this->objectManager = $objectManager;
-//        $this->config           = $config;
+        //        $this->config           = $config;
     }
 
     /**
      * Create request model.
      *
-     * @param string        $method
-     * @param OrderPayment  $orderPayment
-     * @param float         $amount
-     * @param int           $invoice_id
+     * @param string       $method
+     * @param OrderPayment $orderPayment
+     * @param float        $amount
+     * @param int          $invoice_id
      *
      * @return RequestInterface
      * @throws LocalizedException

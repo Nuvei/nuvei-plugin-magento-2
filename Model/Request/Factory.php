@@ -55,7 +55,7 @@ class Factory
      * Create request model.
      *
      * @param string $method - the name of the method
-     * @param array $args - arguments to pass
+     * @param array  $args   - arguments to pass
      *
      * @return RequestInterface
      * @throws LocalizedException

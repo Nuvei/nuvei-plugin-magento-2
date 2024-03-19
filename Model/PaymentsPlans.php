@@ -46,8 +46,8 @@ class PaymentsPlans
     /**
      * Search for the product with Payment Plan.
      *
-     * @param int $product_id
-     * @param array $params Pairs option key id with option value.
+     * @param int   $product_id
+     * @param array $params     Pairs option key id with option value.
      *
      * @return array $return_arr
      */
@@ -60,7 +60,7 @@ class PaymentsPlans
             : $this->cartRepo->get($this->quoteId);
         
         try {
-            # 1. when we search in the Cart
+            // 1. when we search in the Cart
             if (0 == $product_id && empty($params)) {
                 $itemsQty = $quote->getItemsSummaryQty();
         
@@ -86,8 +86,10 @@ class PaymentsPlans
                     $item = current($items);
 
                     if (!is_object($item)) {
-                        $this->readerWriter->createLog('getProductPlanData() Error - '
-                            . 'the Item in the Cart is not an Object.');
+                        $this->readerWriter->createLog(
+                            'getProductPlanData() Error - '
+                            . 'the Item in the Cart is not an Object.'
+                        );
                         
                         continue;
                     }
@@ -102,12 +104,12 @@ class PaymentsPlans
                         $product_id = $product->getId();
                     }
                     
-//                    $this->readerWriter->createLog([
-//                        '$product sku' => (array) $product->getSku(), 
-//                        'getCustomAttribute nuvei_sub_enabled'  => $product->getCustomAttribute('nuvei_sub_enabled'),
-//                        'getData nuvei_sub_enabled'  => $product->getData('nuvei_sub_enabled'),
-//                        '$options' => (array) $options,
-//                    ]);
+                    //                    $this->readerWriter->createLog([
+                    //                        '$product sku' => (array) $product->getSku(), 
+                    //                        'getCustomAttribute nuvei_sub_enabled'  => $product->getCustomAttribute('nuvei_sub_enabled'),
+                    //                        'getData nuvei_sub_enabled'  => $product->getData('nuvei_sub_enabled'),
+                    //                        '$options' => (array) $options,
+                    //                    ]);
 
                     // stop the proccess
                     if (empty($options['info_buyRequest'])
@@ -191,7 +193,7 @@ class PaymentsPlans
                         return $return_arr;
                     }
 
-                    # 1.2 in case of simple product
+                    // 1.2 in case of simple product
                     // missing needed data
                     if (empty($options['info_buyRequest']['product'])) {
                         return $return_arr;
@@ -233,8 +235,8 @@ class PaymentsPlans
                 return $return_arr;
             }
 
-            # 2. in case we pass product ID and product options as array.
-            # we do not serach in the Cart and may be there is not Item data
+            // 2. in case we pass product ID and product options as array.
+            // we do not serach in the Cart and may be there is not Item data
             if (0 == $product_id || empty($params)) {
                 return $return_arr;
             }
@@ -296,7 +298,7 @@ class PaymentsPlans
     /**
      * Pass the Quote ID in case of REST API logic.
      * 
-     * @param int $quoteId
+     * @param  int $quoteId
      * @return $this
      */
     public function setQuoteId($quoteId = '')
@@ -318,16 +320,20 @@ class PaymentsPlans
         $attr = $product->getCustomAttribute(Config::PAYMENT_SUBS_ENABLE);
         
         if (null === $attr) {
-            $this->readerWriter->createLog('buildPlanDetailsArray() - '
-                . 'there is no subscription attribute PAYMENT_SUBS_ENABLE');
+            $this->readerWriter->createLog(
+                'buildPlanDetailsArray() - '
+                . 'there is no subscription attribute PAYMENT_SUBS_ENABLE'
+            );
             return [];
         }
         
         $subscription_enabled = $attr->getValue();
         
         if (0 == $subscription_enabled) {
-            $this->readerWriter->createLog('buildPlanDetailsArray() - '
-                . 'for this product the Subscription is not enabled or not set.');
+            $this->readerWriter->createLog(
+                'buildPlanDetailsArray() - '
+                . 'for this product the Subscription is not enabled or not set.'
+            );
             return [];
         }
         

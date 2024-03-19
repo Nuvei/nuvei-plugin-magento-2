@@ -35,11 +35,11 @@ class GetMerchantPaymentMethods extends Action
     /**
      * Redirect constructor.
      *
-     * @param Context           $context
-     * @param ModuleConfig      $moduleConfig
-     * @param JsonFactory       $jsonResultFactory
-     * @param RequestFactory    $requestFactory
-     * @param ReaderWriter      $readerWriter
+     * @param Context        $context
+     * @param ModuleConfig   $moduleConfig
+     * @param JsonFactory    $jsonResultFactory
+     * @param RequestFactory $requestFactory
+     * @param ReaderWriter   $readerWriter
      */
     public function __construct(
         Context $context,
@@ -67,9 +67,11 @@ class GetMerchantPaymentMethods extends Action
         if (!$this->moduleConfig->getConfigValue('active')) {
             $this->readerWriter->createLog('Nuvei payments module is not active at the moment!');
             
-            return $result->setData([
+            return $result->setData(
+                [
                 'error_message' => __('Nuvei payments module is not active at the moment!')
-            ]);
+                ]
+            );
         }
         
         $applePayData   = null;
@@ -77,35 +79,37 @@ class GetMerchantPaymentMethods extends Action
         $upos           = $this->getUpos($apmMethodsData);
         
         // Disable Apple pay
-//        foreach ($apmMethodsData['apmMethods'] as $k => $d) {
-//            if ('ppp_ApplePay' == $d["paymentMethod"]) {
-//                $applePayData = $d;
-//                unset($apmMethodsData['apmMethods'][$k]);
-//                
-//                // clean logged data
-//                $applePayDataToLog = $applePayData;
-//                
-//                if (!empty($applePayDataToLog['currencies'])) {
-//                    $applePayDataToLog['currencies'] = json_encode($applePayDataToLog['currencies']);
-//                }
-//                if (!empty($applePayDataToLog['countries'])) {
-//                    $applePayDataToLog['countries'] = json_encode($applePayDataToLog['countries']);
-//                }
-//                // /clean logged data
-//                
-//                $this->readerWriter->createLog($applePayDataToLog, 'GetMerchantPaymentMethods $applePayData');
-//                break;
-//            }
-//        }
+        //        foreach ($apmMethodsData['apmMethods'] as $k => $d) {
+        //            if ('ppp_ApplePay' == $d["paymentMethod"]) {
+        //                $applePayData = $d;
+        //                unset($apmMethodsData['apmMethods'][$k]);
+        //                
+        //                // clean logged data
+        //                $applePayDataToLog = $applePayData;
+        //                
+        //                if (!empty($applePayDataToLog['currencies'])) {
+        //                    $applePayDataToLog['currencies'] = json_encode($applePayDataToLog['currencies']);
+        //                }
+        //                if (!empty($applePayDataToLog['countries'])) {
+        //                    $applePayDataToLog['countries'] = json_encode($applePayDataToLog['countries']);
+        //                }
+        //                // /clean logged data
+        //                
+        //                $this->readerWriter->createLog($applePayDataToLog, 'GetMerchantPaymentMethods $applePayData');
+        //                break;
+        //            }
+        //        }
         
-        return $result->setData([
+        return $result->setData(
+            [
             "error"         => 0,
             "apmMethods"    => $apmMethodsData['apmMethods'],
             "applePayData"  => $applePayData,
             "upos"          => $upos,
             "sessionToken"  => $apmMethodsData['sessionToken'],
             "message"       => "Success"
-        ]);
+            ]
+        );
     }
 
     /**

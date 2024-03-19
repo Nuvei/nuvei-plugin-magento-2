@@ -27,14 +27,14 @@ class ConfigProvider extends CcGenericConfigProvider
     /**
      * ConfigProvider constructor.
      *
-     * @param CcConfig              $ccConfig
-     * @param PaymentHelper         $paymentHelper
-     * @param Config                $moduleConfig
-     * @param UrlInterface          $urlBuilder
-     * @param ScopeConfigInterface  $scopeConfig
-     * @param Repository            $assetRepo
-     * @param PaymentsPlans         $paymentsPlans
-     * @param ReaderWriter          $readerWriter
+     * @param CcConfig             $ccConfig
+     * @param PaymentHelper        $paymentHelper
+     * @param Config               $moduleConfig
+     * @param UrlInterface         $urlBuilder
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Repository           $assetRepo
+     * @param PaymentsPlans        $paymentsPlans
+     * @param ReaderWriter         $readerWriter
      */
     public function __construct(
         CcConfig $ccConfig,
@@ -93,16 +93,16 @@ class ConfigProvider extends CcGenericConfigProvider
         $used_sdk = $this->moduleConfig->getUsedSdk();
         
         switch ($used_sdk) {
-            case 'checkout':
-                $config = $this->getCheckoutSdkConfig();
-                break;
+        case 'checkout':
+            $config = $this->getCheckoutSdkConfig();
+            break;
             
-            case 'web':
-                $config = $this->getWebSdkConfig();
-                break;
+        case 'web':
+            $config = $this->getWebSdkConfig();
+            break;
             
-            default:
-                $config = [];
+        default:
+            $config = [];
         }
         
         // will be concatenated into a JS
@@ -156,8 +156,8 @@ class ConfigProvider extends CcGenericConfigProvider
                         'strict'                    => false,
                         'savePM'                    => $save_pm,
                         'showUserPaymentOptions'    => $show_upos,
-//                        'pmBlacklist'               => $this->moduleConfig->getConfigValue('block_pms', 'advanced'),
-//                        'pmWhitelist'               => null,
+        //                        'pmBlacklist'               => $this->moduleConfig->getConfigValue('block_pms', 'advanced'),
+        //                        'pmWhitelist'               => null,
                         'blockCards'                => $blocked_cards,
                         'alwaysCollectCvv'          => true,
                         'fullName'                  => trim($billing_address['firstName'] . ' ' . $billing_address['lastName']),
@@ -234,7 +234,7 @@ class ConfigProvider extends CcGenericConfigProvider
                     'userTokenId'           => $this->moduleConfig->getQuoteBillingAddress()['email'],
                     'applePayLabel'         => $this->moduleConfig->getConfigValue('apple_pay_label', 'web_sdk'),
                     'currencyCode'          => $this->moduleConfig->getQuoteBaseCurrency(), 
-//                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type'),
+        //                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type'),
                 ],
             ],
         ];

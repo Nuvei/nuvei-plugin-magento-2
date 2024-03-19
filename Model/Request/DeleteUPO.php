@@ -13,10 +13,10 @@ class DeleteUPO extends AbstractRequest implements RequestInterface
     private $upo_id;
     
     /**
-     * @param Config            $config
-     * @param Curl              $curl
-     * @param ResponseFactory   $responseFactory
-     * @param ReaderWriter      $readerWriter
+     * @param Config          $config
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
+     * @param ReaderWriter    $readerWriter
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,

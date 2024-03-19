@@ -38,20 +38,20 @@ class BeforeCreateInvoice
             return;
         }
         
-//        $this->readerWriter->createLog(
-//            [
-//                'getBaseGrandTotal' => $order->getBaseGrandTotal(),
-//                'getBaseTotalInvoiced' => $order->getBaseTotalInvoiced(),
-//                'getBaseDiscountAmount' => $order->getBaseDiscountAmount(),
-//                'getBaseShippingInclTax' => $order->getBaseShippingInclTax(),
-//                'getBaseShippingAmount' => $order->getBaseShippingAmount(),
-//                'getBaseShippingInvoiced' => $order->getBaseShippingInvoiced(),
-//                'getBaseShippingDiscountAmount' => $order->getBaseShippingDiscountAmount(),
-//                'getBaseTaxAmount' => $order->getBaseTaxAmount(),
-//            ],
-//            'Order amounts',
-//            'DEBUG'
-//        );
+        //        $this->readerWriter->createLog(
+        //            [
+        //                'getBaseGrandTotal' => $order->getBaseGrandTotal(),
+        //                'getBaseTotalInvoiced' => $order->getBaseTotalInvoiced(),
+        //                'getBaseDiscountAmount' => $order->getBaseDiscountAmount(),
+        //                'getBaseShippingInclTax' => $order->getBaseShippingInclTax(),
+        //                'getBaseShippingAmount' => $order->getBaseShippingAmount(),
+        //                'getBaseShippingInvoiced' => $order->getBaseShippingInvoiced(),
+        //                'getBaseShippingDiscountAmount' => $order->getBaseShippingDiscountAmount(),
+        //                'getBaseTaxAmount' => $order->getBaseTaxAmount(),
+        //            ],
+        //            'Order amounts',
+        //            'DEBUG'
+        //        );
         
         $order_shipping_inc_tax     = round($order->getBaseShippingInclTax(), 2);
         $order_shipping_invoiced    = round((float) $order->getBaseShippingInvoiced(), 2);
@@ -108,7 +108,11 @@ class BeforeCreateInvoice
             throw new \Magento\Framework\Exception\LocalizedException(__('Calculated Invoice amoutn is Zero.'));
         }
         
-        /** @var OrderPayment $payment */
+        /**
+* 
+         *
+ * @var OrderPayment $payment 
+*/
         $payment = $order->getPayment();
 
         if (!is_object($payment)) {
@@ -147,7 +151,8 @@ class BeforeCreateInvoice
         if (empty($authCode)) {
             $this->readerWriter->createLog($ord_trans_addit_info, 'BeforeCreateInvoice - $authCode is empty.');
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('The Order Auth transaction missing the Auth code parameter.'));
+                __('The Order Auth transaction missing the Auth code parameter.')
+            );
         }
         
         $request = $this->objectManager->create(\Nuvei\Checkout\Model\Request\SettleTransaction::class);

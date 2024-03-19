@@ -18,10 +18,10 @@ class Status extends Column
     /**
      * Constructor
      *
-     * @param ContextInterface $context
+     * @param ContextInterface   $context
      * @param UiComponentFactory $uiComponentFactory
-     * @param array $components
-     * @param array $data
+     * @param array              $components
+     * @param array              $data
      */
     public function __construct(
         ContextInterface $context,
@@ -40,7 +40,7 @@ class Status extends Column
     /**
      * Prepare Data Source
      *
-     * @param array $dataSource
+     * @param  array $dataSource
      * @return array
      */
     public function prepareDataSource(array $dataSource)
@@ -58,13 +58,13 @@ class Status extends Column
                         $this->readerWriter->createLog($ord_trans_data);
                     }
                     
-//                    $this->readerWriter->createLog(
-//                        [
-//                            $item['increment_id'],
-//                            $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID),
-//                        ], 
-//                        'getAdditionalInformation'
-//                    );
+                    //                    $this->readerWriter->createLog(
+                    //                        [
+                    //                            $item['increment_id'],
+                    //                            $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID),
+                    //                        ], 
+                    //                        'getAdditionalInformation'
+                    //                    );
                     
                     $dataSource['data']['items'][$key]['has_nuvei_subscr']
                         = (bool) $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID);

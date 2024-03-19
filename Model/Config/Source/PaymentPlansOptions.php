@@ -29,7 +29,7 @@ class PaymentPlansOptions extends \Magento\Eav\Model\Entity\Attribute\Source\Abs
             'value' => 1 // need to be greater than 0
         ];
         
-        # json version
+        // json version
         $file_name = $this->directory->getPath('log') . DIRECTORY_SEPARATOR
             . \Nuvei\Checkout\Model\Config::PAYMENT_PLANS_FILE_NAME;
         
@@ -44,9 +44,10 @@ class PaymentPlansOptions extends \Magento\Eav\Model\Entity\Attribute\Source\Abs
             }
         } else {
             $this->readerWriter->createLog(
-                'PaymentPlansOption Error - problem when try to extract plans from ' . $file_name);
+                'PaymentPlansOption Error - problem when try to extract plans from ' . $file_name
+            );
         }
-        # json version END
+        // json version END
         
         $this->readerWriter->createLog($this->_options, 'getAllOptions');
 

@@ -114,8 +114,10 @@ class Complete extends Action implements CsrfAwareActionInterface
                     throw new PaymentException(__($result->getMessage()));
                 }
             } else {
-                $this->readerWriter->createLog('Attention - the Quote is not active! '
-                    . 'The Order can not be created here. May be it is already placed.');
+                $this->readerWriter->createLog(
+                    'Attention - the Quote is not active! '
+                    . 'The Order can not be created here. May be it is already placed.'
+                );
             }
             
             if (isset($params['Status'])
@@ -184,8 +186,10 @@ class Complete extends Action implements CsrfAwareActionInterface
                 ->setData('error', true)
                 ->setData(
                     'message',
-                    __('An error occurred on the server. '
-                        . 'Please check your Order History and if the Order is not there, try to place it again!')
+                    __(
+                        'An error occurred on the server. '
+                        . 'Please check your Order History and if the Order is not there, try to place it again!'
+                    )
                 );
         }
 

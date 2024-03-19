@@ -94,15 +94,17 @@ class GetPlansList extends AbstractRequest implements RequestInterface
             if (empty($plans['status']) || $plans['status'] != 'SUCCESS'
                 || empty($plans['total']) || (int) $plans['total'] < 1
             ) {
-                $this->readerWriter->createLog('GetPlansList error - status error or missing plans. '
-                    . 'Check the response above!');
+                $this->readerWriter->createLog(
+                    'GetPlansList error - status error or missing plans. '
+                    . 'Check the response above!'
+                );
                 return false;
             }
 
-//            $this->fileSystem->filePutContents(
-//                $tempPath. DIRECTORY_SEPARATOR . \Nuvei\Checkout\Model\Config::PAYMENT_PLANS_FILE_NAME,
-//                json_encode($plans)
-//            );
+            //            $this->fileSystem->filePutContents(
+            //                $tempPath. DIRECTORY_SEPARATOR . \Nuvei\Checkout\Model\Config::PAYMENT_PLANS_FILE_NAME,
+            //                json_encode($plans)
+            //            );
             
             return (bool) $this->readerWriter->saveFile(
                 $tempPath,

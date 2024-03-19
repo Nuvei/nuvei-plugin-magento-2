@@ -37,10 +37,10 @@ class Apm extends Action
     /**
      * Redirect constructor.
      *
-     * @param Context            $context
-     * @param ModuleConfig       $moduleConfig
-     * @param JsonFactory        $jsonResultFactory
-     * @param RequestFactory     $requestFactory
+     * @param Context        $context
+     * @param ModuleConfig   $moduleConfig
+     * @param JsonFactory    $jsonResultFactory
+     * @param RequestFactory $requestFactory
      */
     public function __construct(
         Context $context,
@@ -66,9 +66,11 @@ class Apm extends Action
             ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
 
         if (!$this->moduleConfig->getConfigValue('active')) {
-            return $result->setData([
+            return $result->setData(
+                [
                 'error_message' => __('Nuvei payments module is not active at the moment!')
-            ]);
+                ]
+            );
         }
 
         $params = array_merge(
@@ -98,11 +100,13 @@ class Apm extends Action
                 'Apm Controller - Exception:'
             );
             
-            return $result->setData([
+            return $result->setData(
+                [
                 "error"        => 1,
                 "redirectUrl"    => null,
                 "message"        => $e->getMessage()
-            ]);
+                ]
+            );
         }
         
         $response['error'] = 0;
@@ -112,18 +116,18 @@ class Apm extends Action
             || empty($response['redirectUrl'])
         ) {
             $response['error'] = 1;
-//            
-//            return $result->setData([
-//                "error"         => 1,
-//                "message"       => $response['reason'] ?? __('Unexpected payment error'),
-//            ]);
+            //            
+            //            return $result->setData([
+            //                "error"         => 1,
+            //                "message"       => $response['reason'] ?? __('Unexpected payment error'),
+            //            ]);
         }
         
-//        return $result->setData([
-//            "error"         => 0,
-//            "redirectUrl"   => $response['redirectUrl'],
-//            "message"       => $response['status'],
-//        ]);
+        //        return $result->setData([
+        //            "error"         => 0,
+        //            "redirectUrl"   => $response['redirectUrl'],
+        //            "message"       => $response['status'],
+        //        ]);
         
         return $result->setData($response);
     }

@@ -17,11 +17,11 @@ abstract class AbstractPayment extends AbstractRequest
     /**
      * AbstractPayment constructor.
      *
-     * @param Config                $config
-     * @param Curl                  $curl
-     * @param ResponseFactory       $responseFactory
-     * @param OrderPayment|null     $orderPayment
-     * @param ReaderWriter          $readerWriter
+     * @param Config            $config
+     * @param Curl              $curl
+     * @param ResponseFactory   $responseFactory
+     * @param OrderPayment|null $orderPayment
+     * @param ReaderWriter      $readerWriter
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,

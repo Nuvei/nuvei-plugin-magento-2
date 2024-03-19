@@ -134,7 +134,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         parent::__construct($context);
         
-		$this->loop_max_tries  = $this->moduleConfig->isTestModeEnabled() ? 10 : 4;
+        $this->loop_max_tries  = $this->moduleConfig->isTestModeEnabled() ? 10 : 4;
     }
     
     /**
@@ -182,20 +182,21 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $this->request->getPostValue()
             );
             
-            $this->readerWriter->createLog([
+            $this->readerWriter->createLog(
+                [
                     'Request params'    => $this->params,
-                    'REMOTE_ADDR'       => @$_SERVER['REMOTE_ADDR'],
-                    'REMOTE_PORT'       => @$_SERVER['REMOTE_PORT'],
-                    'REQUEST_METHOD'    => @$_SERVER['REQUEST_METHOD'],
-                    'HTTP_USER_AGENT'   => @$_SERVER['HTTP_USER_AGENT'],
+                    'REMOTE_ADDR'       => $_SERVER['REMOTE_ADDR'] ?? '',
+                    'REMOTE_PORT'       => $_SERVER['REMOTE_PORT'] ?? '',
+                    'REQUEST_METHOD'    => $_SERVER['REQUEST_METHOD'] ?? '',
+                    'HTTP_USER_AGENT'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 ],
                 'DMN params:'
             );
             
-            ### DEBUG
-//            $this->jsonOutput->setData('DMN manually stopped.');
-//            return $this->jsonOutput;
-            ### DEBUG
+            // DEBUG
+            //            $this->jsonOutput->setData('DMN manually stopped.');
+            //            return $this->jsonOutput;
+            // DEBUG
             
             // do not save message for the tokenization
             if (!empty($this->params['type']) && 'CARD_TOKENIZATION' == $this->params['type']) {
@@ -244,12 +245,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     ? $last_record[Payment::TRANSACTION_TYPE] : '';
             }
             
-            # check for Subscription State DMN
+            // check for Subscription State DMN
             if ($this->processSubscrDmn($ord_trans_addit_info)) {
                 return $this->jsonOutput;
             }
             
-            # Subscription transaction DMN
+            // Subscription transaction DMN
             if (!empty($this->params['dmnType'])
                 && 'subscriptionPayment' == $this->params['dmnType']
             ) {
@@ -279,9 +280,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
                 return $this->jsonOutput;
             }
-            # /Subscription transaction DMN
+            // /Subscription transaction DMN
             
-            # For Auth and Settle check the internal Nuvei Order ID
+            // For Auth and Settle check the internal Nuvei Order ID
             if (isset($this->params['transactionType'])
                 && in_array($this->params['transactionType'], ['Auth', 'Sale'])
             ) {
@@ -295,8 +296,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             
                     $this->readerWriter->createLog(
                         [
-                            'PPP_TransactionID' => @$this->params['PPP_TransactionID'],
-                            'orderId'           => @$createOrderData['orderId'],
+                            'PPP_TransactionID' => $this->params['PPP_TransactionID'] ?? '',
+                            'orderId'           => $createOrderData['orderId'] ?? '',
                         ],
                         $msg
                     );
@@ -305,7 +306,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     return $this->jsonOutput;
                 }
             }
-            # /For Auth and Settle check the internal Nuvei Order ID
+            // /For Auth and Settle check the internal Nuvei Order ID
             
             // set additional data
             if (!empty($this->params['payment_method'])) {
@@ -343,8 +344,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             // /do not overwrite Order status
 
             // compare them later
-//            $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
-//            $dmn_total      = round((float) $this->params['totalAmount'], 2);
+            //            $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
+            //            $dmn_total      = round((float) $this->params['totalAmount'], 2);
             
             // PENDING TRANSACTION
             if ($status === "pending") {
@@ -430,10 +431,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return $this->jsonOutput;
         }
         
-        # try to create Subscription plans
+        // try to create Subscription plans
         $this->createSubscription($this->orderIncrementId);
         
-        # Cancel active Subscriptions, if there are any
+        // Cancel active Subscriptions, if there are any
         if (in_array($status, ['approved', 'success'])
             && 'void' == $tr_type_param
         ) {
@@ -470,7 +471,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $this->sc_transaction_type
             );
         }
-        # /Fraud check
+        // /Fraud check
         
         $this->orderPayment
             ->setAuthAmount($this->params['totalAmount'])
@@ -528,8 +529,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 'order status'          => $this->order->getStatus(),
                 'tryouts'               => $this->loop_tries,
                 'count($invCollection)' => count($invCollection),
-            ]
-            , 'processSaleAndSettleDMN() - after the Order Status check.');
+            ],
+            'processSaleAndSettleDMN() - after the Order Status check.'
+        );
         
         $this->sc_transaction_type  = Payment::SC_SETTLED;
         
@@ -538,7 +540,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $customData         = isset($this->params["customData"])
             ? json_decode($this->params["customData"], true) : [];
         
-//        if (empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
+        //        if (empty($this->params["customData"]) || 'store-request' != $this->params["customData"]) {
         if (empty($customData['sender']) || 'store' != $customData['sender']) {
             $is_cpanel_settle = true;
         }
@@ -579,10 +581,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 if ($dmn_inv_id == $invoice->getId()) {
                     $this->curr_trans_info['invoice_id'] = $invoice->getId();
 
-                    $this->readerWriter->createLog([
+                    $this->readerWriter->createLog(
+                        [
                         '$dmn_inv_id' => $dmn_inv_id,
                         '$invoice->getId()' => $invoice->getId()
-                    ]);
+                        ]
+                    );
                     
                     $invoice->setCanVoidFlag(true);
                     $invoice
@@ -609,7 +613,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         // there are not invoices, but we can create
-//        $this->readerWriter->createLog('Try to create Invoice');
+        //        $this->readerWriter->createLog('Try to create Invoice');
 
         $this->orderPayment
             ->setIsTransactionPending(0)
@@ -660,7 +664,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     }
     
     /**
-     * @param string $tr_type_param
+     * @param  string $tr_type_param
      * @return void
      */
     private function processVoidDmn($tr_type_param)
@@ -728,7 +732,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     }
     
     /**
-     * @param array $ord_trans_addit_info   Previous transactions data.
+     * @param array $ord_trans_addit_info Previous transactions data.
      */
     private function processRefundDmn($ord_trans_addit_info)
     {
@@ -742,7 +746,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->sc_transaction_type  = Payment::SC_REFUNDED;
         $total_amount               = (float) $this->params['totalAmount'];
         
-        if ( (!empty($this->params['totalAmount']) && 'cc_card' == $this->params["payment_method"])
+        if ((!empty($this->params['totalAmount']) && 'cc_card' == $this->params["payment_method"])
             || false !== strpos($this->params["merchant_unique_id"], 'gwp')
         ) {
             $this->refund_msg = '<br/>Refunded amount: '
@@ -806,7 +810,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 '$this->orderPayment->getId()'  => $this->orderPayment->getId(),
                 '$this->order->getId()'         => $this->order->getId(),
                 'count $transactionList'        => count($transactionList),
-//                '$transactionList'              => (array) $transactionList,
+            //                '$transactionList'              => (array) $transactionList,
             ]
         );
         
@@ -877,14 +881,13 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $invCollection                          = $this->order->getInvoiceCollection();
                 $invoice                                = current($invCollection);
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
-//                $this->sc_transaction_type              = Payment::SC_CANCELED;
+                //                $this->sc_transaction_type              = Payment::SC_CANCELED;
                 
                 $this->order->setStatus(Payment::SC_CANCELED);
 
                 $invoice
                     ->setTransactionId($this->params['TransactionID'])
-                    ->setState(Invoice::STATE_CANCELED)
-                ;
+                    ->setState(Invoice::STATE_CANCELED);
                 
                 $this->invoiceRepository->save($invoice);
             }
@@ -904,7 +907,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     /**
      * Work with Subscription status DMN.
      *
-     * @param array $ord_trans_addit_info
+     * @param  array $ord_trans_addit_info
      * @return bool
      */
     private function processSubscrDmn($ord_trans_addit_info)
@@ -934,7 +937,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     continue;
                 }
 
-//                $ord_trans_addit_info[$key][Payment::SUBSCR_IDS]    = $this->params['subscriptionId'];
+                //                $ord_trans_addit_info[$key][Payment::SUBSCR_IDS]    = $this->params['subscriptionId'];
                 
                 // set additional data
                 $this->orderPayment->setAdditionalInformation(
@@ -1036,10 +1039,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     ->setData('message', 'Quote payment method is "' . $method . '"');
             }
 
-//            $params = array_merge(
-//                $this->request->getParams(),
-//                $this->request->getPostValue()
-//            );
+            //            $params = array_merge(
+            //                $this->request->getParams(),
+            //                $this->request->getPostValue()
+            //            );
             
             $orderId = $this->cartManagement->placeOrder($params);
 
@@ -1068,7 +1071,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     /**
      * Function validateChecksum
      *
-     * @param array $params
+     * @param array  $params
      * @param string $orderIncrementId
      *
      * @return mixed
@@ -1115,8 +1118,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $msg = 'Checksum validation failed for advanceResponseChecksum and Order #' . $this->orderIncrementId;
 
                 if ($this->moduleConfig->isTestModeEnabled() && null !== $this->order) {
-                    $this->order->addStatusHistoryComment(__($msg)
-                        . ' ' . __('Transaction type ') . $this->params['type']);
+                    $this->order->addStatusHistoryComment(
+                        __($msg)
+                        . ' ' . __('Transaction type ') . $this->params['type']
+                    );
                 }
                 
                 $this->readerWriter->createLog($msg);
@@ -1150,8 +1155,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $msg = 'Checksum validation failed for responsechecksum and Order #' . $this->orderIncrementId;
 
             if ($this->moduleConfig->isTestModeEnabled() && null !== $this->order) {
-                $this->order->addStatusHistoryComment(__($msg)
-                    . ' ' . __('Transaction type ') . $this->params['type']);
+                $this->order->addStatusHistoryComment(
+                    __($msg)
+                    . ' ' . __('Transaction type ') . $this->params['type']
+                );
             }
             
             $this->readerWriter->createLog($msg);
@@ -1166,7 +1173,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     /**
      * Try to create Subscriptions.
      *
-     * @param int   $orderIncrementId
+     * @param  int $orderIncrementId
      * @return void
      */
     private function createSubscription($orderIncrementId)
@@ -1190,8 +1197,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         if (!in_array($this->params['transactionType'], ['Sale', 'Settle', 'Auth'])) {
-            $this->readerWriter->createLog('We start Rebilling only after Auth, '
-                . 'Settle or Sale. Stop the proccess.');
+            $this->readerWriter->createLog(
+                'We start Rebilling only after Auth, '
+                . 'Settle or Sale. Stop the proccess.'
+            );
             return;
         }
         
@@ -1239,8 +1248,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
             // add note to the Order - Success
             if ('success' == strtolower($resp['status'])) {
-                $msg =  __("<b>Subscription</b> was created. Subscription ID "
-                    . $resp['subscriptionId']). '. '
+                $msg =  __(
+                    "<b>Subscription</b> was created. Subscription ID "
+                    . $resp['subscriptionId']
+                ). '. '
                     . __('Recurring amount: ') . $this->params['currency'] . ' '
                     . $subsc_data['recurringAmount'];
             }
@@ -1300,10 +1311,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $value = $this->transactionId;
         }
         
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             '$identificator value'  => $value,
             '$identificator name'   => $field,
-        ]);
+            ]
+        );
         
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter(
@@ -1325,8 +1338,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
             }
             
             if (!$list || empty($list)) {
-                $this->readerWriter->createLog('DMN try ' . $this->loop_tries
-                    . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.');
+                $this->readerWriter->createLog(
+                    'DMN try ' . $this->loop_tries
+                    . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.'
+                );
                 
                 sleep(3);
             }
@@ -1397,7 +1412,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     
     private function createAutoVoid()
     {
-        $order_request_time	= $this->params['customField4']; // time of create/update order
+        $order_request_time    = $this->params['customField4']; // time of create/update order
         $curr_time          = time();
         $dmnTrType          = $this->params['transactionType'];
         
@@ -1443,13 +1458,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $request = $this->requestFactory->create(AbstractRequest::PAYMENT_VOID_METHOD);
         
         $resp = $request
-            ->setParams([
+            ->setParams(
+                [
                 'clientUniqueId'        => date('YmdHis') . '_' . uniqid(),
                 'currency'              => $this->params['currency'],
                 'amount'                => $this->params['totalAmount'],
                 'relatedTransactionId'  => $this->params['TransactionID'],
                 'customData'            => 'This is an Auto-Void transaction',
-            ])
+                ]
+            )
             ->process();
         
         if (!empty($resp->getTransactionId())) {
@@ -1472,8 +1489,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
     /**
      * Prepare the data for the current Transaction, but first check for errors.
      * 
-     * @param array $ord_trans_addit_info   The existing transaction data for the Order.
-     * @param string $status                The DMN Status.
+     * @param array  $ord_trans_addit_info The existing transaction data for the Order.
+     * @param string $status               The DMN Status.
      * 
      * @return bool
      */
@@ -1609,7 +1626,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if ('void' == strtolower($order_tr_type)
             && strtolower($order_status) == 'approved'
             && (strtolower($this->params['transactionType']) != 'void'
-                || 'approved' != $status)
+            || 'approved' != $status)
         ) {
             $msg = 'No more actions are allowed for order #' . $this->order->getId();
             
@@ -1660,7 +1677,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     /**
      *
      * @param array $ord_trans_addit_info
-     * @param int $tries
+     * @param int   $tries
      *
      * @return boolean
      */
@@ -1763,7 +1780,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         if (!empty($this->params["clientUniqueId"])) {
             $this->readerWriter->createLog('order identificator - orderIncrementId');
-//            $this->orderIncrementId = current(explode('_', $this->params["clientUniqueId"]));
+            //            $this->orderIncrementId = current(explode('_', $this->params["clientUniqueId"]));
             $this->orderIncrementId = $this->params["clientUniqueId"];
             return;
         }
@@ -1771,7 +1788,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if (!empty($this->params["merchant_unique_id"])) {
             // modified because of the PayPal Sandbox problem with duplicate Orders IDs
             $this->readerWriter->createLog('order identificator - orderIncrementId');
-//            $this->orderIncrementId = current(explode('_', $this->params["merchant_unique_id"]));
+            //            $this->orderIncrementId = current(explode('_', $this->params["merchant_unique_id"]));
             $this->orderIncrementId = $this->params["merchant_unique_id"];
             return;
         }
@@ -1787,7 +1804,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
      */
     private function fraudCheck()
     {
-        # Fraud check
+        // Fraud check
         $order_total    = round((float) $this->order->getBaseGrandTotal(), 2);
         $order_curr     = $this->order->getBaseCurrencyCode();
         

@@ -22,12 +22,12 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     private $paymentsPlans;
     
     /**
-     * @param Config            $config
-     * @param Curl              $curl
-     * @param Factory           $responseFactory
-     * @param Cart              $cart
-     * @param ReaderWriter      $readerWriter
-     * @param PaymentsPlans     $paymentsPlans
+     * @param Config        $config
+     * @param Curl          $curl
+     * @param Factory       $responseFactory
+     * @param Cart          $cart
+     * @param ReaderWriter  $readerWriter
+     * @param PaymentsPlans $paymentsPlans
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,
@@ -125,11 +125,13 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         $amount             = $this->config->getQuoteBaseTotal($quoteId);
         $currency           = $this->config->getQuoteBaseCurrency($quoteId);
         
-        $this->readerWriter->createLog([
+        $this->readerWriter->createLog(
+            [
             '$subs_data' => $subs_data,
             'quoteId' => $quoteId,
             'getQuoteBaseCurrency' => $currency,
-        ]);
+            ]
+        );
         
         $params = array_merge_recursive(
             parent::getParams(),
@@ -195,7 +197,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     /**
      * Get attribute options
      *
-     * @param \Magento\Eav\Api\Data\AttributeInterface $attribute
+     * @param  \Magento\Eav\Api\Data\AttributeInterface $attribute
      * @return array
      */
     private function getOptions(\Magento\Eav\Api\Data\AttributeInterface $attribute) : array

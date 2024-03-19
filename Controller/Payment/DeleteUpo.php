@@ -10,7 +10,7 @@ class DeleteUpo extends Action
     /**
      * @var RedirectUrlBuilder
      */
-//    private $redirectUrlBuilder;
+    //    private $redirectUrlBuilder;
 
     /**
      * @var ModuleConfig
@@ -32,16 +32,16 @@ class DeleteUpo extends Action
     /**
      * Redirect constructor.
      *
-     * @param Context               $context
-     * @param RedirectUrlBuilder    $redirectUrlBuilder
-     * @param ModuleConfig          $moduleConfig
-     * @param JsonFactory           $jsonResultFactory
-     * @param RequestFactory        $requestFactory
-     * @param ReaderWriter          $readerWriter
+     * @param Context            $context
+     * @param RedirectUrlBuilder $redirectUrlBuilder
+     * @param ModuleConfig       $moduleConfig
+     * @param JsonFactory        $jsonResultFactory
+     * @param RequestFactory     $requestFactory
+     * @param ReaderWriter       $readerWriter
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-//        \Nuvei\Checkout\Model\Redirect\Url $redirectUrlBuilder,
+        //        \Nuvei\Checkout\Model\Redirect\Url $redirectUrlBuilder,
         \Nuvei\Checkout\Model\Config $moduleConfig,
         \Magento\Framework\Controller\Result\JsonFactory $jsonResultFactory,
         \Nuvei\Checkout\Model\Request\Factory $requestFactory,
@@ -49,7 +49,7 @@ class DeleteUpo extends Action
     ) {
         parent::__construct($context);
 
-//        $this->redirectUrlBuilder   = $redirectUrlBuilder;
+        //        $this->redirectUrlBuilder   = $redirectUrlBuilder;
         $this->moduleConfig         = $moduleConfig;
         $this->jsonResultFactory    = $jsonResultFactory;
         $this->requestFactory       = $requestFactory;
@@ -63,9 +63,11 @@ class DeleteUpo extends Action
         if (!$this->moduleConfig->getConfigValue('active')) {
             $this->readerWriter->createLog('Nuvei payments module is not active at the moment!');
             
-            return $result->setData([
+            return $result->setData(
+                [
                 'error_message' => __('Nuvei payments module is not active at the moment!')
-            ]);
+                ]
+            );
         }
         
         try {

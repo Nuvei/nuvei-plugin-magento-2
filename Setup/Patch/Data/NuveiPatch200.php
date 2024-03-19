@@ -16,21 +16,33 @@ use Magento\Eav\Setup\EavSetupFactory; // this class will be generated during th
 
 class NuveiPatch200 implements DataPatchInterface
 {
-    /** @var ModuleDataSetupInterface */
+    /**
+     * 
+     *
+     * @var ModuleDataSetupInterface 
+     */
     private $moduleDataSetup;
 
-    /** @var EavSetupFactory */
+    /**
+     * 
+     *
+     * @var EavSetupFactory 
+     */
     private $eavSetupFactory;
     
-    /** @var OrderStatusFactory */
+    /**
+     * 
+     *
+     * @var OrderStatusFactory 
+     */
     private $orderStatusFactory;
     
     private $readerWriter;
    
     /**
-     * @param OrderStatusFactory        $orderStatusFactory
-     * @param ModuleDataSetupInterface  $moduleDataSetup
-     * @param EavSetupFactory           $eavSetupFactory
+     * @param OrderStatusFactory       $orderStatusFactory
+     * @param ModuleDataSetupInterface $moduleDataSetup
+     * @param EavSetupFactory          $eavSetupFactory
      */
     public function __construct(
         OrderStatusFactory          $orderStatusFactory,
@@ -47,7 +59,11 @@ class NuveiPatch200 implements DataPatchInterface
      */
     public function apply()
     {
-        /** @var EavSetup $eavSetup */
+        /**
+* 
+         *
+ * @var EavSetup $eavSetup 
+*/
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
         
         // add few new Order States
@@ -88,7 +104,7 @@ class NuveiPatch200 implements DataPatchInterface
         $scCanceled->assignState(Order::STATE_CANCELED, false, true);
         // /add few new Order States
         
-        # Admin > Product > Nuvei Subscription details
+        // Admin > Product > Nuvei Subscription details
         // Enable subscription
         $eavSetup->addAttribute(
             \Magento\Catalog\Model\Product::ENTITY,
@@ -308,7 +324,7 @@ class NuveiPatch200 implements DataPatchInterface
                 'note'                      => __('Integer value, bigger than 0.'),
             ]
         );
-        # Admin > Product > Nuvei Subscription details END
+        // Admin > Product > Nuvei Subscription details END
         
         return $this;
     }

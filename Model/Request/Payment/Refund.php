@@ -22,12 +22,12 @@ class Refund extends AbstractPayment implements RequestInterface
     /**
      * Refund constructor.
      *
-     * @param Config                            $config
-     * @param Curl                              $curl
-     * @param ResponseFactory                   $responseFactory
-     * @param OrderPayment                      $orderPayment
-     * @param Http                              $request
-     * @param float                             $amount
+     * @param Config          $config
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
+     * @param OrderPayment    $orderPayment
+     * @param Http            $request
+     * @param float           $amount
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,
@@ -88,7 +88,8 @@ class Refund extends AbstractPayment implements RequestInterface
         if (!in_array(
             $this->orderPayment->getAdditionalInformation(Payment::TRANSACTION_PAYMENT_METHOD),
             Payment::PAYMETNS_SUPPORT_REFUND
-        )) {
+        )
+        ) {
             $msg = 'Refund Error - The Transaction Payment method does not support Refund.';
             
             $this->readerWriter->createLog(

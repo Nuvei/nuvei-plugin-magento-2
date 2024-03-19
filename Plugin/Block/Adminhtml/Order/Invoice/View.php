@@ -54,7 +54,7 @@ class View
                 return;
             }
                 
-//            $this->readerWriter->createLog(count($invCollection));
+            //            $this->readerWriter->createLog(count($invCollection));
 
             // Remove Credit Memo button
             if (!in_array($payment_method, Payment::PAYMETNS_SUPPORT_REFUND)
@@ -81,7 +81,7 @@ class View
             elseif ($invoiceDetails->canVoid()) {
                 $message = __('Are you sure you want to void the payment?');
                 
-//                $view->buttonList->add(
+                //                $view->buttonList->add(
                 $view->addButton(
                     'void',
                     [

@@ -40,10 +40,12 @@ class Button extends \Magento\Config\Block\System\Config\Form\Field
     {
         $button = $this->getLayout()
             ->createBlock(\Magento\Backend\Block\Widget\Button::class)
-            ->setData([
+            ->setData(
+                [
                 'id'    => 'get_plans_button',
                 'label' => __('Collect Plans'),
-            ]);
+                ]
+            );
         
         return $button->toHtml();
     }

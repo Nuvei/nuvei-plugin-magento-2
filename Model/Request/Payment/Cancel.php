@@ -22,12 +22,12 @@ class Cancel extends AbstractPayment implements RequestInterface
     /**
      * Refund constructor.
      *
-     * @param Config            $config
-     * @param Curl              $curl
-     * @param ResponseFactory   $responseFactory
-     * @param OrderPayment      $orderPayment
-     * @param Http              $request
-     * @param ReaderWriter      $readerWriter
+     * @param Config          $config
+     * @param Curl            $curl
+     * @param ResponseFactory $responseFactory
+     * @param OrderPayment    $orderPayment
+     * @param Http            $request
+     * @param ReaderWriter    $readerWriter
      */
     public function __construct(
         \Nuvei\Checkout\Model\Config $config,
@@ -166,8 +166,8 @@ class Cancel extends AbstractPayment implements RequestInterface
         
         $this->readerWriter->createLog([$order->getBaseTotalInvoiced(), $trans_to_void_data], 'Transaction to Cancel');
         
-//        $amount     = (float) $trans_to_void_data[Payment::TRANSACTION_TOTAL_AMOUN];
-//        $amount     = round($order->getBaseTotalInvoiced(), 2);
+        //        $amount     = (float) $trans_to_void_data[Payment::TRANSACTION_TOTAL_AMOUN];
+        //        $amount     = round($order->getBaseTotalInvoiced(), 2);
         $amount     = round($order->getBaseGrandTotal(), 2);
         $auth_code  = !empty($trans_to_void_data[Payment::TRANSACTION_AUTH_CODE])
             ? $trans_to_void_data[Payment::TRANSACTION_AUTH_CODE] : '';
@@ -204,10 +204,10 @@ class Cancel extends AbstractPayment implements RequestInterface
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {
             $params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(
-                    $order->getIncrementId(),
-                    $order->getStoreId(),
-                    ['invoice_id' => $inv_id]
-                );
+                $order->getIncrementId(),
+                $order->getStoreId(),
+                ['invoice_id' => $inv_id]
+            );
         }
 
         return array_merge_recursive($params, parent::getParams());
