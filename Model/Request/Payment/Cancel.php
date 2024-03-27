@@ -77,7 +77,7 @@ class Cancel extends AbstractPayment implements RequestInterface
      */
     protected function getResponseHandlerType()
     {
-        return AbstractResponse::PAYMENT_VOID_HANDLER;
+        return '';
     }
 
     /**

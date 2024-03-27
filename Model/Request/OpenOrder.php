@@ -3,7 +3,6 @@
 namespace Nuvei\Checkout\Model\Request;
 
 use Magento\Framework\Exception\PaymentException;
-use Magento\Framework\Serialize\SerializerInterface;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Lib\Http\Client\Curl;
@@ -53,6 +52,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $paymentsPlans;
     private $quoteFactory;
     private $httpRequest;
+    private $serializer;
     
     /**
      * OpenOrder constructor.
@@ -76,7 +76,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
         \Magento\CatalogInventory\Model\StockState $stockState,
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
-        \Magento\Framework\App\RequestInterface $httpRequest
+        \Magento\Framework\App\RequestInterface $httpRequest,
+        \Magento\Framework\Serialize\Serializer\Serialize $serializer
     ) {
         parent::__construct(
             $config,
@@ -91,6 +92,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->stockState       = $stockState;
         $this->quoteFactory     = $quoteFactory;
         $this->httpRequest      = $httpRequest;
+        $this->serializer       = $serializer;
     }
 
     /**
@@ -213,7 +215,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'sessionToken'      => $req_resp['sessionToken'],
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
-            'itemsBaseInfoHash' => hash('md5', SerializerInterface::serialize($items_base_data)),
+            'itemsBaseInfoHash' => hash('md5', $this->serializer->serialize($items_base_data)),
             'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
         ];
         
@@ -240,9 +242,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $this->readerWriter->createLog(
             [
-            'quote id' => $this->quoteId,
-            'quote CREATE_ORDER_DATA' => $this->quote->getPayment()
-                ->getAdditionalInformation(Payment::CREATE_ORDER_DATA),
+                'quote id' => $this->quoteId,
+                'quote CREATE_ORDER_DATA' => $this->quote->getPayment()
+                    ->getAdditionalInformation(Payment::CREATE_ORDER_DATA),
             ]
         );
         
@@ -312,7 +314,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         // success
         if (!empty($order_data['itemsBaseInfoHash'])
-            && $order_data['itemsBaseInfoHash'] == hash('md5', SerializerInterface::serialize($items_base_data))
+            && $order_data['itemsBaseInfoHash'] == hash('md5', $this->serializer->serialize($items_base_data))
         ) {
             $this->error = 0;
             
@@ -352,8 +354,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $this->config->setNuveiUseCcOnly(!empty($this->subs_data) ? true : false);
         
-        $quoteId    = empty($this->quoteId) ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
-        $amount     = $this->config->getQuoteBaseTotal($quoteId);
+        $quoteId            = empty($this->quoteId) ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
+        $amount             = $this->config->getQuoteBaseTotal($quoteId);
+        $billing_address    = [];
         
         if (!empty($this->billingAddress)) {
             $billing_address['firstName']   = $this->billingAddress['firstname'] ?: $billing_address['firstName'];

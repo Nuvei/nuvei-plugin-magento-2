@@ -9,6 +9,20 @@ namespace Nuvei\Checkout\Model;
  */
 class ReaderWriter
 {
+    private $fieldsToMask = [
+        'ips'       => ['ipAddress'],
+        'names'     => ['firstName', 'lastName', 'first_name', 'last_name', 'shippingFirstName', 'shippingLastName'],
+        'emails'    => [
+            'userTokenId',
+            'email',
+            'shippingMail', // from the DMN
+            'userid', // from the DMN
+            'user_token_id', // from the DMN
+        ],
+        'address'   => ['address', 'phone', 'zip'],
+        'others'    => ['userAccountDetails', 'userPaymentOption', 'paymentOption'],
+    ];
+    
     private $fileSystem;
     private $config;
     private $directory;
@@ -52,6 +66,13 @@ class ReaderWriter
         } elseif ('' === $data) {
             $d = 'Data is Empty.';
         } elseif (is_array($data)) {
+            if ((int) $this->config->getConfigValue('mask_user_details') == 1) {
+                // clean possible objects inside array
+                $data = json_decode(json_encode($data), true);
+                
+                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+            }
+            
             // do not log accounts if on prod
             if (!$this->config->isTestModeEnabled()) {
                 if (isset($data['userAccountDetails']) && is_array($data['userAccountDetails'])) {
@@ -81,6 +102,12 @@ class ReaderWriter
 
             $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         } elseif (is_object($data)) {
+            if ((int) $this->config->getConfigValue('mask_user_details') == 1) {
+                $data = json_decode(json_encode($data), true);
+                
+                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+            }
+            
             $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         } else {
             $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
@@ -269,5 +296,29 @@ class ReaderWriter
         }
         
         return false;
+    }
+    
+    /**
+     * A callback function for arraw_walk_recursive.
+     * 
+     * @param mixed $value
+     * @param mixed $key
+     * @param array $fields
+     */
+    private function maskData(&$value, $key, $fields)
+    {
+        if (!empty($value)) {
+            if (in_array($key, $fields['ips'])) {
+                $value = rtrim(long2ip(ip2long($value) & (~255)), "0")."x";
+            } elseif (in_array($key, $fields['names'])) {
+                $value = substr($value, 0, 1) . '****';
+            } elseif (in_array($key, $fields['emails'])) {
+                $value = '****' . substr($value, 4);
+            } elseif (in_array($key, $fields['address'])
+                || in_array($key, $fields['others'])
+            ) {
+                $value = '****';
+            }
+        }
     }
 }

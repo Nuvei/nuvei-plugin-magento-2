@@ -54,21 +54,22 @@ class LatestPluginVersionMessage implements MessageInterface
      */
     public function isDisplayed()
     {
+        $this->readerWriter->createLog('isDisplayed()');
+        
         if ($this->modulConfig->getConfigValue('active') === false) {
             $this->readerWriter->createLog('LatestPluginVersionMessage Error - the module is not active.');
             return false;
         }
         
         // check every 7th day
-        //        if ((int) date('d', time()) % 7 != 0) {
-        //            return;
-        //        }
+        if ((int) date('d', time()) % 7 != 0) {
+            return;
+        }
         
         $this->session->start();
         
         $git_version    = 0;
         $this_version   = 0;
-        
         
         try {
             $git_version = $this->session->getVariable('nuveiPluginGitVersion');
@@ -149,8 +150,6 @@ class LatestPluginVersionMessage implements MessageInterface
         //        if (0 == $git_version && !empty($file)) {
         //            $git_version = (int) str_replace('.', '', $file);
         //        }
-        
-        $this->readerWriter->createLog('isDisplayed()');
         
         $sourcePlatformField = $this->modulConfig->getSourcePlatformField();
         

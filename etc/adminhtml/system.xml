@@ -249,6 +249,19 @@
                         <comment>Show Nuvei GW as payment option for Zero-Total Orders. For product with Nuvei Payment Plan this is enable by default.</comment>
 					</field>
                     
+					<field id="mask_user_details"
+						   translate="label"
+						   type="select"
+						   sortOrder="129"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0"
+                           canRestore="1">
+						<label>Mask Users details in the log</label>
+						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						<config_path>payment/nuvei/mask_user_details</config_path>
+					</field>
+                    
 					<field id="debug"
 						   translate="label"
 						   type="select"

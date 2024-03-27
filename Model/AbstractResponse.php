@@ -204,8 +204,8 @@ abstract class AbstractResponse
     {
         return [
             'Status'    => $this->getStatus(),
-            'Headers'    => $this->getHeaders(),
-            'Body'        => $this->getBody(),
+            'Headers'   => $this->getHeaders(),
+            'Body'      => $this->getBody(),
         ];
     }
 

@@ -4,6 +4,7 @@
 # 3.1.5
 ```
     * Code scanned and cleaned with PHPCS and PHPCBF.
+    * Added option to mask user details in the log.
 ```
 
 # 3.1.4-p1
