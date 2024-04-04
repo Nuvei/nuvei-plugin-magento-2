@@ -102,7 +102,9 @@ class ReaderWriter
 
             $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         } elseif (is_object($data)) {
-            if ((int) $this->config->getConfigValue('mask_user_details') == 1) {
+            if ((int) $this->config->getConfigValue('mask_user_details') == 1
+                && !empty($data)
+            ) {
                 $data = json_decode(json_encode($data), true);
                 
                 array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
