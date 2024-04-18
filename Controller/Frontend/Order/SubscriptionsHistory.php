@@ -84,7 +84,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         }
         
         $resultPage = $this->resultPageFactory->create();
-        $resultPage->getConfig()->getConfigValue('title')->set(__('My Nuvei Subscriptions'));
+        $resultPage->getConfig()->getTitle()->set(__('My Nuvei Subscriptions'));
 
         //        $block = $resultPage->getLayout()->getBlock('customer.account.link.back');
         //        if ($block) {
