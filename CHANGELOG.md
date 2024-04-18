@@ -3,8 +3,8 @@
 
 # 3.1.4-p2
 ```
-    * For Magento v2.4.* versions where Zend\Uri\Uri class is missing. It is replaced with Laminas\Uri\Uri.
-    * Fixed the bug when try to set custom title on Nuvei Subscriptions page.
+    * For Magento v2.4.* where Zend\Uri\Uri class is missing. It is replaced with Laminas\Uri\Uri.
+    * Fixed the bug when try to set custom title on Storefront My Account -> Nuvei Subscriptions page.
 ```
 
 # 3.1.4-p1
