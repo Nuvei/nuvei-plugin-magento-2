@@ -305,7 +305,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->items        = $quote->getItems();
         $items_base_data    = $this->isProductAvailable();
         $this->error        = 1;
-        $magentoVersionInt  = str_replace('.', '', $this->config->getMagentoVersion());
+        $magentoVersionInt  = str_replace('.', '', (string) $this->config->getMagentoVersion());
         $quotePM            = '';
         
         if ($quote->getPayment()) {
@@ -363,7 +363,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $billing_address['lastName']    = $this->billingAddress['lastname'] ?: $billing_address['lastName'];
             
             if (is_array($this->billingAddress['street']) && !empty($this->billingAddress['street'])) {
-                $address                    = trim(implode(' ', $this->billingAddress['street']));
+                $address                    = (string) trim(implode(' ', $this->billingAddress['street']));
                 $billing_address['address'] = str_replace(array("\n", "\r", '\\'), ' ', $address);
             }
             
@@ -397,7 +397,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'merchantDetails'    => [
                 'customField1' => $amount,
                 'customField2' => isset($this->subs_data) ? json_encode($this->subs_data) : '',
-                'customField3' => $this->config->getReservedOrderId($quoteId),
+                //'customField3' => $this->config->getReservedOrderId($quoteId),
                 // customField4 will be set in AbstractRequest class
                 'customField5' => $currency,
             ],

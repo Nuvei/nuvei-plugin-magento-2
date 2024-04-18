@@ -762,7 +762,7 @@ class Config
             $billing_country = $this->getDefaultCountry();
         }
         
-        $address = str_replace(array("\n", "\r", '\\'), ' ', $billingAddress->getStreetFull());
+        $address = str_replace(array("\n", "\r", '\\'), ' ', (string) $billingAddress->getStreetFull());
         
         return [
             "firstName" => $b_f_name,
@@ -792,7 +792,7 @@ class Config
             $shipping_email = $this->getUserEmail();
         }
         
-        $address = str_replace(array("\n", "\r", "\\"), ' ', $shipping_address->getStreetFull());
+        $address = str_replace(array("\n", "\r", "\\"), ' ', (string) $shipping_address->getStreetFull());
         
         return [
             "firstName" => $shipping_address->getFirstname(),

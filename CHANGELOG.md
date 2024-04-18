@@ -5,6 +5,11 @@
 ```
     * Code scanned and cleaned with PHPCS and PHPCBF.
     * Added option to mask user details in the log.
+    * In SubscriptionsHistory replaced \Zend\Uri\Uri with \Laminas\Uri\Uri.
+    * At the places where use str_replace before check for the third paramter, typecast it to string.
+    * In openOrder and updateOrder requests skip customFiled3 - getReservedOrderId.
+    * In Cancel class added check if $order is an object, in case it is not throw an excception.
+    * In frontend nuvei.js script a new function was added. The idea is to prepend Nuvei SDK at the begining of the page head.
 ```
 
 # 3.1.4-p1

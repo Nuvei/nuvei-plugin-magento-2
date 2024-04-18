@@ -92,6 +92,14 @@ class Cancel extends AbstractPayment implements RequestInterface
         $orderPayment   = $this->orderPayment;
         $order          = $orderPayment->getOrder();
         
+        if (!is_object($order)) {
+            $msg = 'Void Error - there is not an Order';
+            
+            $this->readerWriter->createLog($order, $msg, 'WARN');
+            
+            throw new PaymentException(__($msg));
+        }
+        
         // AutoVoid flow when we pass all params from the DMN Class
         if (!empty($this->params) && is_array($this->params)) {
             // set notify url

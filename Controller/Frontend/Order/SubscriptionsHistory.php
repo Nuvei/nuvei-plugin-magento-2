@@ -17,7 +17,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
     private $helper;
     private $eavAttribute;
     private $config;
-    private $zendUri;
+    private $uri;
     private $readerWriter;
     private $paymentsPlans;
 
@@ -30,7 +30,8 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         \Magento\Framework\Pricing\Helper\Data $helper,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         Config $config,
-        \Zend\Uri\Uri $zendUri,
+//        \Zend\Uri\Uri $uri,
+        \Laminas\Uri\Uri $uri,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans
     ) {
@@ -41,7 +42,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         $this->helper               = $helper;
         $this->eavAttribute         = $eavAttribute;
         $this->config               = $config;
-        $this->zendUri              = $zendUri;
+        $this->uri                  = $uri;
         $this->readerWriter         = $readerWriter;
         $this->paymentsPlans        = $paymentsPlans;
         
@@ -116,8 +117,8 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
             }
             
             if (is_string($params['params'])) {
-                $this->zendUri->setQuery($params['params']);
-                $hash_params = $this->zendUri->getQueryAsArray();
+                $this->uri->setQuery($params['params']);
+                $hash_params = $this->uri->getQueryAsArray();
             } else {
                 $hash_params = $params['params'];
             }

@@ -1020,7 +1020,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     'quote payment Method'  => $method,
                     'quote id'              => $quote->getEntityId(),
                     'quote is active'       => $quote->getIsActive(),
-                    'quote reserved ord id' => $quote->getReservedOrderId(),
+//                    'quote reserved ord id' => $quote->getReservedOrderId(),
                 ],
                 'Quote data'
             );
