@@ -10,6 +10,8 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
     protected $resultPageFactory;
+    protected $moduleManager;
+    protected $objectManager;
     
     private $httpRequest;
     private $jsonResultFactory;
@@ -30,10 +32,10 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         \Magento\Framework\Pricing\Helper\Data $helper,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         Config $config,
-//        \Zend\Uri\Uri $uri,
-        \Laminas\Uri\Uri $uri,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans
+        \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
+        \Magento\Framework\Module\Manager $moduleManager,
+        \Magento\Framework\ObjectManagerInterface $objectManager
     ) {
         $this->resultPageFactory    = $resultPageFactory;
         $this->httpRequest          = $httpRequest;
@@ -42,11 +44,20 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         $this->helper               = $helper;
         $this->eavAttribute         = $eavAttribute;
         $this->config               = $config;
-        $this->uri                  = $uri;
         $this->readerWriter         = $readerWriter;
         $this->paymentsPlans        = $paymentsPlans;
+        $this->moduleManager        = $moduleManager;
+        $this->objectManager        = $objectManager;
         
         parent::__construct($context);
+        
+        if ($this->moduleManager->isEnabled('Zend_Uri')) {
+            $instanceName =  'Zend\Uri\Uri';
+        } else {
+            $instanceName = 'Laminas\Uri\Uri';
+        }
+        
+        $this->uri = $this->objectManager->create($instanceName);
     }
     
     /**
