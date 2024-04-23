@@ -990,83 +990,83 @@ class Dmn extends Action implements CsrfAwareActionInterface
      *
      * @param array $params
      */
-    private function placeOrder($params)
-    {
-        $this->readerWriter->createLog('PlaceOrder()');
-        
-        $result = $this->dataObjectFactory->create();
-        
-        if (empty($params['quote'])) {
-            return $result
-                ->setData('error', true)
-                ->setData('message', 'Missing Quote parameter.');
-        }
-        
-        try {
-            $quote = $this->quoteFactory->create()->loadByIdWithoutStore((int) $params['quote']);
-            
-            if (!is_object($quote)) {
-                $this->readerWriter->createLog($quote, 'placeOrder error - the quote is not an object.');
-
-                return $result
-                    ->setData('error', true)
-                    ->setData('message', 'The quote is not an object.');
-            }
-            
-            $method = $quote->getPayment()->getMethod();
-            
-            $this->readerWriter->createLog(
-                [
-                    'quote payment Method'  => $method,
-                    'quote id'              => $quote->getEntityId(),
-                    'quote is active'       => $quote->getIsActive(),
-//                    'quote reserved ord id' => $quote->getReservedOrderId(),
-                ],
-                'Quote data'
-            );
-
-            if ((int) $quote->getIsActive() == 0) {
-                $this->readerWriter->createLog($quote->getQuoteId(), 'Quote ID');
-
-                return $result
-                    ->setData('error', true)
-                    ->setData('message', 'Quote is not active.');
-            }
-
-            if ($method !== Payment::METHOD_CODE) {
-                return $result
-                    ->setData('error', true)
-                    ->setData('message', 'Quote payment method is "' . $method . '"');
-            }
-
-            //            $params = array_merge(
-            //                $this->request->getParams(),
-            //                $this->request->getPostValue()
-            //            );
-            
-            $orderId = $this->cartManagement->placeOrder($params);
-
-            $result
-                ->setData('success', true)
-                ->setData('order_id', $orderId);
-
-            $this->_eventManager->dispatch(
-                'nuvei_place_order',
-                [
-                    'result' => $result,
-                    'action' => $this,
-                ]
-            );
-        } catch (\Exception $exception) {
-            $this->readerWriter->createLog($exception->getMessage(), 'DMN placeOrder Exception: ');
-            
-            return $result
-                ->setData('error', true)
-                ->setData('message', $exception->getMessage());
-        }
-        
-        return $result;
-    }
+//    private function placeOrder($params)
+//    {
+//        $this->readerWriter->createLog($params, 'PlaceOrder()');
+//        
+//        $result = $this->dataObjectFactory->create();
+//        
+//        if (empty($params['quote'])) {
+//            return $result
+//                ->setData('error', true)
+//                ->setData('message', 'Missing Quote parameter.');
+//        }
+//        
+//        try {
+//            $quote = $this->quoteFactory->create()->loadByIdWithoutStore((int) $params['quote']);
+//            
+//            if (!is_object($quote)) {
+//                $this->readerWriter->createLog($quote, 'placeOrder error - the quote is not an object.');
+//
+//                return $result
+//                    ->setData('error', true)
+//                    ->setData('message', 'The quote is not an object.');
+//            }
+//            
+//            $method = $quote->getPayment()->getMethod();
+//            
+//            $this->readerWriter->createLog(
+//                [
+//                    'quote payment Method'  => $method,
+//                    'quote id'              => $quote->getEntityId(),
+//                    'quote is active'       => $quote->getIsActive(),
+////                    'quote reserved ord id' => $quote->getReservedOrderId(),
+//                ],
+//                'Quote data'
+//            );
+//
+//            if ((int) $quote->getIsActive() == 0) {
+//                $this->readerWriter->createLog($quote->getQuoteId(), 'Quote ID');
+//
+//                return $result
+//                    ->setData('error', true)
+//                    ->setData('message', 'Quote is not active.');
+//            }
+//
+//            if ($method !== Payment::METHOD_CODE) {
+//                return $result
+//                    ->setData('error', true)
+//                    ->setData('message', 'Quote payment method is "' . $method . '"');
+//            }
+//
+//            //            $params = array_merge(
+//            //                $this->request->getParams(),
+//            //                $this->request->getPostValue()
+//            //            );
+//            
+//            $orderId = $this->cartManagement->placeOrder($params);
+//
+//            $result
+//                ->setData('success', true)
+//                ->setData('order_id', $orderId);
+//
+//            $this->_eventManager->dispatch(
+//                'nuvei_place_order',
+//                [
+//                    'result' => $result,
+//                    'action' => $this,
+//                ]
+//            );
+//        } catch (\Exception $exception) {
+//            $this->readerWriter->createLog($exception->getMessage(), 'DMN placeOrder Exception: ');
+//            
+//            return $result
+//                ->setData('error', true)
+//                ->setData('message', $exception->getMessage());
+//        }
+//        
+//        return $result;
+//    }
     
     /**
      * Function validateChecksum
