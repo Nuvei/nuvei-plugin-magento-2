@@ -73,7 +73,7 @@ define(
         // load WebSDK
         if ('web' == usedSdk) {
             rendererList.push({
-                type: 'nuvei_web_sdk',
+                type: 'nuvei',
                 component: webSdkUrl
             });
         }
