@@ -49,8 +49,6 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         $this->moduleManager        = $moduleManager;
         $this->objectManager        = $objectManager;
         
-        parent::__construct($context);
-        
         if ($this->moduleManager->isEnabled('Zend_Uri')) {
             $instanceName =  'Zend\Uri\Uri';
         } else {
@@ -58,6 +56,8 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         }
         
         $this->uri = $this->objectManager->create($instanceName);
+        
+        parent::__construct($context);
     }
     
     /**

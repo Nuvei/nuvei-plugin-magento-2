@@ -453,7 +453,7 @@ define(
                 }
 
                 // call the SDK
-                checkout(self.checkoutSdkParams);
+                nuveiSimplyConnect(self.checkoutSdkParams);
 
                 nuveiHideLoader();
                 return;

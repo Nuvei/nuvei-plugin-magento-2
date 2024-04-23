@@ -108,19 +108,19 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
     /**
      * @return string
      */
-    public function getPagerHtml()
-    {
-        return $this->getChildHtml('pager');
-    }
+//    public function getPagerHtml()
+//    {
+//        return $this->getChildHtml('pager');
+//    }
 
     /**
      * @param  object $order
      * @return string
      */
-    public function getViewUrl($order)
-    {
-        return $this->getUrl('sales/order/view', ['order_id' => $order->getId()]);
-    }
+//    public function getViewUrl($order)
+//    {
+//        return $this->getUrl('sales/order/view', ['order_id' => $order->getId()]);
+//    }
 
     /**
      * @param  object $order
@@ -135,16 +135,16 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
      * @param  object $order
      * @return string
      */
-    public function getReorderUrl($order)
-    {
-        return $this->getUrl('sales/order/reorder', ['order_id' => $order->getId()]);
-    }
+//    public function getReorderUrl($order)
+//    {
+//        return $this->getUrl('sales/order/reorder', ['order_id' => $order->getId()]);
+//    }
 
     /**
      * @return string
      */
-    public function getBackUrl()
-    {
-        return $this->getUrl('customer/account/');
-    }
+//    public function getBackUrl()
+//    {
+//        return $this->getUrl('customer/account/');
+//    }
 }

@@ -7,30 +7,6 @@
 
 // set here some variables and function common for web and checkout SDKs
 
-function prependNuveiSdk() {
-    var usedSdk         = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
-    var webSdkUrl       = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js';
-    var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js";
-        
-    // set Tag URLs for QA sites
-    try {
-        if ('magentoautomation.sccdev-qa.com' === window.location.host
-            || 'oldmagentoautomation.gw-4u.com' === window.location.host
-        ) {
-            webSdkUrl       = 'https://devmobile.sccdev-qa.com/checkoutNext/websdk/safecharge.js';
-            simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js';
-        }
-    }
-    catch (_exception) {
-        console.log('Nuvei Error', _exception);
-    }
-    
-    let nuveiSdk = document.createElement('script');
-    nuveiSdk.src = 'web' == usedSdk ? webSdkUrl : simplyConectUrl;
-    
-    document.head.prepend(nuveiSdk);
-}
-
 /**
  * Get the code of the module.
  * 
@@ -62,8 +38,6 @@ function nuveiHideLoader() {
     jQuery('.nuvei-loading-mask').css('display', 'none');
 }
 
-prependNuveiSdk();
-
 define(
     [
         'uiComponent',
@@ -78,6 +52,39 @@ define(
                 jQuery('body').append('<div class="nuvei-loading-mask" data-role="loader" style="display: none; z-index: 9999; bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; background: rgba(255,255,255,0.5);"><div class="loader"><img alt="Loading..." src="' + window.checkoutConfig.payment[nuveiGetCode()].loadingImg + '" style="bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; z-index: 100; max-width: 100%; height: auto; border: 0;"></div></div>');
             }
         });
+        
+        var usedSdk         = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
+        var webSdkUrl       = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js';
+//        var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js";
+
+        // set Tag URLs for QA sites
+        try {
+            if ('magentoautomation.sccdev-qa.com' === window.location.host
+                || 'oldmagentoautomation.gw-4u.com' === window.location.host
+            ) {
+                webSdkUrl       = 'https://devmobile.sccdev-qa.com/checkoutNext/websdk/safecharge.js';
+//                simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js';
+            }
+        }
+        catch (_exception) {
+            console.log('Nuvei Error', _exception);
+        }
+        
+        // load WebSDK
+        if ('web' == usedSdk) {
+            rendererList.push({
+                type: 'nuvei_web_sdk',
+                component: webSdkUrl
+            });
+        }
+        // load SimplyConnect
+//        else {
+//            // Load Nuvei Chekout SDK and add it ot a local variable
+//            rendererList.push({
+//                type: 'nuvei',
+//                component: simplyConectUrl
+//            });
+//        }
         
         // load the render file
         rendererList.push({

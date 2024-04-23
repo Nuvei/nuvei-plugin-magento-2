@@ -61,16 +61,23 @@ class ReaderWriter
         
         if (is_bool($data)) {
             $d = $data ? 'true' : 'false';
-        } elseif (is_string($data) || is_numeric($data)) {
+        }
+        elseif (is_string($data) || is_numeric($data)) {
             $d = $data;
-        } elseif ('' === $data) {
+        }
+        elseif ('' === $data) {
             $d = 'Data is Empty.';
-        } elseif (is_array($data)) {
-            if ((int) $this->config->getConfigValue('mask_user_details') == 1) {
+        }
+        elseif (is_array($data) || is_object($data)) {
+            if ((int) $this->config->getConfigValue('mask_user_details') == 1
+                && !empty($data)
+            ) {
                 // clean possible objects inside array
                 $data = json_decode(json_encode($data), true);
                 
-                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+                if (is_array($data)) {
+                    array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+                }
             }
             
             // do not log accounts if on prod
@@ -101,17 +108,19 @@ class ReaderWriter
             }
 
             $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
-        } elseif (is_object($data)) {
-            if ((int) $this->config->getConfigValue('mask_user_details') == 1
-                && !empty($data)
-            ) {
-                $data = json_decode(json_encode($data), true);
-                
-                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
-            }
-            
-            $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
-        } else {
+        }
+//        elseif (is_object($data)) {
+//            if ((int) $this->config->getConfigValue('mask_user_details') == 1
+//                && !empty($data)
+//            ) {
+//                $data = json_decode(json_encode($data), true);
+//                
+//                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+//            }
+//            
+//            $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
+//        }
+        else {
             $d = $this->config->isTestModeEnabled() ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
         

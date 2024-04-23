@@ -5,10 +5,12 @@
 ```
     * Code scanned and cleaned with PHPCS and PHPCBF.
     * Added option to mask user details in the log.
-    * At the places where use str_replace before check for the third paramter, typecast it to string.
+    * At the places where use str_replace before check if the third paramter is not empty or typecast it to string.
     * In openOrder and updateOrder requests skip customFiled3 - getReservedOrderId.
     * In Cancel class added check if $order is an object, in case it is not throw an excception.
-    * In frontend nuvei.js script a new function was added. The idea is to prepend Nuvei SDK at the begining of the page head.
+    * Use local version of SimplyConnect with new name to avoid conflicts with other checkout.js files and objects/methods.
+    * In SubscriptionsHistory class check which class exists Zend_Uri or Laminas_Uri and use the existing one.
+    * In readerWriter class, treat arrays as objects before save them in the log file.
 ```
 
 # 3.1.4-p2
