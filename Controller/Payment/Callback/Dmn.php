@@ -176,46 +176,46 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return $this->jsonOutput;
         }
         
-        try {
-            $this->params = array_merge(
-                $this->request->getParams(),
-                $this->request->getPostValue()
-            );
-            
-            $this->readerWriter->createLog(
-                [
-                    'Request params'    => $this->params,
-                    'REMOTE_ADDR'       => $_SERVER['REMOTE_ADDR'] ?? '',
-                    'REMOTE_PORT'       => $_SERVER['REMOTE_PORT'] ?? '',
-                    'REQUEST_METHOD'    => $_SERVER['REQUEST_METHOD'] ?? '',
-                    'HTTP_USER_AGENT'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                ],
-                'DMN params:'
-            );
-            
-            // DEBUG
-            //            $this->jsonOutput->setData('DMN manually stopped.');
-            //            return $this->jsonOutput;
-            // DEBUG
-            
-            // do not save message for the tokenization
-            if (!empty($this->params['type']) && 'CARD_TOKENIZATION' == $this->params['type']) {
-                $msg = 'DMN report - this is Card Tokenization DMN.';
-            
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
+        $this->params = array_merge(
+            $this->request->getParams(),
+            $this->request->getPostValue()
+        );
+        
+        // validate the Cheksum
+        if (!$this->validateChecksum()) {
+            return $this->jsonOutput;
+        }
 
-                return $this->jsonOutput;
-            }
-            
-            // validate the Cheksum
-            if (!$this->validateChecksum()) {
-                return $this->jsonOutput;
-            }
-            
-            // get the Status
-            $status = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
-            
+        $tr_type_param  = strtolower($this->params['transactionType']);
+        $status         = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
+        
+        $this->readerWriter->createLog(
+            [
+                'Request params'    => $this->params,
+                'REMOTE_ADDR'       => $_SERVER['REMOTE_ADDR'] ?? '',
+                'REMOTE_PORT'       => $_SERVER['REMOTE_PORT'] ?? '',
+                'REQUEST_METHOD'    => $_SERVER['REQUEST_METHOD'] ?? '',
+                'HTTP_USER_AGENT'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            ],
+            'DMN params:'
+        );
+        
+        // DEBUG
+        //            $this->jsonOutput->setData('DMN manually stopped.');
+        //            return $this->jsonOutput;
+        // DEBUG
+        
+        // do not save message for the tokenization
+        if (!empty($this->params['type']) && 'CARD_TOKENIZATION' == $this->params['type']) {
+            $msg = 'DMN report - this is Card Tokenization DMN.';
+
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return $this->jsonOutput;
+        }
+        
+        try {
             // Here will be set $this->orderIncrementId or $this->quoteId
             $this->getOrderIdentificators();
             
@@ -334,8 +334,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             if (!$this->prepareCurrTrInfo($ord_trans_addit_info, $status)) {
                 return $this->jsonOutput;
             }
-            
-            $tr_type_param = strtolower($this->params['transactionType']);
             
             // do not overwrite Order status
             if ($this->keepOrderStatusFromOverride($order_tr_type, $order_status, $status)) {

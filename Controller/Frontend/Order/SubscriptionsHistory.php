@@ -49,10 +49,19 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
         $this->moduleManager        = $moduleManager;
         $this->objectManager        = $objectManager;
         
-        if ($this->moduleManager->isEnabled('Zend_Uri')) {
+        // search for vendor classes
+        $directory      = $this->objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
+        $root           = $directory->getRoot();
+        $instanceName   = '';
+        
+        if ($this->readerWriter->fileExists($root . '/vendor/zendframework/zend-uri/src/Uri.php')) {
             $instanceName =  'Zend\Uri\Uri';
-        } else {
+        } elseif ($this->readerWriter->fileExists($root . '/vendor/laminas/laminas-uri/src/Uri.php')) {
             $instanceName = 'Laminas\Uri\Uri';
+        }
+        
+        if (empty($instanceName)) {
+            return;
         }
         
         $this->uri = $this->objectManager->create($instanceName);
