@@ -181,14 +181,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->request->getPostValue()
         );
         
-        // validate the Cheksum
-        if (!$this->validateChecksum()) {
-            return $this->jsonOutput;
-        }
-
-        $tr_type_param  = strtolower($this->params['transactionType']);
-        $status         = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
-        
         $this->readerWriter->createLog(
             [
                 'Request params'    => $this->params,
@@ -201,9 +193,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
         );
         
         // DEBUG
-        //            $this->jsonOutput->setData('DMN manually stopped.');
-        //            return $this->jsonOutput;
+        // $this->jsonOutput->setData('DMN manually stopped.');
+        // return $this->jsonOutput;
         // DEBUG
+        
+        $status = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
         
         // do not save message for the tokenization
         if (!empty($this->params['type']) && 'CARD_TOKENIZATION' == $this->params['type']) {
@@ -212,6 +206,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
 
+            return $this->jsonOutput;
+        }
+        
+        // validate the Cheksum
+        if (!$this->validateChecksum()) {
             return $this->jsonOutput;
         }
         
@@ -249,6 +248,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
             if ($this->processSubscrDmn($ord_trans_addit_info)) {
                 return $this->jsonOutput;
             }
+            
+            // this param is not available in above case!
+            $tr_type_param  = strtolower($this->params['transactionType']);
             
             // Subscription transaction DMN
             if (!empty($this->params['dmnType'])
@@ -1150,7 +1152,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $checksum       = hash($this->moduleConfig->getConfigValue('hash'), $concat_final);
 
         if ($param_responsechecksum !== $checksum) {
-            $msg = 'Checksum validation failed for responsechecksum and Order #' . $this->orderIncrementId;
+            $msg = 'Checksum validation failed for responsechecksum.';
 
             if ($this->moduleConfig->isTestModeEnabled() && null !== $this->order) {
                 $this->order->addStatusHistoryComment(
