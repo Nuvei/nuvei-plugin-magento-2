@@ -11,6 +11,7 @@
     * Use local version of SimplyConnect with new name to avoid conflicts with other checkout.js files and objects/methods.
     * In SubscriptionsHistory class check which class exists Zend_Uri or Laminas_Uri and use the existing one.
     * In readerWriter class, treat arrays as objects before save them in the log file.
+    * Fixed some typos in the plugin settings.
 ```
 
 # 3.1.4-p2

@@ -86,6 +86,7 @@
 						   showInWebsite="1"
 						   showInStore="0" >
 						<label>Merchant Hash</label>
+                        <comment>Ask the Integration Team.</comment>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\Hash</source_model>
 						<config_path>payment/nuvei/hash</config_path>
 						<validate>required-entry</validate>
@@ -100,7 +101,7 @@
 						   showInStore="0">
 						<label>Merchant ID</label>
 						<backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-						<comment>Value provided by Nuvei.</comment>
+						<comment>Ask the Integration Team.</comment>
 						<config_path>payment/nuvei/merchant_id</config_path>
 					</field>
 
@@ -111,8 +112,8 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0">
-						<label>Merchant Site Id</label>
-						<comment>Value provided by Nuvei.</comment>
+						<label>Merchant Site ID</label>
+						<comment>Ask the Integration Team.</comment>
 						<config_path>payment/nuvei/merchant_site_id</config_path>
 					</field>
 
@@ -125,7 +126,7 @@
 						   showInStore="0">
 						<label>Merchant Secret Key</label>
 						<backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-						<comment>Value provided by Nuvei.</comment>
+						<comment>Ask the Integration Team.</comment>
 						<config_path>payment/nuvei/merchant_secret_key</config_path>
 					</field>
 					
@@ -138,7 +139,7 @@
 						   showInStore="0">
 						<label>Sandbox Merchant ID</label>
 						<backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-						<comment>Value provided by Nuvei.</comment>
+						<comment>Ask the Integration Team.</comment>
 						<config_path>payment/nuvei/sandbox_merchant_id</config_path>
 					</field>
 
@@ -149,8 +150,8 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0">
-						<label>Sandbox Merchant Site Id</label>
-						<comment>Value provided by Nuvei.</comment>
+						<label>Sandbox Merchant Site ID</label>
+						<comment>Ask the Integration Team.</comment>
 						<config_path>payment/nuvei/sandbox_merchant_site_id</config_path>
 					</field>
 
@@ -163,7 +164,7 @@
 						   showInStore="0">
 						<label>Sandbox Merchant Secret Key</label>
 						<backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-						<comment>Value provided by Nuvei.</comment>
+						<comment>Ask the Integration Team.</comment>
 						<config_path>payment/nuvei/sandbox_merchant_secret_key</config_path>
 					</field>
 					
@@ -175,10 +176,10 @@
 						   showInWebsite="1"
 						   showInStore="0" 
                            canRestore="1" >
-						<label>Select payment SDK</label>
+						<label>Select Payment SDK</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\Sdk</source_model>
 						<config_path>payment/nuvei/sdk</config_path>
-                        <comment>You can configure only the desired SDK configuration groupe below.</comment>
+                        <comment>You can choose between Simply Connect (recommended) and Web SDK.</comment>
 					</field>
                     
                     <field id="save_upos"
@@ -216,7 +217,7 @@
 						   showInWebsite="1"
 						   showInStore="0" 
 						   canRestore="1">
-						<label>Show UPOs for Registred users</label>
+						<label>Show UPOs for Registered users</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/show_upos</config_path>
 					</field>
@@ -257,7 +258,7 @@
 						   showInWebsite="1"
 						   showInStore="0"
                            canRestore="1">
-						<label>Mask Users details in the log</label>
+						<label>Mask Users Details in the Log</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/mask_user_details</config_path>
 					</field>
@@ -269,7 +270,7 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
-						<label>Save Debug log</label>
+						<label>Save Debug Log</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\Debug</source_model>
 						<config_path>payment/nuvei/debug</config_path>
 					</field>
@@ -349,7 +350,7 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0">
-						<label>SimplyConnect theme</label>
+						<label>Simply Connect Theme</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\SdkTheme</source_model>
 					</field>
                     
@@ -360,7 +361,7 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0">
-						<label>Use currency conversion</label>
+						<label>Use Currency Conversion</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\UseDcc</source_model>
 						<config_path>payment/nuvei/use_dcc</config_path>
 					</field>
@@ -383,7 +384,7 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
-						<label>Block Payment methods</label>
+						<label>Block Payment Methods</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\GetMerchantPaymentMethods</source_model>
 					</field>
 					
@@ -408,7 +409,7 @@
 						   showInWebsite="1"
 						   showInStore="0" 
 						   canRestore="1">
-						<label>Auto expand PMs</label>
+						<label>Auto-expand PMs</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/auto_expand_pms</config_path>
 					</field>
@@ -421,7 +422,7 @@
 						   showInWebsite="1"
 						   showInStore="0" 
 						   canRestore="0">
-						<label>APMs window type</label>
+						<label>APMs Window Type</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\ApmsWindowType</source_model>
 					</field>
                     
@@ -433,7 +434,7 @@
 						   showInWebsite="1"
 						   showInStore="0" 
 						   canRestore="1">
-						<label>Auto close APM popup</label>
+						<label>Auto-close APM Pop-Up</label>
 						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 						<config_path>payment/nuvei/auto_close_popup</config_path>
                         <comment model="Nuvei\Checkout\Block\System\Config\AutoCloseApmPopupComment" />
@@ -459,7 +460,7 @@
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0">
-						<label>Checkout translations</label>
+						<label>Checkout Translations</label>
 						<comment model="Nuvei\Checkout\Block\System\Config\CheckoutTranslateComment" />
 					</field>
 				</group>
