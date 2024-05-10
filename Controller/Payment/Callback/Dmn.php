@@ -199,6 +199,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         $status = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
         
+        if ('pending' == strtolower($status)) {
+            $msg = 'Pending DMN, waiting for the next.';
+            
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return $this->jsonOutput;
+        }
+        
         // do not save message for the tokenization
         if (!empty($this->params['type']) && 'CARD_TOKENIZATION' == $this->params['type']) {
             $msg = 'DMN report - this is Card Tokenization DMN.';

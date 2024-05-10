@@ -12,6 +12,7 @@
     * In SubscriptionsHistory class check which class exists Zend_Uri or Laminas_Uri and use the existing one.
     * In readerWriter class, treat arrays as objects before save them in the log file.
     * Fixed some typos in the plugin settings.
+    * Do not process Pending DMNs.
 ```
 
 # 3.1.4-p2
