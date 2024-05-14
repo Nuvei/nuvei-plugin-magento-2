@@ -5,7 +5,7 @@ namespace Nuvei\Checkout\Model\System\Message;
 use Magento\Framework\Notification\MessageInterface;
 
 /**
- * Show System message if there is new version of the plugin,
+ * Show System message if there is new version of the plugin.
  *
  * @author Nuvei
  */
@@ -54,30 +54,23 @@ class LatestPluginVersionMessage implements MessageInterface
      */
     public function isDisplayed()
     {
-        $this->readerWriter->createLog('isDisplayed()');
-        
         if ($this->modulConfig->getConfigValue('active') === false) {
-            $this->readerWriter->createLog('LatestPluginVersionMessage Error - the module is not active.');
             return false;
         }
         
         // check every 7th day
         if ((int) date('d', time()) % 7 != 0) {
-            return;
+            return false;
         }
         
         $this->session->start();
         
         $git_version    = 0;
         $this_version   = 0;
+        $git_version    = $this->session->getVariable('nuveiPluginGitVersion');
         
-        try {
-            $git_version = $this->session->getVariable('nuveiPluginGitVersion');
-            
-            //            if (empty($_SESSION['admin']['nuveiPluginGitVersion'])) {
-            if (empty($git_version)) {
-                $file = $this->directory->getPath('log') . DIRECTORY_SEPARATOR . 'nuvei-plugin-latest-version.txt';
-
+        if (empty($git_version) || !is_numeric($git_version)) {
+            try {
                 $this->curl->get('https://raw.githubusercontent.com/Nuvei/nuvei-plugin-magento-2/master/composer.json');
                 $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                 $this->curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
@@ -93,72 +86,24 @@ class LatestPluginVersionMessage implements MessageInterface
                 $arr_v = $array['version'];
 
                 if (!empty($arr_v)) {
-                    //                    $git_version = $_SESSION['admin']['nuveiPluginGitVersion'] = (int) str_replace('.', '', $arr_v);
                     $git_version = (int) str_replace('.', '', $arr_v);
                     $this->session->setVariable('nuveiPluginGitVersion', $git_version);
                 }
-
-                //                $res = $this->readerWriter->saveFile(
-                //                    $this->directory->getPath('log'),
-                //                    'nuvei-plugin-latest-version.txt',
-                //                    $array['version']
-                //                );
-                //
-                //                if (!$res) {
-                //                    $this->readerWriter->createLog('LatestPluginVersionMessage Error - file was not created.');
-                //                }
+            } catch (\Exception $ex) {
+                $this->readerWriter->createLog($ex->getMessage(), 'LatestPluginVersionMessage Exception:');
             }
-            //            else {
-            //                $git_version = $_SESSION['admin']['nuveiPluginGitVersion'];
-            //                $git_version = $this->session->getVariable('nuveiPluginGitVersion');
-                
-            //                $this->session->start();
-            //                $this->session->setVariable('test', 'test');
-            //                $this->session->setMessage('test2');
-            //                
-            //                $this->readerWriter->createLog(
-            //                    [
-            //                        $this->session->getData('admin'),
-            //                        $this->session->getData('nuveiPluginGitVersion'),
-            //                        $this->session->getData(),
-            //                        $this->session->setVariable('test'),
-            //                        $this->session->getMessage(),
-            //                        $git_version,
-            //                    ]
-            //                );
-            //            }
-        } catch (\Exception $ex) {
-            $this->readerWriter->createLog($ex->getMessage(), 'LatestPluginVersionMessage Exception:');
         }
         
-        //        if (!$this->readerWriter->fileExists($file) && 0 == $git_version) {
-        //            $this->readerWriter->createLog('LatestPluginVersionMessage - version file does not exists.');
-        //            return false;
-        //        }
+        $ds     = DIRECTORY_SEPARATOR;
+        $file   = $this->directory->getPath('app') . $ds . 'code' . $ds . 'Nuvei'
+            . $ds . 'Checkout' . $ds . 'composer.json';
         
-        //        if (!$this->readerWriter->isReadable($file)) {
-        //            $this->readerWriter->createLog($file, 'LatestPluginVersionMessage Error - '
-        //                . 'version file exists, but is not readable!');
-        //            
-        //            if (0 == $git_version) {
-        //                return false;
-        //            }
-        //        }
-        //        
-        //        $file = trim($this->readerWriter->readFile($file));
-        
-        //        if (0 == $git_version && !empty($file)) {
-        //            $git_version = (int) str_replace('.', '', $file);
-        //        }
-        
-        $sourcePlatformField = $this->modulConfig->getSourcePlatformField();
-        
-        if (!empty($sourcePlatformField)) {
-            $this_version = str_replace('Magento Plugin ', '', $sourcePlatformField);
-        }
-        
-        if (!empty($this_version)) {
-            $this_version = (int) str_replace('.', '', $this_version);
+        if (is_readable($file)) {
+            $curr_json = json_decode($this->readerWriter->readFile($file), true);
+
+            if (!empty($curr_json['version'])) {
+                $this_version = (int) str_replace('.', '', $curr_json['version']);
+            }
         }
         
         if ($git_version > $this_version) {
@@ -177,7 +122,7 @@ class LatestPluginVersionMessage implements MessageInterface
     {
         return __(
             'There is a new version of Nuvei Plugin available. '
-            . '<a href="https://github.com/SafeChargeInternational/nuvei_checkout_magento/blob/master/CHANGELOG.md" '
+            . '<a href="https://github.com/Nuvei/nuvei-plugin-magento-2/blob/master/CHANGELOG.md" '
             . 'target="_blank">View version details.</a>'
         );
     }

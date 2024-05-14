@@ -13,6 +13,7 @@
     * In readerWriter class, treat arrays as objects before save them in the log file.
     * Fixed some typos in the plugin settings.
     * Do not process Pending DMNs.
+    * Fix for the logic who check for new plugin version.
 ```
 
 # 3.1.4-p2

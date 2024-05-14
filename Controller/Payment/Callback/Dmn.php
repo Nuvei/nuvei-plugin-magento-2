@@ -6,7 +6,7 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\PaymentException;
+//use Magento\Framework\Exception\PaymentException;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
@@ -28,6 +28,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $loop_tries         = 0; // count loops
     private $loop_wait_time     = 3; // sleep time in seconds
     private $deadlock_retries   = 5;
+    private $deadlcok_cnt       = 0; // only for execute method
     private $loop_max_tries; // loop max tries count
     
     /**
@@ -156,7 +157,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
     }
 
     /**
-     * @param int $tries
      * @return JsonFactory
      */
     public function execute($tries = 0)
@@ -343,11 +343,11 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $this->readerWriter->createLog($msg, 'DMN exception.');
             
             if (strpos($msg, 'Deadlock found') !== false
-                && $tries <= $this->deadlock_retries
+                && $this->deadlcok_cnt <= $this->deadlock_retries
             ) {
-                $tries++;
+                $this->deadlcok_cnt++;
                 sleep(1);
-                $this->execute($tries);
+                $this->execute();
             }
         }
         // /set additional data
