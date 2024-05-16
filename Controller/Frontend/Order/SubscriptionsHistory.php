@@ -98,7 +98,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
             $jsonOutput = $this->jsonResultFactory->create();
             
             $jsonOutput->setHttpResponseCode(200);
-            $jsonOutput->setData(json_encode($data));
+            $jsonOutput->setData($data);
             
             return $jsonOutput;
         }

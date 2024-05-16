@@ -42,11 +42,11 @@
                 
                 $.ajax({
                     dataType: "json",
-                    type: 'post',
+                    type: 'get',
                     url: '<?php echo $block->escapeUrl($nuvei_texts['nuvei_ajax_url']); ?>',
                     data: {
-                        prodId      : '<?php echo /* @noEscape */ $nuvei_texts['nuvei_prod_id']; ?>',
-                        params      : strParams
+                        prodId: '<?php echo /* @noEscape */ $nuvei_texts['nuvei_prod_id']; ?>',
+                        params: strParams
                     },
                     cache: false,
                     showLoader: true
@@ -54,25 +54,23 @@
                     .done(function(resp){
                         console.log(resp);
 
-                        if(typeof resp != 'undefined' && '' != resp) {
-                            var respObj = JSON.parse(resp);
-
-                            if(!respObj.hasOwnProperty('rec_amount')) {
+                        if(typeof resp == 'object') {
+                            if(!resp.hasOwnProperty('rec_amount')) {
                                 $('#nuvei_plan_details').css('display', 'none');
                                 return;
                             }
 
-                            if(respObj.hasOwnProperty('rec_len')) {
-                                $('#nuvei_rec_length').html(respObj.rec_len);
+                            if(resp.hasOwnProperty('rec_len')) {
+                                $('#nuvei_rec_length').html(resp.rec_len);
                             }
-                            if(respObj.hasOwnProperty('rec_period')) {
-                                $('#nuvei_rec_period').html(respObj.rec_period);
+                            if(resp.hasOwnProperty('rec_period')) {
+                                $('#nuvei_rec_period').html(resp.rec_period);
                             }
-                            if(respObj.hasOwnProperty('rec_amount')) {
-                                $('#nuvei_rec_amount').html(respObj.rec_amount);
+                            if(resp.hasOwnProperty('rec_amount')) {
+                                $('#nuvei_rec_amount').html(resp.rec_amount);
                             }
-                            if(respObj.hasOwnProperty('trial_period')) {
-                                $('#nuvei_trial_period').html(respObj.trial_period);
+                            if(resp.hasOwnProperty('trial_period')) {
+                                $('#nuvei_trial_period').html(resp.trial_period);
                             }
 
                             $('#nuvei_plan_details').css('display', 'block');
@@ -89,8 +87,8 @@
             }
             
             $(function() {
-                console.log('nuvei script')
-            
+                console.log('nuvei script');
+                
                 // on load check if some attribute was selected
                 nuveiCheckForSelectedPlanOnLoad();
             
@@ -113,20 +111,6 @@
                         $('#nuvei_plan_details').css('display', 'none');
                     }
                 });
-                
-                // on change nuvei_subscription_options
-//                $('body').on('change', '.nuvei_subscription_options', function(event) {
-//                    console.log('change nuvei_subscription_options')
-//                    
-//                    var _self = $(this);
-//                    
-//                    if(_self.val() != 0 && _self.val() != '') {
-//                        nuveiShowPlanDetails(<?php echo $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>
-//                            + '=' + _self.val());
-//                    }
-//                    
-//                    event.stopPropagation();
-//                });
             });
         });
     </script>

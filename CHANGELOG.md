@@ -14,6 +14,7 @@
     * Fixed some typos in the plugin settings.
     * Do not process Pending DMNs.
     * Fix for the logic who check for new plugin version.
+    * Fix for the hiding error message in Product Page, when try to combine rebilling and ordinary product, or when try to add rebilling product into the Cart of Guest user.
 ```
 
 # 3.1.4-p2
