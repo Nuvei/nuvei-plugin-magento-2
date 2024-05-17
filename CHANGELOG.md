@@ -80,6 +80,7 @@
     * When the plugin can not find an Order by DMN data, do not try to create Order, but return 400 to the Cashier.
     * Implemented Auto-Void logic for DMNs.
     * Trim merchant credentials when get them.
+    * Chanaged sourceApplication parameter to "MAGENTO_2_PLUGIN".
 ```
 
 # 3.1.0
