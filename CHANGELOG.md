@@ -1,6 +1,11 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.1.6
+```
+    * Fixed the "Nuvei Subscriptions" list in user account on the Storefront.
+```
+
 # 3.1.5
 ```
     * Code scanned and cleaned with PHPCS and PHPCBF.

@@ -5,75 +5,48 @@ namespace Nuvei\Checkout\Block\Frontend\Order;
 use \Magento\Framework\App\ObjectManager;
 use \Magento\Sales\Model\ResourceModel\Order\CollectionFactoryInterface;
 
-class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
+class SubscriptionsHistory extends \Magento\Framework\View\Element\Template
 {
-    /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
-     */
+    protected $_template = 'Magento_Sales::order/history.phtml';
     protected $_orderCollectionFactory;
-
-    /**
-     * @var \Magento\Customer\Model\Session
-     */
     protected $_customerSession;
-
-    /**
-     * @var \Magento\Sales\Model\Order\Config
-     */
     protected $_orderConfig;
-
-    /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Collection
-     */
     protected $orders;
+    private $orderCollectionFactory;
 
     /**
-     * @var CollectionFactoryInterface
-     */
-    private $orderCollectionFactory;
-    
-    private $config;
-    private $request;
-    private $get_params;
-    
-    /**
-     * @param \Magento\Framework\View\Element\Template\Context           $context
+     * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
-     * @param \Magento\Customer\Model\Session                            $customerSession
-     * @param \Magento\Sales\Model\Order\Config                          $orderConfig
-     * @param array                                                      $data
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Sales\Model\Order\Config $orderConfig
+     * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Sales\Model\Order\Config $orderConfig,
-        \Nuvei\Checkout\Model\Config $config,
-        \Magento\Framework\App\RequestInterface $request
+        array $data = []
     ) {
         $this->_orderCollectionFactory  = $orderCollectionFactory;
         $this->_customerSession         = $customerSession;
         $this->_orderConfig             = $orderConfig;
-        $this->config                   = $config;
-        $this->get_params               = $request->getParams();
         
-        parent::__construct($context, $orderCollectionFactory, $customerSession, $orderConfig);
+        parent::__construct($context, $data);
     }
-    
+
     /**
-     * @return CollectionFactoryInterface
-     *
-     * @deprecated 100.1.1
+     * @inheritDoc
      */
-    private function getOrderCollectionFactory()
-    {
-        if ($this->orderCollectionFactory === null) {
-            $this->orderCollectionFactory = ObjectManager::getInstance()->get(CollectionFactoryInterface::class);
-        }
-        return $this->orderCollectionFactory;
-    }
-    
+//    protected function _construct()
+//    {
+//        parent::_construct();
+//        $this->pageConfig->getTitle()->set(__('My Orders'));
+//    }
+
     /**
+     * Get customer orders
+     *
      * @return bool|\Magento\Sales\Model\ResourceModel\Order\Collection
      */
     public function getOrders()
@@ -82,7 +55,8 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
             return false;
         }
         if (!$this->orders) {
-            $this->orders = $this->getOrderCollectionFactory()->create($customerId)
+            $this->orders = $this->getOrderCollectionFactory()
+                ->create($customerId)
                 ->addFieldToSelect('*')
                 ->addFieldToFilter(
                     'status',
@@ -99,52 +73,114 @@ class SubscriptionsHistory extends \Magento\Sales\Block\Order\History
                     'main_table.entity_id = sop.parent_id',
                     ['additional_information']
                 )
-                ->where('sop.additional_information LIKE \'%"is_active_subs_order":1%\'');
+                ->where('sop.additional_information LIKE \'%"is_subscription":1%\'');
         }
-        
         return $this->orders;
     }
-    
-    /**
-     * @return string
-     */
-//    public function getPagerHtml()
-//    {
-//        return $this->getChildHtml('pager');
-//    }
 
     /**
-     * @param  object $order
+     * Get Pager child block output
+     *
      * @return string
      */
-//    public function getViewUrl($order)
-//    {
-//        return $this->getUrl('sales/order/view', ['order_id' => $order->getId()]);
-//    }
+    public function getPagerHtml()
+    {
+        return $this->getChildHtml('pager');
+    }
 
     /**
-     * @param  object $order
+     * Get order view URL
+     *
+     * @param object $order
      * @return string
+     */
+    public function getViewUrl($order)
+    {
+        return $this->getUrl('sales/order/view', ['order_id' => $order->getId()]);
+    }
+
+    /**
+     * Get order track URL
+     *
+     * @param object $order
+     * @return string
+     * @deprecated 102.0.3 Action does not exist
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function getTrackUrl($order)
     {
-        return $this->getUrl('sales/order/track', ['order_id' => $order->getId()]);
+        //phpcs:ignore Magento2.Functions.DiscouragedFunction
+        trigger_error('Method is deprecated', E_USER_DEPRECATED);
+        return '';
     }
 
     /**
-     * @param  object $order
+     * Get reorder URL
+     *
+     * @param object $order
      * @return string
      */
-//    public function getReorderUrl($order)
-//    {
-//        return $this->getUrl('sales/order/reorder', ['order_id' => $order->getId()]);
-//    }
+    public function getReorderUrl($order)
+    {
+        return $this->getUrl('sales/order/reorder', ['order_id' => $order->getId()]);
+    }
 
     /**
+     * Get customer account URL
+     *
      * @return string
      */
-//    public function getBackUrl()
-//    {
-//        return $this->getUrl('customer/account/');
-//    }
+    public function getBackUrl()
+    {
+        return $this->getUrl('customer/account/');
+    }
+
+    /**
+     * Get message for no orders.
+     *
+     * @return \Magento\Framework\Phrase
+     * @since 102.1.0
+     */
+    public function getEmptyOrdersMessage()
+    {
+        return __('You have placed no orders.');
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    protected function _prepareLayout()
+    {
+        parent::_prepareLayout();
+        
+        if ($this->getOrders()) {
+            $pager = $this->getLayout()->createBlock(
+                \Magento\Theme\Block\Html\Pager::class,
+                'sales.order.history.pager'
+            )->setCollection(
+                $this->getOrders()
+            );
+            
+            $this->setChild('pager', $pager);
+            $this->getOrders()->load();
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Provide order collection factory
+     *
+     * @return CollectionFactoryInterface
+     * @deprecated 100.1.1
+     */
+    private function getOrderCollectionFactory()
+    {
+        if ($this->orderCollectionFactory === null) {
+            $this->orderCollectionFactory 
+                = ObjectManager::getInstance()->get(CollectionFactoryInterface::class);
+        }
+        
+        return $this->orderCollectionFactory;
+    }
 }
