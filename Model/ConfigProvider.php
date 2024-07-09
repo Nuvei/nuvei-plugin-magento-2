@@ -175,7 +175,8 @@ class ConfigProvider extends CcGenericConfigProvider
                             'googlePay' => [
                                 'locale' => $locale
                             ]
-                        ]
+                        ],
+                        'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
                     ],
                 ],
             ],

@@ -4,6 +4,8 @@
 # 3.1.6
 ```
     * Fixed the "Nuvei Subscriptions" list in user account on the Storefront.
+    * Replaced the local Simply Connect library with link to the source.
+    * In Simply Connect parameters pass sourceApplication paramteter.
 ```
 
 # 3.1.5

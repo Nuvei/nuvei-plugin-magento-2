@@ -118,6 +118,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->quote = empty($this->quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($this->quoteId);
         
+        
+//        $ch = curl_init("https://srv-aws-magento2-4.sccdev-qa.com/rest/V1/carts/" . $this->quoteId); 
+//        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+//        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Authorization: Bearer 8u7gw1nvuioiboxy7qjqueri5frnfwnj"));
+//        $result = curl_exec($ch);
+//        $result = json_decode($result, 1);
+//        $this->readerWriter->createLog($result, 'openOrder');
+        
         $this->items = $this->quote->getItems();
         
         // check if each item is in stock
@@ -575,7 +584,10 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $this->outOfStock   = 0;
             $this->reason       = __($msg);
 
-            $this->readerWriter->createLog($items_base_data, $msg);
+            $this->readerWriter->createLog(
+                ['quote' => (array) $this->quote], 
+                $msg
+            );
             
             return $items_base_data;
         }

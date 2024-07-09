@@ -55,7 +55,7 @@ define(
         
         var usedSdk         = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
         var webSdkUrl       = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js';
-//        var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js";
+        var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js";
 
         // set Tag URLs for QA sites
         try {
@@ -63,7 +63,7 @@ define(
                 || 'oldmagentoautomation.gw-4u.com' === window.location.host
             ) {
                 webSdkUrl       = 'https://devmobile.sccdev-qa.com/checkoutNext/websdk/safecharge.js';
-//                simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js';
+                simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/simplyConnect.js';
             }
         }
         catch (_exception) {
@@ -78,13 +78,13 @@ define(
             });
         }
         // load SimplyConnect
-//        else {
-//            // Load Nuvei Chekout SDK and add it ot a local variable
-//            rendererList.push({
-//                type: 'nuvei',
-//                component: simplyConectUrl
-//            });
-//        }
+        else {
+            // Load Nuvei Chekout SDK and add it ot a local variable
+            rendererList.push({
+                type: 'nuvei',
+                component: simplyConectUrl
+            });
+        }
         
         // load the render file
         rendererList.push({
