@@ -45,7 +45,7 @@
                     type: 'get',
                     url: '<?php echo $block->escapeUrl($nuvei_texts['nuvei_ajax_url']); ?>',
                     data: {
-                        prodId: '<?php echo /* @noEscape */ $nuvei_texts['nuvei_prod_id']; ?>',
+                        prodId: '<?php echo $block->escapeUrl($nuvei_texts['nuvei_prod_id']); ?>',
                         params: strParams
                     },
                     cache: false,
@@ -99,12 +99,11 @@
                     var _self           = $(this);
                     var attrId          = _self.attr('id').replace('attribute', '');
                     var nuveiAttrVal    = _self.val();
+                    var nuveiAttrId     = '<?php echo $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>';
                     
-                    console.log('nuvei change option', [attrId, nuveiAttrVal, '<?php echo $nuvei_texts['nuvei_attr_id']; ?>']);
+                    console.log('nuvei change option', [attrId, nuveiAttrVal, nuveiAttrId]);
                     
-                    if('<?php echo $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>' == attrId
-                        && '' != nuveiAttrVal
-                    ) {
+                    if(nuveiAttrId == attrId && '' != nuveiAttrVal) {
                         nuveiShowPlanDetails(attrId + '=' + nuveiAttrVal);
                     }
                     else {

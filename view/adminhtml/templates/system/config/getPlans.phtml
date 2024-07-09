@@ -11,7 +11,7 @@
                 url: '<?php echo $block->escapeUrl($block->getAjaxUrl()); ?>',
                 showLoader: true,
                 data: {
-                    form_key:'<?php echo /* @noEscape */ $block->getFormKey(); ?>'
+                    form_key:'<?php echo $block->escapeHtml($block->getFormKey()); ?>'
                 },
                 type: "POST",
                 

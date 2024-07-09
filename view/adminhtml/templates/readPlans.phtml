@@ -1,5 +1,5 @@
 <script>
-    var nuveiData               = <?php echo /* @noEscape */ $block->getPaymentPlans(); ?>;
+    var nuveiData               = <?php echo $block->escapeHtml($block->getPaymentPlans()); ?>;
     var nuveiPaymentPlans       = nuveiData.plans;
     var nuveiDropdownPlanVal    = 1;
     
