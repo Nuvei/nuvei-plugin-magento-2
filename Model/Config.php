@@ -345,10 +345,10 @@ class Config
     public function getMerchantId()
     {
         if ($this->isTestModeEnabled() === true) {
-            return trim($this->getConfigValue('sandbox_merchant_id'));
+            return trim((int) $this->getConfigValue('sandbox_merchant_id'));
         }
 
-        return trim($this->getConfigValue('merchant_id'));
+        return trim((int) $this->getConfigValue('merchant_id'));
     }
 
     /**
@@ -359,10 +359,10 @@ class Config
     public function getMerchantSiteId()
     {
         if ($this->isTestModeEnabled() === true) {
-            return trim($this->getConfigValue('sandbox_merchant_site_id'));
+            return trim((int) $this->getConfigValue('sandbox_merchant_site_id'));
         }
 
-        return trim($this->getConfigValue('merchant_site_id'));
+        return trim((int) $this->getConfigValue('merchant_site_id'));
     }
     
     /**
@@ -373,10 +373,10 @@ class Config
     public function getMerchantSecretKey()
     {
         if ($this->isTestModeEnabled() === true) {
-            return trim($this->getConfigValue('sandbox_merchant_secret_key'));
+            return trim((string) $this->getConfigValue('sandbox_merchant_secret_key'));
         }
 
-        return trim($this->getConfigValue('merchant_secret_key'));
+        return trim((string) $this->getConfigValue('merchant_secret_key'));
     }
 
     /**
@@ -575,27 +575,6 @@ class Config
             ->getStore(null === $incrementId ? $this->storeId : $storeId)
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         
-        //        $params = [
-        //            'order'     => null === $incrementId ? $this->getReservedOrderId($quoteId) : $incrementId,
-        //            'form_key'  => $this->formKey->getFormKey(),
-        //            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
-        //        ];
-        
-        //        $params_str = '';
-        //        
-        //        if (!empty($url_params) && is_array($url_params)) {
-        //            $params = array_merge($params, $url_params);
-        //        }
-        
-        //        foreach ($params as $key => $val) {
-        //            if (empty($val)) {
-        //                continue;
-        //            }
-        //            
-        //            $params_str .= $key . '/' . $val . '/';
-        //        }
-        
-        //        return $url . 'nuvei_checkout/payment/callback_dmn/' . $params_str;
         return $url . 'nuvei_checkout/payment/callback_dmn/';
     }
 
@@ -701,7 +680,7 @@ class Config
      */
     public function getStoreCurrency()
     {
-        return trim($this->storeManager->getStore()->getCurrentCurrencyCode());
+        return trim((string) $this->storeManager->getStore()->getCurrentCurrencyCode());
     }
     
     /**
@@ -805,11 +784,6 @@ class Config
             'email'     => $shipping_email,
         ];
     }
-    
-    //    public function getNuveiUseCcOnly()
-    //    {
-    //        return $this->checkoutSession->getNuveiUseCcOnly();
-    //    }
     
     public function setNuveiUseCcOnly($val)
     {

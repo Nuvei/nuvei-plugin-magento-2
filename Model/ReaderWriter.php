@@ -320,7 +320,7 @@ class ReaderWriter
     {
         if (!empty($value)) {
             if (in_array($key, $fields['ips'])) {
-                $value = rtrim(long2ip(ip2long($value) & (~255)), "0")."x";
+                $value = rtrim((string) long2ip(ip2long($value) & (~255)), "0")."x";
             } elseif (in_array($key, $fields['names'])) {
                 $value = mb_substr($value, 0, 1) . '****';
             } elseif (in_array($key, $fields['emails'])) {

@@ -1,6 +1,13 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.1.7
+```
+    * Removed old commented parts of code.
+    * Added some comments.
+    * Typecast the parameters passed to trim() and rtrim() methods.
+```
+
 # 3.1.6
 ```
     * Fixed the "Nuvei Subscriptions" list in user account on the Storefront.

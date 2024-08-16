@@ -84,7 +84,7 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      */
     public function setPaymentMethod($paymentMethod)
     {
-        $this->paymentMethod = trim((string)$paymentMethod);
+        $this->paymentMethod = trim((string) $paymentMethod);
         return $this;
     }
     

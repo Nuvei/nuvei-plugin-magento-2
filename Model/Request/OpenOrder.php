@@ -146,13 +146,11 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->subs_data    = $this->items_data['subs_data'] ?? [];
         $order_data         = $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
-        $this->readerWriter->createLog(
-            [
+        $this->readerWriter->createLog([
             'quoteId'       => $this->quoteId,
             'order_data'    => $order_data,
             'subs_data'     => $this->subs_data,
-            ]
-        );
+        ]);
         
         // will we call updateOrder?
         $callUpdateOrder    = false;
@@ -372,7 +370,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $billing_address['lastName']    = $this->billingAddress['lastname'] ?: $billing_address['lastName'];
             
             if (is_array($this->billingAddress['street']) && !empty($this->billingAddress['street'])) {
-                $address                    = (string) trim(implode(' ', $this->billingAddress['street']));
+                $address                    = trim((string) implode(' ', $this->billingAddress['street']));
                 $billing_address['address'] = str_replace(array("\n", "\r", '\\'), ' ', $address);
             }
             

@@ -289,7 +289,8 @@ class GetCheckoutData implements GetCheckoutDataInterface
                 'savePM'                    => $save_pm,
                 'showUserPaymentOptions'    => ($isUserLogged && $this->moduleConfig->canShowUpos()) ? true : false,
                 'alwaysCollectCvv'          => true,
-                'fullName'                  => trim($billingAddress['firstName'] . ' ' . $billingAddress['lastName']),
+                'fullName'                  => trim((string) $billingAddress['firstName'] . ' ' 
+                    . (string) $billingAddress['lastName']),
                 'email'                     => $billingAddress['email'],
                 'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
                 'showResponseMessage'       => false, // shows/hide the response popups

@@ -160,7 +160,8 @@ class ConfigProvider extends CcGenericConfigProvider
         //                        'pmWhitelist'               => null,
                         'blockCards'                => $blocked_cards,
                         'alwaysCollectCvv'          => true,
-                        'fullName'                  => trim($billing_address['firstName'] . ' ' . $billing_address['lastName']),
+                        'fullName'                  => trim((string) $billing_address['firstName'] . ' ' 
+                            . (string) $billing_address['lastName']),
                         'email'                     => $billing_address['email'],
                         'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
                         'showResponseMessage'       => false, // shows/hide the response popups

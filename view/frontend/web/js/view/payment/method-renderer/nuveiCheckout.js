@@ -64,7 +64,7 @@ function nuveiPrePayment(paymentDetails) {
 	});
 };
 
-function nuveiUpdateOrder(resolve, reject, secondCall = false) {
+function nuveiUpdateOrder(resolve, reject) {
     var paramsStr   = '?nuveiAction=nuveiPrePayment';
     var xmlhttp     = new XMLHttpRequest();
     
@@ -74,7 +74,6 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
             
             if (xmlhttp.status == 200) {
 				var resp = JSON.parse(xmlhttp.response);
-                console.log('Request response', resp);
                 
                 if (!resp.hasOwnProperty('success') || 0 == resp.success) {
                     reject();
@@ -105,7 +104,8 @@ function nuveiUpdateOrder(resolve, reject, secondCall = false) {
 }
 
 /**
- * Here we receive the response from the Checkout SDK Order
+ * Here we receive the response from the Checkout SDK Order.
+ * 
  * @param {object} resp
  * @returns {void|Boolean}
  */
@@ -141,7 +141,6 @@ function nuveiAfterSdkResponse(resp) {
         }
 
 		if(!alert(errorMsg)) {
-//			window.location.reload();
 			return;
 		}
 	}
@@ -171,28 +170,21 @@ function nuveiAfterSdkResponse(resp) {
     }
 
 	// when not Declined, but not Approved also
-//	if(resp.result != 'APPROVED' || isNaN(resp.transactionId)) {
-		var respError = 'Error with your Payment. Please try again later!';
+    var respError = 'Error with your Payment. Please try again later!';
 
-		if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
-			respError = resp.errorDescription;
-		}
-		else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
-			respError = resp.reason;
-		}
+    if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
+        respError = resp.errorDescription;
+    }
+    else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
+        respError = resp.reason;
+    }
 
-		if(!alert(jQuery.mage.__(respError))) {
-			nuveiHideLoader();
-			return;
-		}
-//	}
+    if(!alert(jQuery.mage.__(respError))) {
+        nuveiHideLoader();
+        return;
+    }
 
 	// on Success, Approved
-//    jQuery('#nuvei_default_pay_btn').trigger('click');
-//	nuveiHideLoader();
-//    jQuery('#nuvei_checkout').html(jQuery.mage.__('<b>The transaction was approved.</b>'));
-//    jQuery('#checkoutOverlay').remove();
-//	return;
 };
 
 define(
@@ -238,7 +230,9 @@ define(
                         'countryId'
                     ]);
                    
+                // subscribe for few events
 				try {
+                    // we use this condition, because the amount in SimpyConnect is used only for the Pay button.
                     if('amountButton' == window.checkoutConfig.payment[nuveiGetCode()]['nuveiCheckoutParams'].payButton
                         && typeof quote.totals != 'undefined'
                     ) {
@@ -350,13 +344,6 @@ define(
                     window.checkoutConfig.payment[nuveiGetCode()].nuveiCheckoutParams
                 ));
                 
-//                self.checkoutSdkParams.amount = quote.totals().base_grand_total.toString();
-
-                // check for changed amout
-//                if(self.changedOrderAmout > 0 && self.changedOrderAmout != self.checkoutSdkParams.amount) {
-//                    self.checkoutSdkParams.amount = self.changedOrderAmout;
-//                }
-                
                 // check the billing country
                 if(quote.billingAddress()
                     && quote.billingAddress().hasOwnProperty('countryId')
@@ -375,8 +362,6 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2).toString();
                 }
 
-//                console.log('nuveiCollectSdkParams', self.checkoutSdkParams);
-
                 self.checkoutSdkParams.prePayment	= nuveiPrePayment;
                 self.checkoutSdkParams.onResult		= nuveiAfterSdkResponse;
             },
@@ -387,6 +372,7 @@ define(
 				document.getElementById("nuvei_general_error").scrollIntoView();
 			},
 			
+            // event function
 			scBillingAddrChange: function() {
 				console.log('scBillingAddrChange');
 				
@@ -404,7 +390,7 @@ define(
                 
 				console.log('scBillingAddrChange - the country was changed', quote.billingAddress().countryId);
 				
-//				// reload the checkout
+				// reload the checkout
                 let sessionToken = self.checkoutSdkParams.sessionToken;
                 
                 self.nuveiCollectSdkParams();
@@ -413,6 +399,7 @@ define(
                 self.loadSdk();
 			},
 			
+            // event function
 			scTotalsChange: function() {
 				self.writeLog(quote.totals(), 'scTotalsChange()');
 				
@@ -427,9 +414,6 @@ define(
                 
 				console.log('scTotalsChange() - the total was changed', currentTotal);
 				
-				// reload the checkout
-//                self.getSessionToken('scTotalsChange');
-
                 let sessionToken = self.checkoutSdkParams.sessionToken;
                 
                 self.nuveiCollectSdkParams();
@@ -445,7 +429,7 @@ define(
              */
             loadSdk: function() {
                 // in case of some reloads or when Zero Checkout method is active
-                if ($('#nuvei_checkout').length == 0) {
+                if ($('#nuvei_checkout').length == 0) { // TODO get it as variable!
                     console.log('Missing nuvei_checkout container. Do not load SimplyConnect');
 
                     nuveiHideLoader();
