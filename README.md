@@ -2,21 +2,21 @@
 
 ---
 
-## System requirements
+## System Requirements
 - Magento v2.3.x and up  
 - PHP 7.2 and up  
 - Working CURL module
 
 ---
 
-## Nuvei requirements
+## Nuvei Requirements
 - Enabled DMNs into merchant settings.  
 - Whitelisted plugin endpoint so the plugin can receive the DMNs.  
 - If using the Rebilling plugin functionality, please provide the DMN endpoint to the Integration and Technical Support teams, so it can be added to the merchant configuration.
 
 ---
 
-## Install manually under app/code
+## Install Manually under app/code
 1. Download and place the contents of this repository under {YOUR-MAGENTO2-ROOT-DIR}/app/code/Nuvei/Checkout
 2. Run the following commands under your Magento 2 root dir:
 ```
