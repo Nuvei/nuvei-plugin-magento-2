@@ -6,7 +6,6 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
-//use Magento\Framework\Exception\PaymentException;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
@@ -299,18 +298,23 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && in_array($this->params['transactionType'], ['Auth', 'Sale'])
         ) {
             $createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
-
+            
             // Error
             if (empty($this->params['PPP_TransactionID'])
                 || empty($createOrderData['orderId'])
                 || $createOrderData['orderId'] != $this->params['PPP_TransactionID']
             ) {
+                // One more Sale/Auth transaction for same Order? Not good - void it!
+                $this->createAutoVoid(true);
+                
                 $msg = 'DMN Error - PPP_TransactionID is different from the saved for the current Order.';
 
                 $this->readerWriter->createLog(
                     [
-                        'PPP_TransactionID' => $this->params['PPP_TransactionID'] ?? '',
-                        'orderId'           => $createOrderData['orderId'] ?? '',
+                        'PPP_TransactionID'     => $this->params['PPP_TransactionID'] ?? '',
+                        'orderId'               => $createOrderData['orderId'] ?? '',
+                        'createOrderData'       => $createOrderData,
+                        '$ord_trans_addit_info' => $ord_trans_addit_info,
                     ],
                     $msg
                 );
@@ -1530,24 +1534,32 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
     }
     
-    private function createAutoVoid()
+    /**
+     * @param bool $force
+     * @return void
+     */
+    private function createAutoVoid($force = false)
     {
         $order_request_time = $this->params['customField4']; // time of create/update order
         $curr_time          = time();
         $dmnTrType          = $this->params['transactionType'];
+        $dmnTrStatus        = strtolower($this->params['Status']);
         
         $this->readerWriter->createLog(
             [
                 '$order_request_time'   => $order_request_time,
                 '$dmnTrType'            => $dmnTrType,
+                '$dmnTrStatus'          => $dmnTrStatus,
                 '$curr_time'            => $curr_time
             ],
             'create_auto_void()'
         );
         
         // not allowed Auto-Void
-        if (!in_array($dmnTrType, ['Sale', 'Auth'])) {
-            $msg = 'The Auto Void is allowed only for Sale and Auth.';
+        if (!in_array($dmnTrType, ['Sale', 'Auth'])
+            || 'approved' != $dmnTrStatus
+        ) {
+            $msg = 'The Auto Void is allowed only for Approved Sale and Auth.';
             
             $this->readerWriter->createLog($msg);
             $this->jsonOutput->setData($msg);
@@ -1556,22 +1568,24 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        if (empty($order_request_time)) {
-            $msg = 'There is problem with $order_request_time. End process.';
-            
-            $this->readerWriter->createLog(null, $msg, 'WARINING');
-            $this->jsonOutput->setData($msg);
-            $this->jsonOutput->setHttpResponseCode(200);
-            return false;
-        }
-        
-        if ($curr_time - $order_request_time <= 1800) {
-            $msg = "Let's wait one more DMN try.";
-            
-            $this->readerWriter->createLog($msg);
-            $this->jsonOutput->setData($msg);
-            
-            return false;
+        if (!$force) {
+            if (empty($order_request_time)) {
+                $msg = 'There is problem with $order_request_time. End process.';
+
+                $this->readerWriter->createLog(null, $msg, 'WARINING');
+                $this->jsonOutput->setData($msg);
+                $this->jsonOutput->setHttpResponseCode(200);
+                return;
+            }
+
+            if ($curr_time - $order_request_time <= 1800) {
+                $msg = "Let's wait one more DMN try.";
+
+                $this->readerWriter->createLog($msg);
+                $this->jsonOutput->setData($msg);
+
+                return;
+            }
         }
         // /not allowed Auto-Void
         
@@ -1885,14 +1899,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && !empty($this->params["relatedTransactionId"])
         ) {
             $this->readerWriter->createLog('order identificator - transactionId');
-            
             $this->transactionId = $this->params["relatedTransactionId"];
             return;
         }
         
         if (!empty($this->params["clientUniqueId"])) {
             $this->readerWriter->createLog('order identificator - orderIncrementId');
-            //            $this->orderIncrementId = current(explode('_', $this->params["clientUniqueId"]));
             $this->orderIncrementId = $this->params["clientUniqueId"];
             return;
         }
@@ -1900,7 +1912,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if (!empty($this->params["merchant_unique_id"])) {
             // modified because of the PayPal Sandbox problem with duplicate Orders IDs
             $this->readerWriter->createLog('order identificator - orderIncrementId');
-            //            $this->orderIncrementId = current(explode('_', $this->params["merchant_unique_id"]));
             $this->orderIncrementId = $this->params["merchant_unique_id"];
             return;
         }

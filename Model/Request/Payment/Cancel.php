@@ -4,7 +4,7 @@ namespace Nuvei\Checkout\Model\Request\Payment;
 
 use Magento\Framework\Exception\PaymentException;
 use Nuvei\Checkout\Model\AbstractRequest;
-use Nuvei\Checkout\Model\AbstractResponse;
+//use Nuvei\Checkout\Model\AbstractResponse;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Model\Request\AbstractPayment;
 use Nuvei\Checkout\Model\RequestInterface;
@@ -17,7 +17,7 @@ class Cancel extends AbstractPayment implements RequestInterface
     protected $readerWriter;
     protected $request;
     
-    private $params; // in case of AutoVoid we will pass them all
+    private $params; // in case of Auto-Void we will pass them all
     
     /**
      * Refund constructor.
@@ -88,6 +88,18 @@ class Cancel extends AbstractPayment implements RequestInterface
      */
     protected function getParams()
     {
+        // Auto-Void flow when we pass all params from the DMN Class
+        if (!empty($this->params) && is_array($this->params)) {
+            // set notify url
+            if (0 == $this->config->getConfigValue('disable_notify_url')) {
+                $this->params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl();
+            }
+
+            $this->params = array_merge_recursive($this->params, parent::getParams());
+
+            return $this->params;
+        }
+        
         // we can create Void for Settle and Auth only!
         $orderPayment   = $this->orderPayment;
         $order          = $orderPayment->getOrder();
@@ -98,21 +110,6 @@ class Cancel extends AbstractPayment implements RequestInterface
             $this->readerWriter->createLog($order, $msg, 'WARN');
             
             throw new PaymentException(__($msg));
-        }
-        
-        // AutoVoid flow when we pass all params from the DMN Class
-        if (!empty($this->params) && is_array($this->params)) {
-            // set notify url
-            if (0 == $this->config->getConfigValue('disable_notify_url')) {
-                $this->params['urlDetails']['notificationUrl'] = $this->config->getCallbackDmnUrl(
-                    $order->getIncrementId(),
-                    $order->getStoreId()//,
-                );
-            }
-
-            $this->params = array_merge_recursive($this->params, parent::getParams());
-
-            return $this->params;
         }
         
         $ord_trans_addit_info   = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
