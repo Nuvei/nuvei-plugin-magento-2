@@ -8,6 +8,7 @@
     * In Cancel class do not search for the Payment and the Order when we try to create Auto-Void.
     * In DMN class, createAutoVoid() method added option to force the process without checking the timestamp.
     * In DMN class, execute() method, when Auth/Sale transaction come, but its PPP_TransactionID does not match the saved orderId parameter call createAutoVoid() with "force" parameter "true" before end the process. In this case we suspect multiple transacions for a single Magento Order, which is a problem.
+    * On the Checkout added JS event to prevet user levaing the page, when the script wait for SDK response.
 ```
 
 # 3.1.7

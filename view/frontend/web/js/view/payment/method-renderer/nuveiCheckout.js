@@ -5,7 +5,13 @@
  * @package  Nuvei_Checkout
  */
 
-var nuveiAgreementsConfig   = window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
+var nuveiAgreementsConfig = window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
+/**
+ * Set it true when prePayment check is resolved, and set it false in the nuveiAfterSdkResponse().
+ * 
+ * @type Boolean
+ */
+var nuveiWaitSdkResponse = false;
 
 /**
  * Validate checkout agreements.
@@ -81,6 +87,7 @@ function nuveiUpdateOrder(resolve, reject) {
                     return;
                 }
                 
+                nuveiWaitSdkResponse = true;
                 resolve();
                 return;
             }
@@ -111,6 +118,8 @@ function nuveiUpdateOrder(resolve, reject) {
  */
 function nuveiAfterSdkResponse(resp) {
 	console.log('nuveiAfterSdkResponse() resp', resp);
+    
+    nuveiWaitSdkResponse = false;
 
     // expired session
     if (resp.hasOwnProperty('session_expired') && resp.session_expired) {
@@ -186,6 +195,14 @@ function nuveiAfterSdkResponse(resp) {
 
 	// on Success, Approved
 };
+
+// when the SDK Pay button was clicked and the script wait for a reponse, try to prevent user leave the page.
+window.addEventListener('beforeunload', function(e) {
+    if (nuveiWaitSdkResponse) {
+        e.preventDefault();
+        e.returnValue = ''; // for Chrome
+    }
+});
 
 define(
     [
