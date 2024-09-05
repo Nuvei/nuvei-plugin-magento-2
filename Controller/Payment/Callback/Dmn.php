@@ -304,9 +304,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 || empty($createOrderData['orderId'])
                 || $createOrderData['orderId'] != $this->params['PPP_TransactionID']
             ) {
-                // One more Sale/Auth transaction for same Order? Not good - void it!
-                $this->createAutoVoid(true);
-                
                 $msg = 'DMN Error - PPP_TransactionID is different from the saved for the current Order.';
 
                 $this->readerWriter->createLog(
@@ -318,6 +315,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     ],
                     $msg
                 );
+                
+                // One more Sale/Auth transaction for same Order? Not good - void it!
+                $this->createAutoVoid(true);
+                
                 $this->jsonOutput->setData($msg);
 
                 return $this->jsonOutput;
