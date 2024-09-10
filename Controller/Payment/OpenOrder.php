@@ -96,11 +96,9 @@ class OpenOrder extends Action
                 ->setQuoteId($quoteId)
                 ->prePaymentCheck();
             
-            return $result->setData(
-                [
+            return $result->setData([
                 "success" => 0 == $resp->error ? 1 : 0,
-                ]
-            );
+            ]);
         }
         
         // when use Web SDK we have to call the OpenOrder class because have to decide will we create UPO

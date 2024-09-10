@@ -275,17 +275,29 @@ define(
                 return nuveiGetCode();
             },
 
-			getSessionToken: function(_text) {
-                self.writeLog('getSessionToken payment method', {
-                    paymentMethod: quote.paymentMethod(),
-                    textParam: _text,
-                    '#nuvei_checkout length': $('#nuvei_checkout').length
-                });
+			getSessionToken: function() {
+                var paymentMethod = quote.paymentMethod();
                 
-                if (null == quote.paymentMethod() || !quote.paymentMethod()) {
+                self.writeLog('getSessionToken', paymentMethod);
+                
+                // Errors
+                if (null == paymentMethod
+                    || !paymentMethod
+                    || ( paymentMethod.hasOwnProperty('method') 
+                        && "nuvei" !== paymentMethod.method )
+                    || 0 < $("#nuvei_checkout").html().length
+                ) {
+                    console.log(
+                        'getSessionToken abort process.', 
+                        {
+                            'payment method': paymentMethod,
+                            '#nuvei_checkout length': $("#nuvei_checkout").html().length
+                        }
+                    );
                     return;
                 }
                 
+                // Cart with mixed products
                 if(window.checkoutConfig.payment[self.getCode()].isPaymentPlan
                     && quote.getItems().length > 1
                 ) {
@@ -390,7 +402,7 @@ define(
 			},
 			
             // event function
-			scBillingAddrChange: function() {
+			scBillingAddrChange: function(_address) {
 				console.log('scBillingAddrChange');
 				
 				if(quote.billingAddress() == null) {

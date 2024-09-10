@@ -470,6 +470,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     . ' ' . $this->params['totalAmount'],
                 $this->sc_transaction_type
             );
+            
+            $this->readerWriter->createLog(
+                null,
+                'The Order amount is ' . $this->order->getOrderCurrencyCode() . ' '
+                    . round((float) $this->order->getBaseGrandTotal(), 2) 
+                    . ', but the Authorized amount is ' . $this->params['currency'] 
+                    . ' ' . $this->params['totalAmount'],
+                'WARN'
+            );
         }
         // /Fraud check
         
@@ -585,6 +594,14 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 . $order_total . ', ' . __('but the Paid amount is ')
                 . $this->params['currency'] . ' ' . $dmn_total,
                 $this->sc_transaction_type
+            );
+            
+            $this->readerWriter->createLog(
+                null,
+                'The Order amount is ' . $this->order->getOrderCurrencyCode() . ' '
+                    . $order_total . ', but the Paid amount is ' 
+                    . $this->params['currency'] . ' ' . $this->params['totalAmount'],
+                'WARN'
             );
         }
 

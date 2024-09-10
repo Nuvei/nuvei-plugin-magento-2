@@ -161,7 +161,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $callUpdateOrder = true;
         }
         
-        // check for newly added product with 
+        // check for newly added product with rebilling
         if (empty($order_data['userTokenId']) && !empty($this->subs_data)) {
             $this->readerWriter->createLog('$order_data[userTokenId] is empty, call openOrder');
             $callUpdateOrder = false;
@@ -218,12 +218,20 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->subsData     = $this->subs_data; // pass the private variable to the public one, used into the API
 
         // save the session token in the Quote
+        $this->setCreateOrderData($req_resp, $items_base_data, $order_data);
+        
+        
         $add_info = [
             'sessionToken'      => $req_resp['sessionToken'],
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
             'itemsBaseInfoHash' => hash('md5', $this->serializer->serialize($items_base_data)),
             'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
+            'totalAmount'       => $order_total,
+            'userDataHash'      => hash('md5', $this->serializer->serialize([
+                'shippingAddress'   => $this->requestParams['shippingAddress'],
+                'billingAddress'    => $this->requestParams['billingAddress'],
+            ]))
         ];
         
         if (isset($req_resp['userTokenId'])) {
@@ -303,34 +311,61 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     {
         $this->readerWriter->createLog('prePaymentCheck');
         
-        $quote = empty($this->quoteId) 
+        $this->quote = empty($this->quoteId) 
             ? $this->cart->getQuote() : $this->quoteFactory->create()->load($this->quoteId);
         
-        $order_data = $quote->getPayment()
+        $order_data = $this->quote->getPayment()
             ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
         
-        $this->items        = $quote->getItems();
+        $this->readerWriter->createLog($order_data, 'prePaymentCheck');
+        
+        $this->items        = $this->quote->getItems();
         $items_base_data    = $this->isProductAvailable();
         $this->error        = 1;
         $magentoVersionInt  = str_replace('.', '', (string) $this->config->getMagentoVersion());
         $quotePM            = '';
         
-        if ($quote->getPayment()) {
-            $quotePM = $quote->getPayment()->getMethod();
+        if ($this->quote->getPayment()) {
+            $quotePM = $this->quote->getPayment()->getMethod();
+        }
+        
+        $quoteAddresses = [
+            'shippingAddress'   => $this->config->getQuoteShippingAddress(),
+            'billingAddress'    => $this->config->getQuoteBillingAddress(),
+        ];
+        
+        // Error, when create-order-data does not match current data, we need to update the order
+        if (empty($order_data['itemsBaseInfoHash'])
+            || empty($order_data['userDataHash'])
+            || $order_data['itemsBaseInfoHash'] != hash('md5', $this->serializer->serialize($items_base_data))
+            || $order_data['totalAmount'] != $this->config->getQuoteBaseTotal()
+            || $order_data['userDataHash'] != hash('md5', $this->serializer->serialize($quoteAddresses))
+                
+        ) {
+            $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
+
+            $req_resp = $update_order_request
+                ->setOrderData($order_data)
+                ->setQuoteId($this->quote->getId())
+                ->process();
+            
+            // if UpdateOrder fails - refresh the page
+            if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
+                return $this;
+            }
+            
+            // if success update the data
+            $this->setCreateOrderData($req_resp, $items_base_data, $order_data);
         }
         
         // success
-        if (!empty($order_data['itemsBaseInfoHash'])
-            && $order_data['itemsBaseInfoHash'] == hash('md5', $this->serializer->serialize($items_base_data))
-        ) {
-            $this->error = 0;
-            
-            // mod for Magenteo 2.3.x to set in Quote the Payment Method
-            if (240 > $magentoVersionInt && $quotePM != Payment::METHOD_CODE) {
-                $quote->setPaymentMethod(Payment::METHOD_CODE);
-                $quote->getPayment()->importData(['method' => Payment::METHOD_CODE]);
-                $quote->save();
-            }
+        $this->error = 0;
+
+        // mod for Magenteo 2.3.x to set in Quote the Payment Method
+        if (240 > $magentoVersionInt && $quotePM != Payment::METHOD_CODE) {
+            $this->quote->setPaymentMethod(Payment::METHOD_CODE);
+            $this->quote->getPayment()->importData(['method' => Payment::METHOD_CODE]);
+            $this->quote->save();
         }
         
         return $this;
@@ -361,23 +396,30 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $this->config->setNuveiUseCcOnly(!empty($this->subs_data) ? true : false);
         
-        $quoteId            = empty($this->quoteId) ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
+        $quoteId            = empty($this->quoteId) 
+            ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
         $amount             = $this->config->getQuoteBaseTotal($quoteId);
         $billing_address    = [];
         
         if (!empty($this->billingAddress)) {
-            $billing_address['firstName']   = $this->billingAddress['firstname'] ?: $billing_address['firstName'];
-            $billing_address['lastName']    = $this->billingAddress['lastname'] ?: $billing_address['lastName'];
+            $billing_address['firstName']   = isset($this->billingAddress['firstname']) 
+                ? $this->billingAddress['firstname'] : $billing_address['firstName'];
+            $billing_address['lastName']    = isset($this->billingAddress['lastname']) 
+                ? $this->billingAddress['lastname'] : $billing_address['lastName'];
             
             if (is_array($this->billingAddress['street']) && !empty($this->billingAddress['street'])) {
                 $address                    = trim((string) implode(' ', $this->billingAddress['street']));
                 $billing_address['address'] = str_replace(array("\n", "\r", '\\'), ' ', $address);
             }
             
-            $billing_address['phone']   = $this->billingAddress['telephone'] ?: $billing_address['phone'];
-            $billing_address['zip']     = $this->billingAddress['postcode'] ?: $billing_address['zip'];
-            $billing_address['city']    = $this->billingAddress['city'] ?: $billing_address['city'];
-            $billing_address['country'] = $this->billingAddress['countryId'] ?: $billing_address['country'];
+            $billing_address['phone']   = isset($this->billingAddress['telephone'])
+                ? $this->billingAddress['telephone'] : $billing_address['phone'];
+            $billing_address['zip']     = isset($this->billingAddress['postcode']) 
+                ? $this->billingAddress['postcode'] : $billing_address['zip'];
+            $billing_address['city']    = isset($this->billingAddress['city']) 
+                ? $this->billingAddress['city'] : $billing_address['city'];
+            $billing_address['country'] = isset($this->billingAddress['countryId']) 
+                ? $this->billingAddress['countryId'] : $billing_address['country'];
         }
         else {
             $billing_address = $this->config->getQuoteBillingAddress($quoteId);
@@ -633,6 +675,53 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->readerWriter->createLog($items_base_data, '$items_base_data');
         
         return $items_base_data;
+    }
+    
+    /**
+     * A help function to save create-order-data into the Quote.
+     * 
+     * @param array $req_resp           Response from OpenOrder or UpdateOrder request.
+     * @param array $items_base_data    The base items date.
+     * @param array $order_data         The current create-order-data, before the update.
+     */
+    private function setCreateOrderData($req_resp, $items_base_data, $order_data)
+    {
+        $order_total = (float) $this->config->getQuoteBaseTotal($this->quoteId);
+        
+        $add_info = [
+            'sessionToken'      => $req_resp['sessionToken'],
+            'clientRequestId'   => $req_resp['clientRequestId'],
+            'orderId'           => $req_resp['orderId'],
+            'itemsBaseInfoHash' => hash('md5', $this->serializer->serialize($items_base_data)),
+            'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
+            'totalAmount'       => $order_total,
+            'userDataHash'      => hash('md5', $this->serializer->serialize([
+                'shippingAddress'   => isset($this->requestParams['shippingAddress']) 
+                    ? $this->requestParams['shippingAddress'] : $this->config->getQuoteShippingAddress($this->quoteId),
+                'billingAddress'    => isset($this->requestParams['billingAddress'])
+                    ? $this->requestParams['billingAddress'] : $this->config->getQuoteBillingAddress($this->quoteId),
+            ]))
+        ];
+        
+        if (isset($req_resp['userTokenId'])) {
+            $add_info['userTokenId'] = $req_resp['userTokenId'];
+        }
+        
+        // in case of OpenOrder
+        if (!empty($this->requestParams['transactionType'])) {
+            $add_info['transactionType'] = $this->requestParams['transactionType'];
+        }
+        // in case of updateOrder the transactionType is not changed
+        elseif (!empty($order_data['transactionType'])) {
+            $add_info['transactionType'] = $order_data['transactionType'];
+        }
+        
+        $this->quote->getPayment()->setAdditionalInformation(
+            Payment::CREATE_ORDER_DATA,
+            $add_info
+        );
+        
+        $this->quote->save();
     }
     
 }
