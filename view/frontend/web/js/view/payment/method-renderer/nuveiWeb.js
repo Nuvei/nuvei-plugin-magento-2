@@ -96,14 +96,16 @@ define(
                 }
 
                 // UPO CC
-                if ('cc_card' == _self.attr('data-upo-name')) {
+                else if ('cc_card' == _self.attr('data-upo-name')) {
                     lastCvcHolder = '#sc_upo_'+ _self.val() +'_cvc';
                     self.nuveiInitFields();
                     return;
                 }
 
                 // Apple Pay
-                if(_self.val() == 'ppp_ApplePay') {
+                else if(_self.val() == 'ppp_ApplePay') {
+                    lastCvcHolder = '';
+                    
                     if(!window.ApplePaySession) {
                         $('#nuvei_apple_pay_btn').hide();
                         $('#nuvei_apple_pay_error, #nuvei_default_pay_btn').show();
@@ -113,6 +115,10 @@ define(
                     $('#nuvei_apple_pay_error, #nuvei_default_pay_btn').hide();
                     $('#nuvei_apple_pay_btn').show();
                     return;
+                }
+                
+                else {
+                    lastCvcHolder = '';
                 }
             });
 
@@ -380,10 +386,9 @@ define(
                         self.apmMethods(res.apmMethods);
                         self.upos(res.upos);
                         
-                        console.log(window.ApplePaySession);
+//                        console.log(window.ApplePaySession);
 //                        console.log(typeof window.ApplePaySession.canMakePayments());
-                        console.log(typeof res.applePayData);
-                        console.log(typeof res.applePayData);
+//                        console.log(typeof res.applePayData);
 						
                         // for ApplePay
                         if(window.ApplePaySession

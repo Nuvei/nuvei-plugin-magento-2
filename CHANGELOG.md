@@ -5,6 +5,7 @@
 ```
     * In OpenOrder model, prePaymentCheck() method were added additional checks for Order Total and user data hash. If the check fails, try to update Nuvei Order with latest Quote details. If this call also fails, refresh the Checkout page.
     * On the Checkout page create openOrder request only when Nuvei is selected as payment provider, and when the Simply Connect is not already loaded (its container is empty).
+    * When webSDK is used, clean lastCvcHolder in case the current selected payment method is not CC or CC UPO.
 ```
 
 # 3.1.8
