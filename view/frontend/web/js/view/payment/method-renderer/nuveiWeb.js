@@ -650,6 +650,8 @@ define(
                         return;
                     }
                     
+                    // on error
+                    nuveiHideLoader();
                     return;
                 }
                 
