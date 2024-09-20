@@ -1,6 +1,18 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.1.10
+```
+    * In Callback\Completed class fixed some comments, marked the place where eventualy to redirect to the Cashier page.
+    * In Callback\Dmn class, when the incoming DMN not Sale or Auth, set $loop_max_tries to 1.
+    * In Request\OpenOrder class get the Quote ID using specific method in Config class, not directly from Checkout\Session class.
+    * In Request\PaymentApm class, removed some commented parts of code. Use the specific method in Config class to get the Quote ID.
+    * In Request\UpdateOrder class use the specific method in Config class to get the Quote ID. In case $this->orderData['clientRequestId'] is not set, generate new clientRequestId.
+    * In Model\Config class in all cases when need to get information from Quote, use Checkout\Cart method to get Quote instead of Checkout\Session class. Few methods were marked as depricated.
+    * In Model\ConfigProvider class, getCheckoutSdkConfig() method, added checkoutFormAction parameter, which is the callback success URL.
+    * In method-render/nuveiCheckout.js were added few lines of code (commented at the moment) who will add an input to holds the Nuvei TransactionID and will submit the form to the custom callback success URL.
+```
+
 # 3.1.9
 ```
     * In OpenOrder model, prePaymentCheck() method were added additional checks for Order Total and user data hash. If the check fails, try to update Nuvei Order with latest Quote details. If this call also fails, refresh the Checkout page.

@@ -129,6 +129,7 @@ class Config
     private $customerSession;
     private $cookie;
     private $quoteFactory;
+    private $cart;
 
     /**
      * Object initialization.
@@ -160,23 +161,24 @@ class Config
         \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteIp,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Stdlib\CookieManagerInterface $cookie,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory
+        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        \Magento\Checkout\Model\Cart $cart,
     ) {
-        $this->scopeConfig      = $scopeConfig;
-        $this->storeManager     = $storeManager;
-        $this->productMetadata  = $productMetadata;
-        $this->moduleList       = $moduleList;
-        $this->checkoutSession  = $checkoutSession;
-        $this->urlBuilder       = $urlBuilder;
-        $this->httpHeader       = $httpHeader;
-        $this->remoteIp         = $remoteIp;
-        $this->customerSession  = $customerSession;
-
+        $this->scopeConfig          = $scopeConfig;
+        $this->storeManager         = $storeManager;
+        $this->productMetadata      = $productMetadata;
+        $this->moduleList           = $moduleList;
+        $this->checkoutSession      = $checkoutSession;
+        $this->urlBuilder           = $urlBuilder;
+        $this->httpHeader           = $httpHeader;
+        $this->remoteIp             = $remoteIp;
+        $this->customerSession      = $customerSession;
         $this->storeId              = $this->getStoreId();
         $this->formKey              = $formKey;
         $this->directory            = $directory;
         $this->cookie               = $cookie;
         $this->quoteFactory         = $quoteFactory;
+        $this->cart                 = $cart;
         
         $git_version = $this->productMetadata->getVersion();
         
@@ -517,7 +519,8 @@ class Config
     public function getCallbackSuccessUrl($quoteId = '')
     {
         $params = [
-            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+//            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+            'quote'     => !empty($quoteId) ? $quoteId : $this->getQuoteId(),
             'form_key'  => $this->formKey->getFormKey(),
         ];
         
@@ -534,7 +537,8 @@ class Config
     public function getCallbackPendingUrl($quoteId = '')
     {
         $params = [
-            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+//            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+            'quote'     => !empty($quoteId) ? $quoteId : $this->getQuoteId(),
             'form_key'  => $this->formKey->getFormKey(),
         ];
         
@@ -551,7 +555,8 @@ class Config
     public function getCallbackErrorUrl($quoteId = '')
     {
         $params = [
-            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+//            'quote'     => !empty($quoteId) ? $quoteId : $this->checkoutSession->getQuoteId(),
+            'quote'     => !empty($quoteId) ? $quoteId : $this->getQuoteId(),
             'form_key'  => $this->formKey->getFormKey(),
         ];
 
@@ -591,18 +596,27 @@ class Config
         return $this->getConfigValue('can_' . $commandCode);
     }
     
+    /**
+     * Get the Quote ID based on the Cart model.
+     * 
+     * @return int|null
+     */
     public function getQuoteId()
     {
-        return ($quote = $this->checkoutSession->getQuote()) ? $quote->getId() : null;
+//        return ($quote = $this->checkoutSession->getQuote()) ? $quote->getId() : null;
+        return ($quote = $this->cart->getQuote()) ? $quote->getId() : null;
     }
     
     /**
      * @param  int $quoteId Optional.
      * @return string
+     * 
+     * @deprecated since version 3.1.9
      */
     public function getReservedOrderId($quoteId = '')
     {
-        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         
         $reservedOrderId = $quote->getReservedOrderId();
@@ -631,7 +645,8 @@ class Config
      */
     public function getQuoteCountryCode($quoteId = 0)
     {
-        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         
         $billing        = ($quote) ? $quote->getBillingAddress() : null;
@@ -657,7 +672,8 @@ class Config
      */
     public function getQuoteBaseCurrency($quoteId = 0)
     {
-        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         
         return $quote->getBaseCurrencyCode();
@@ -667,10 +683,13 @@ class Config
      * Get currency code from the Quote. This must be same as the Magento store Visual currency.
      *
      * @return string
+     * 
+     * @deprecated since version 3.1.9
      */
     public function getQuoteVisualCurrency()
     {
-        return $this->checkoutSession->getQuote()->getQuoteCurrencyCode();
+//        return $this->checkoutSession->getQuote()->getQuoteCurrencyCode();
+        return $this->cart->getQuote()->getQuoteCurrencyCode();
     }
     
     /**
@@ -691,7 +710,8 @@ class Config
      */
     public function getQuoteBaseTotal($quoteId = 0)
     {
-        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         
         return (string) number_format((float) $quote->getBaseGrandTotal(), 2, '.', '');
@@ -701,10 +721,13 @@ class Config
      * Get quote visual.
      *
      * @return string
+     * 
+     * @deprecated since version 3.1.9
      */
     public function getQuoteVisualTotal()
     {
-        return (string) number_format($this->checkoutSession->getQuote()->getGrandTotal(), 2, '.', '');
+//        return (string) number_format($this->checkoutSession->getQuote()->getGrandTotal(), 2, '.', '');
+        return (string) number_format($this->cart->getQuote()->getGrandTotal(), 2, '.', '');
     }
     
     /**
@@ -714,7 +737,8 @@ class Config
      */
     public function getQuoteBillingAddress($quoteId = '')
     {
-        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         
         if (!is_object($quote) || empty($quote)) {
@@ -761,7 +785,8 @@ class Config
      */
     public function getQuoteShippingAddress($quoteId = '')
     {
-        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         
         $shipping_address   = $quote->getShippingAddress();
@@ -798,7 +823,8 @@ class Config
      */
     public function getUserEmail($empty_on_fail = false, $quoteId = '')
     {
-        $quote  = empty($quoteId) ? $this->checkoutSession->getQuote() 
+//        $quote  = empty($quoteId) ? $this->checkoutSession->getQuote() 
+        $quote  = empty($quoteId) ? $this->cart->getQuote() 
             : $this->quoteFactory->create()->load($quoteId);
         $email  = $quote->getBillingAddress()->getEmail();
         

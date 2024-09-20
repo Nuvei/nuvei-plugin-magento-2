@@ -156,7 +156,8 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      */
     protected function getParams()
     {
-        $quoteId        = empty($this->quoteId) ? $this->checkoutSession->getQuoteId() : $this->quoteId;
+//        $quoteId        = empty($this->quoteId) ? $this->checkoutSession->getQuoteId() : $this->quoteId;
+        $quoteId        = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
         $quote          = $this->quoteFactory->create()->load($quoteId);
         $quotePayment   = $quote->getPayment();
         $order_data     = $quotePayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
@@ -176,22 +177,13 @@ class PaymentApm extends AbstractRequest implements RequestInterface
             throw new \Exception(__($msg));
         }
         
-        $billingAddress     = $this->config->getQuoteBillingAddress($this->quoteId);
-        $amount             = (string) number_format($this->config->getQuoteBaseTotal($this->quoteId), 2, '.', '');
-        //        $reservedOrderId    = $quotePayment->getAdditionalInformation(Payment::TRANSACTION_ORDER_ID)
-        //            ?: $this->config->getReservedOrderId();
+        $billingAddress = $this->config->getQuoteBillingAddress($this->quoteId);
+        $amount         = $this->config->getQuoteBaseTotal($this->quoteId);
         
         $params = [
             'clientUniqueId'    => $quoteId . '_' . time(),
-        //            'clientUniqueId'    => $reservedOrderId . '_' . time(),
             'currency'          => $this->config->getQuoteBaseCurrency($this->quoteId),
             'amount'            => $amount,
-            
-        //            'items'             => [[
-        //                'name'      => 'magento_order',
-        //                'price'     => $amount,
-        //                'quantity'  => 1,
-        //            ]],
             
             'urlDetails'        => [
                 'successUrl'        => !empty($this->urlDetails['successUrl'])
@@ -213,7 +205,6 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         // set notify url
         if (0 == $this->config->getConfigValue('disable_notify_url')) {
             $params['urlDetails']['notificationUrl'] = $this->config
-            //                ->getCallbackDmnUrl($reservedOrderId, null, [], $this->quoteId);
                 ->getCallbackDmnUrl(null, null, [], $this->quoteId);
         }
         

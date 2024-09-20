@@ -113,7 +113,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             throw new PaymentException(__('There is no Cart data.'));
         }
         
-        $quoteId = empty($this->quoteId) ? $this->config->getCheckoutSession()->getQuoteId() : $this->quoteId;
+        $quoteId = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
         
         // iterate over Items and search for Subscriptions
         $items_data = $this->paymentsPlans->getProductPlanData();
@@ -158,7 +158,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         $params['sessionToken']     = $this->orderData['sessionToken'];
         $params['orderId']          = isset($this->orderData['orderId']) ? $this->orderData['orderId'] : '';
         $params['clientRequestId']  = isset($this->orderData['clientRequestId'])
-            ? $this->orderData['clientRequestId'] : '';
+            ? $this->orderData['clientRequestId'] : $this->initRequest();
         
         $params['checksum'] = hash(
             $this->config->getConfigValue('hash'),

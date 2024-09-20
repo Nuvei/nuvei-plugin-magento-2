@@ -138,7 +138,8 @@ function nuveiAfterSdkResponse(resp) {
             return;
         }
     }
-	// on unexpected error
+	
+    // on unexpected error
 	if(typeof resp == 'undefined'
 		|| !resp.hasOwnProperty('result')
 		|| !resp.hasOwnProperty('transactionId')
@@ -174,7 +175,23 @@ function nuveiAfterSdkResponse(resp) {
 
     // on Approved or Pending
     if (resp.result == 'APPROVED' || resp.result == 'PENDING') {
+        // before click on submit button
+//        var checkoutForm    = jQuery('#nuvei_default_pay_btn').closest('form');
+//        var trIdInput       = checkoutForm.find('#nuvei_transaction_id');
+//        
+////        if (trIdInput.length > 0) {
+//            trIdInput.val(resp.transactionId);
+////        }
+////        else {
+////            checkoutForm.append('<input type="hidden" id="nuvei_transaction_id" name="nuvei_transaction_id" value="'+ resp.transactionId +'" />');
+////        }
+//        
+//        checkoutForm.attr('action', window.checkoutConfig.payment[nuveiGetCode()].checkoutFormAction);
+//        checkoutForm.attr('method', 'POST');
+        
+        // submit the form
         jQuery('#nuvei_default_pay_btn').trigger('click');
+//        checkoutForm.submit();
         return;
     }
 
@@ -308,6 +325,12 @@ define(
                 ///////////////////////////////////
                 
                 nuveiShowLoader();
+                
+//                var checkoutForm    = jQuery('#nuvei_default_pay_btn').closest('form');
+//                var trIdInput       = checkoutForm.find('#nuvei_transaction_id');
+//                if (trIdInput.length == 0) {
+//                    checkoutForm.append('<input type="hidden" id="nuvei_transaction_id" name="nuvei_transaction_id" value="" />');
+//                }
                 
                 var xmlhttp = new XMLHttpRequest();
                 

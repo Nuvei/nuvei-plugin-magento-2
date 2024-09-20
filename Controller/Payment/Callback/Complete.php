@@ -12,7 +12,6 @@ use Magento\Framework\App\RequestInterface;
 /**
  * Nuvei Checkout redirect success controller.
  */
-//class Success extends Action
 class Complete extends Action implements CsrfAwareActionInterface
 {
     /**
@@ -41,12 +40,11 @@ class Complete extends Action implements CsrfAwareActionInterface
      * Object constructor.
      *
      * @param Context                 $context
-     * @param PaymentRequestFactory   $paymentRequestFactory
-     * @param ModuleConfig            $moduleConfig
      * @param DataObjectFactory       $dataObjectFactory
      * @param CartManagementInterface $cartManagement
      * @param CheckoutSession         $checkoutSession
      * @param Onepage                 $onepageCheckout
+     * @param ReaderWriter            $readerWriter
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -58,11 +56,11 @@ class Complete extends Action implements CsrfAwareActionInterface
     ) {
         parent::__construct($context);
 
-        $this->dataObjectFactory        = $dataObjectFactory;
-        $this->cartManagement           = $cartManagement;
-        $this->checkoutSession          = $checkoutSession;
-        $this->onepageCheckout          = $onepageCheckout;
-        $this->readerWriter             = $readerWriter;
+        $this->dataObjectFactory    = $dataObjectFactory;
+        $this->cartManagement       = $cartManagement;
+        $this->checkoutSession      = $checkoutSession;
+        $this->onepageCheckout      = $onepageCheckout;
+        $this->readerWriter         = $readerWriter;
     }
     
     /**
@@ -137,12 +135,15 @@ class Complete extends Action implements CsrfAwareActionInterface
             return $resultRedirect;
         }
 
+        // go to success page
         $resultRedirect->setUrl(
             $this->_url->getUrl('checkout/onepage/success/')
             . (!empty($form_key) ? '?form_key=' . $form_key : '')
         );
         
         return $resultRedirect;
+        
+        // TODO - go to Cashier. To do this we must submit the Checkout form to this page.
     }
 
     /**
