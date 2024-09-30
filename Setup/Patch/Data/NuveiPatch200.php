@@ -334,6 +334,8 @@ class NuveiPatch200 implements DataPatchInterface
      * we specified here in our file, the patch will not execute.
      *
      * {@inheritdoc}
+     * 
+     * @deprecated since version 3.2.0
      */
     public static function getVersion()
     {

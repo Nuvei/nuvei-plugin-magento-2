@@ -50,6 +50,11 @@ class Status extends Column
                 try {
                     $order_info     = $this->collection->loadByIncrementId($item['increment_id']);
                     $orderPayment   = $order_info->getPayment();
+                    
+                    if (!is_object($orderPayment)) {
+                        continue;
+                    }
+                    
                     $ord_trans_data = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
                     $subscr_ids     = '';
                     

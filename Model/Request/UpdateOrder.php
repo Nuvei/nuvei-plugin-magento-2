@@ -18,8 +18,11 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     protected $orderData;
 
     private $quoteId        = '';
+    private $orderId        = '';
     private $cart;
     private $paymentsPlans;
+    private $orderRepo;
+    private $countryInfo;
     
     /**
      * @param Config        $config
@@ -35,7 +38,9 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         \Nuvei\Checkout\Model\Response\Factory $responseFactory,
         \Magento\Checkout\Model\Cart $cart,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans
+        \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
+        \Magento\Directory\Api\Data\CountryInformationInterface $countryInfo
     ) {
         parent::__construct(
             $config,
@@ -46,6 +51,8 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
 
         $this->cart             = $cart;
         $this->paymentsPlans    = $paymentsPlans;
+        $this->orderRepo        = $orderRepo;
+        $this->countryInfo      = $countryInfo;
     }
 
     /**
@@ -73,6 +80,13 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     public function setQuoteId($quoteId = '')
     {
         $this->quoteId = $quoteId;
+        
+        return $this;
+    }
+    
+    public function setOrderId($orderId = '')
+    {
+        $this->orderId = $orderId;
         
         return $this;
     }
@@ -107,22 +121,129 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
      */
     protected function getParams()
     {
-        if (null === $this->cart || empty($this->cart)) {
-            $this->readerWriter->createLog('UpdateOrder Error - There is no Cart data.');
+        // We can collect the details from the Order or from the Quote
+        
+        // Case 1 - when we have Order
+        if (!empty ($this->orderId)) {
+            $order = $this->orderRepo->get($this->orderId);
             
-            throw new PaymentException(__('There is no Cart data.'));
+            // iterate over Items and search for Subscriptions
+            $items_data = $this->paymentsPlans
+                ->setOrder($order)
+                ->getProductPlanData();
+            
+            $subs_data = isset($items_data['subs_data']) ? $items_data['subs_data'] : [];
+            
+            $this->config->setNuveiUseCcOnly(!empty($subs_data) ? true : false);
+            
+            $amount         = $order->getBaseGrandTotal();
+            $currency       = $order->getBaseCurrencyCode();
+            $billingAddress = $order->getBillingAddress();
+            $billingCountry = $this->countryInfo
+                ->getCountryInfo($billingAddress->getCountryId())->getFullNameEnglish();
+            
+            $params = array_merge_recursive(
+                parent::getParams(),
+                [
+                    'currency'          => $currency,
+                    'amount'            => $amount,
+                    'billingAddress'    => [
+                        "firstName" => $billingAddress->getFirstname(),
+                        "lastName"  => $billingAddress->getLastname(),
+                        "address"   => str_replace(array("\n", "\r", '\\'), ' ', $billingAddress->getStreet()),
+                        "phone"     => $billingAddress->getTelephone(),
+                        "zip"       => $billingAddress->getPostcode(),
+                        "city"      => $billingAddress->getCity(),
+                        'country'   => $billingCountry,
+                        'email'     => $billingAddress->getEmail(),
+                    ],
+                    'items'             => [[
+                        'name'      => 'magento_order',
+                        'price'     => $amount,
+                        'quantity'  => 1,
+                    ]],
+
+                    'merchantDetails'   => [
+                        'customField1'  => $amount,
+                        'customField2'  => json_encode($subs_data),
+                        //'customField3'  => $this->config->getReservedOrderId($quoteId),
+                        // customField4 will be set in AbstractRequest class
+                        'customField5' => $currency,
+                    ],
+                ]
+            );
+            
+            if ($shippingAddress = $order->getShippingAddress()) {
+                $shippingCountry = $this->countryInfo
+                    ->getCountryInfo($shippingAddress->getCountryId())->getFullNameEnglish();
+                
+                $params['shippingAddress'] = [
+                    "firstName" => $shippingAddress->getFirstname(),
+                    "lastName"  => $shippingAddress->getLastname(),
+                    "address"   => implode(', ', $shippingAddress->getStreet()),
+                    "phone"     => $shippingAddress->getTelephone(),
+                    "zip"       => $shippingAddress->getPostcode(),
+                    "city"      => $shippingAddress->getCity(),
+                    'country'   => $shippingCountry,
+                    'email'     => $shippingAddress->getEmail(),
+                ];
+            }
+            
+            $params['sessionToken']     = $this->orderData['sessionToken'];
+            $params['orderId']          = isset($this->orderData['orderId']) ? $this->orderData['orderId'] : '';
+            $params['clientUniqueId']   = $order->getIncrementId();
+            $params['clientRequestId']  = isset($this->orderData['clientRequestId'])
+                ? $this->orderData['clientRequestId'] : $this->initRequest();
         }
-        
-        $quoteId = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
-        
-        // iterate over Items and search for Subscriptions
-        $items_data = $this->paymentsPlans->getProductPlanData();
-        $subs_data  = isset($items_data['subs_data']) ? $items_data['subs_data'] : [];
-        
-        $this->config->setNuveiUseCcOnly(!empty($subs_data) ? true : false);
-        
-        $amount     = $this->config->getQuoteBaseTotal($quoteId);
-        $currency   = $this->config->getQuoteBaseCurrency($quoteId);
+        // Case 2 - when we have Quote
+        elseif (!empty ($this->quoteId)) {
+            if (null === $this->cart || empty($this->cart)) {
+                $this->readerWriter->createLog('UpdateOrder Error - There is no Cart data.');
+
+                throw new PaymentException(__('There is no Cart data.'));
+            }
+
+            $quoteId = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
+
+            // iterate over Items and search for Subscriptions
+            $items_data = $this->paymentsPlans->getProductPlanData();
+            $subs_data  = isset($items_data['subs_data']) ? $items_data['subs_data'] : [];
+
+            $this->config->setNuveiUseCcOnly(!empty($subs_data) ? true : false);
+
+            $amount     = $this->config->getQuoteBaseTotal($quoteId);
+            $currency   = $this->config->getQuoteBaseCurrency($quoteId);
+
+            $params = array_merge_recursive(
+                parent::getParams(),
+                [
+                    'currency'          => $currency,
+                    'amount'            => $amount,
+                    'billingAddress'    => $this->config->getQuoteBillingAddress($quoteId),
+                    'shippingAddress'   => $this->config->getQuoteShippingAddress($quoteId),
+
+                    'items'             => [[
+                        'name'      => 'magento_order',
+                        'price'     => $amount,
+                        'quantity'  => 1,
+                    ]],
+
+                    'merchantDetails'   => [
+                        'customField1'  => $amount,
+                        'customField2'  => json_encode($subs_data),
+                        //'customField3'  => $this->config->getReservedOrderId($quoteId),
+                        // customField4 will be set in AbstractRequest class
+                        'customField5' => $currency,
+                    ],
+                ]
+            );
+
+            $params['sessionToken']     = $this->orderData['sessionToken'];
+            $params['orderId']          = isset($this->orderData['orderId']) ? $this->orderData['orderId'] : '';
+            $params['clientUniqueId']   = $this->quoteId;
+            $params['clientRequestId']  = isset($this->orderData['clientRequestId'])
+                ? $this->orderData['clientRequestId'] : $this->initRequest();
+        }
         
         $this->readerWriter->createLog([
             '$subs_data'            => $subs_data,
@@ -130,35 +251,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             'getQuoteBaseCurrency'  => $currency,
         ]);
         
-        $params = array_merge_recursive(
-            parent::getParams(),
-            [
-                'currency'          => $currency,
-                'amount'            => $amount,
-                'billingAddress'    => $this->config->getQuoteBillingAddress($quoteId),
-                'shippingAddress'   => $this->config->getQuoteShippingAddress($quoteId),
-                
-                'items'             => [[
-                    'name'      => 'magento_order',
-                    'price'     => $amount,
-                    'quantity'  => 1,
-                ]],
-                
-                'merchantDetails'   => [
-                    'customField1'  => $amount,
-                    'customField2'  => json_encode($subs_data),
-                    //'customField3'  => $this->config->getReservedOrderId($quoteId),
-                    // customField4 will be set in AbstractRequest class
-                    'customField5' => $currency,
-                ],
-            ]
-        );
-        
-        $params['userDetails']      = $params['billingAddress'];
-        $params['sessionToken']     = $this->orderData['sessionToken'];
-        $params['orderId']          = isset($this->orderData['orderId']) ? $this->orderData['orderId'] : '';
-        $params['clientRequestId']  = isset($this->orderData['clientRequestId'])
-            ? $this->orderData['clientRequestId'] : $this->initRequest();
+        $params['userDetails'] = $params['billingAddress'];
         
         $params['checksum'] = hash(
             $this->config->getConfigValue('hash'),

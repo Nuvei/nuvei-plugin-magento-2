@@ -24,6 +24,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     public $error;
     public $outOfStock;
     public $reason;
+    public $successUrl;
+    public $orderId;
+    public $order;
     
     /**
      * @var RequestFactory
@@ -53,18 +56,23 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $quoteFactory;
     private $httpRequest;
     private $serializer;
+    private $quoteRepository;
+//    private $dataObjectFactory;
+    private $cartManagement;
+    private $orderRepo;
     
     /**
      * OpenOrder constructor.
      *
-     * @param Config          $config
-     * @param Curl            $curl
-     * @param ResponseFactory $responseFactory
-     * @param Factory         $requestFactory
-     * @param Cart            $cart
-     * @param ReaderWriter    $readerWriter
-     * @param PaymentsPlans   $paymentsPlans
-     * @param StockState      $stockState
+     * @param Config                    $config
+     * @param Curl                      $curl
+     * @param ResponseFactory           $responseFactory
+     * @param Factory                   $requestFactory
+     * @param Cart                      $cart
+     * @param ReaderWriter              $readerWriter
+     * @param PaymentsPlans             $paymentsPlans
+     * @param StockState                $stockState
+     * @param CartRepositoryInterface   $quoteRepository
      */
     public function __construct(
         Config $config,
@@ -77,7 +85,11 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         \Magento\CatalogInventory\Model\StockState $stockState,
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
         \Magento\Framework\App\RequestInterface $httpRequest,
-        \Magento\Framework\Serialize\Serializer\Serialize $serializer
+        \Magento\Framework\Serialize\Serializer\Serialize $serializer,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
+//        \Magento\Framework\DataObjectFactory $dataObjectFactory,
+        \Magento\Quote\Api\CartManagementInterface $cartManagement,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepo
     ) {
         parent::__construct(
             $config,
@@ -93,6 +105,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->quoteFactory     = $quoteFactory;
         $this->httpRequest      = $httpRequest;
         $this->serializer       = $serializer;
+        $this->quoteRepository  = $quoteRepository;
+//        $this->dataObjectFactory    = $dataObjectFactory;
+        $this->cartManagement   = $cartManagement;
     }
 
     /**
@@ -311,64 +326,117 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     {
         $this->readerWriter->createLog('prePaymentCheck');
         
-        $this->quote = empty($this->quoteId) 
+        $this->error    = 1;
+        $this->quote    = empty($this->quoteId) 
             ? $this->cart->getQuote() : $this->quoteFactory->create()->load($this->quoteId);
         
         $order_data = $this->quote->getPayment()
-            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
+            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
-        $this->readerWriter->createLog($order_data, 'prePaymentCheck');
+        // create Order from the Quote
+        $orderId        = $this->cartManagement->placeOrder($this->quote->getId());
+        $this->order    = $this->orderRepo->get($orderId);
         
-        $this->items        = $this->quote->getItems();
-        $items_base_data    = $this->isProductAvailable();
-        $this->error        = 1;
-        $magentoVersionInt  = str_replace('.', '', (string) $this->config->getMagentoVersion());
-        $quotePM            = '';
-        
-        if ($this->quote->getPayment()) {
-            $quotePM = $this->quote->getPayment()->getMethod();
+        // Error when place the Order
+        if (!$orderId || !is_numeric($orderId)) {
+            return $this;
         }
         
-        $quoteAddresses = [
-            'shippingAddress'   => $this->config->getQuoteShippingAddress(),
-            'billingAddress'    => $this->config->getQuoteBillingAddress(),
-        ];
+        $this->orderId = $orderId;
         
-        // Error, when create-order-data does not match current data, we need to update the order
-        if (empty($order_data['itemsBaseInfoHash'])
-            || empty($order_data['userDataHash'])
-            || $order_data['itemsBaseInfoHash'] != hash('md5', $this->serializer->serialize($items_base_data))
-            || $order_data['totalAmount'] != $this->config->getQuoteBaseTotal()
-            || $order_data['userDataHash'] != hash('md5', $this->serializer->serialize($quoteAddresses))
-                
-        ) {
-            $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
+        $this->readerWriter->createLog($orderId, 'prePaymentCheck');
+        
+        // update order to pass the final data
+        $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
 
-            $req_resp = $update_order_request
-                ->setOrderData($order_data)
-                ->setQuoteId($this->quote->getId())
-                ->process();
-            
-            // if UpdateOrder fails - refresh the page
-            if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
-                return $this;
-            }
-            
-            // if success update the data
-            $this->setCreateOrderData($req_resp, $items_base_data, $order_data);
+        $req_resp = $update_order_request
+            ->setOrderData($order_data)
+            ->setOrderId($orderId)
+            ->process();
+        
+//        $this->successUrl = $this->config->getCallbackSuccessUrl($this->quote->getId());
+        
+        // if UpdateOrder fails - refresh the page
+        if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
+            return $this;
         }
         
-        // success
+        $this->items = $this->order->getItems();
+        
+        $this->setCreateOrderData($req_resp, $this->isProductAvailable(), $order_data);
+        
         $this->error = 0;
-
-        // mod for Magenteo 2.3.x to set in Quote the Payment Method
-        if (240 > $magentoVersionInt && $quotePM != Payment::METHOD_CODE) {
-            $this->quote->setPaymentMethod(Payment::METHOD_CODE);
-            $this->quote->getPayment()->importData(['method' => Payment::METHOD_CODE]);
-            $this->quote->save();
-        }
         
         return $this;
+        
+        # TODO create Order here and UpdateOrder by the Saved Order, not Quote ::END
+        
+//        $order_data = $this->quote->getPayment()
+//            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
+//        
+//        $this->readerWriter->createLog($order_data, 'prePaymentCheck');
+//        
+//        $this->items        = $this->quote->getItems();
+//        $items_base_data    = $this->isProductAvailable();
+//        $this->error        = 1;
+//        $magentoVersionInt  = str_replace('.', '', (string) $this->config->getMagentoVersion());
+//        $quotePM            = '';
+//        
+//        if ($this->quote->getPayment()) {
+//            $quotePM = $this->quote->getPayment()->getMethod();
+//        }
+//        
+//        $quoteAddresses = [
+//            'shippingAddress'   => $this->config->getQuoteShippingAddress(),
+//            'billingAddress'    => $this->config->getQuoteBillingAddress(),
+//        ];
+//        
+//        // Error, when create-order-data does not match current data, we need to update the order
+//        if (empty($order_data['itemsBaseInfoHash'])
+//            || empty($order_data['userDataHash'])
+//            || $order_data['itemsBaseInfoHash'] != hash('md5', $this->serializer->serialize($items_base_data))
+//            || $order_data['totalAmount'] != $this->config->getQuoteBaseTotal()
+//            || $order_data['userDataHash'] != hash('md5', $this->serializer->serialize($quoteAddresses))
+//                
+//        ) {
+//            $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
+//
+//            $req_resp = $update_order_request
+//                ->setOrderData($order_data)
+//                ->setQuoteId($this->quote->getId())
+//                ->process();
+//            
+//            // if UpdateOrder fails - refresh the page
+//            if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
+//                // unlock the Quote
+//                $this->quote->setData('is_locked', 0);
+////                $this->quote->setIsLocked(false);
+//                $this->quoteRepository->save($this->quote);
+////                $this->quote->save();
+//                
+//                return $this;
+//            }
+//            
+//            // if success update the data
+//            $this->setCreateOrderData($req_resp, $items_base_data, $order_data);
+//        }
+//        
+//        // success
+//        $this->error = 0;
+//        
+//        // return the Session Token if we have it
+//        if (!empty($req_resp['sessionToken'])) {
+//            $this->sessionToken = $req_resp['sessionToken'];
+//        }
+//        
+//        // mod for Magenteo 2.3.x to set in Quote the Payment Method
+//        if (240 > $magentoVersionInt && $quotePM != Payment::METHOD_CODE) {
+//            $this->quote->setPaymentMethod(Payment::METHOD_CODE);
+//            $this->quote->getPayment()->importData(['method' => Payment::METHOD_CODE]);
+//            $this->quote->save();
+//        }
+//        
+//        return $this;
     }
     
     /**
@@ -715,12 +783,25 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $add_info['transactionType'] = $order_data['transactionType'];
         }
         
-        $this->quote->getPayment()->setAdditionalInformation(
-            Payment::CREATE_ORDER_DATA,
-            $add_info
-        );
-        
-        $this->quote->save();
+        // use the Order
+        if (!empty($this->order)) {
+            $this->order->getPayment()->setAdditionalInformation(
+                Payment::CREATE_ORDER_DATA,
+                $add_info
+            )
+            ->save();
+            
+            $this->order->save();
+        }
+        // use the Quote
+        else {
+            $this->quote->getPayment()->setAdditionalInformation(
+                Payment::CREATE_ORDER_DATA,
+                $add_info
+            );
+
+            $this->quote->save();
+        }
     }
     
 }

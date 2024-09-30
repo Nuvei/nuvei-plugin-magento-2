@@ -13,8 +13,8 @@ abstract class AbstractRequest
     /**
      * Payment gateway endpoints.
      */
-    const LIVE_ENDPOINT = 'https://secure.safecharge.com/ppp/';
-    const TEST_ENDPOINT = 'https://ppp-test.nuvei.com/ppp/';
+//    const LIVE_ENDPOINT = 'https://secure.safecharge.com/ppp/';
+//    const TEST_ENDPOINT = 'https://ppp-test.nuvei.com/ppp/';
 
     /**
      * Payment gateway methods.
@@ -34,6 +34,7 @@ abstract class AbstractRequest
     const CANCEL_SUBSCRIPTION_METHOD            = 'cancelSubscription';
     const GET_SESSION_TOKEN                     = 'getSessionToken';
     const DELETE_UPOS_METHOD                    = 'deleteUPO';
+    const GET_PAYMENT_STATUS                    = 'getPaymentStatus';
 
     protected $readerWriter;
     protected $config;
@@ -214,25 +215,6 @@ abstract class AbstractRequest
         }
     }
     
-    /**
-     * Return full endpoint to particular method for request call.
-     *
-     * @return string
-     */
-    protected function getEndpoint()
-    {
-        $endpoint = self::LIVE_ENDPOINT;
-        
-        if ($this->config->isTestModeEnabled() === true) {
-            $endpoint = self::TEST_ENDPOINT;
-        }
-        
-        $endpoint   .= 'api/v1/';
-        $method     = $this->getRequestMethod();
-
-        return $endpoint . $method . '.do';
-    }
-
     /**
      * Return method for request call.
      *
@@ -448,20 +430,22 @@ abstract class AbstractRequest
      */
     protected function sendRequest($continue_process = false, $accept_error_status = false)
     {
-        $endpoint   = $this->getEndpoint();
+//        $endpoint   = $this->getEndpoint();
+        $endpoint   = $this->config->getRequestEndpoint($this->getRequestMethod());
         $headers    = $this->getHeaders();
         $params     = $this->prepareParams();
+        
         // convert customData to sring after params in it are collected
-        $params['customData'] = json_encode($params['customData']);
+        if (isset($params['customData'])) {
+            $params['customData'] = json_encode($params['customData']);
+        }
 
         $this->curl->setHeaders($headers);
 
-        $this->readerWriter->createLog(
-            [
+        $this->readerWriter->createLog([
             'Request Endpoint'  => $endpoint,
             'Request params'    => $params
-            ]
-        );
+        ]);
         
         $this->curl->post($endpoint, $params);
         

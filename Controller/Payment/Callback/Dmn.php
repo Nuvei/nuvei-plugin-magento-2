@@ -81,6 +81,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private $params;
     private $readerWriter;
     private $filterBuilder;
+    private $orderCollectionFactory;
+    private $paymentCollectionFactory;
 
     /**
      * Object constructor.
@@ -108,7 +110,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Magento\Sales\Model\Order\Payment\Transaction\Repository $transactionRepository,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-        \Magento\Framework\Api\FilterBuilder $filterBuilder
+        \Magento\Framework\Api\FilterBuilder $filterBuilder,
+        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
+        \Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory $paymentCollectionFactory
     ) {
         $this->moduleConfig             = $moduleConfig;
         $this->captureCommand           = $captureCommand;
@@ -132,6 +136,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->transactionRepository    = $transactionRepository;
         $this->currencyFactory          = $currencyFactory;
         $this->filterBuilder            = $filterBuilder;
+        $this->orderCollectionFactory   = $orderCollectionFactory;
+        $this->paymentCollectionFactory = $paymentCollectionFactory;
         
         parent::__construct($context);
         
@@ -406,6 +412,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         // DECLINED/ERROR TRANSACTION
         if (in_array($status, ['declined', 'error'])) {
+            $this->sc_transaction_type = Payment::SC_CANCELED;
+            
             $this->processDeclinedDmn();
 
             $this->params['ErrCode']    = isset($this->params['ErrCode']) 
@@ -1338,8 +1346,9 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return false;
         }
         
-        $field = '';
-        $value = '';
+        $field  = '';
+        $value  = '';
+        $list   = [];
         
         if (!empty($this->quoteId)) {
             $field = 'quote_id';
@@ -1370,47 +1379,70 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $searchCriteria = $this->searchCriteriaBuilder
                 ->addFilter($field, $value, 'eq')->create();
 
-            do {
-                $this->loop_tries++;
-
-                if (TransactionInterface::TXN_ID == $field) {
+//            do {
+//                $this->loop_tries++;
+                
+                // first try to get the Order by Nuvei Transaction ID, we hope it is saved in the orderPayment additional information. Here we expect single result so get first one.
+                $orderCollection = $this->searchOrderByNuveiTrId();
+                
+                if (!empty($orderCollection)) {
+                    foreach ($orderCollection as $order) {
+                        $this->readerWriter->createLog($order->getId(), 'foreach Order ID');
+                        
+                        $this->order = $order;
+//                        break 2;
+                        break;
+                    }
+                }
+                elseif (TransactionInterface::TXN_ID == $field) {
                     // transactions list
                     $list = $this->transactionRepository->getList($searchCriteria)->getItems();
+                    
+                    if (is_array($list) && !empty($list)) {
+                        $this->order = current($list)->getOrder();
+                    }
                 }
                 else {
                     // orders list
                     $list = $this->orderRepo->getList($searchCriteria)->getItems();
+                    
+                    if (is_array($list) && !empty($list)) {
+                        $this->order = current($list);
+                    }
                 }
 
-                if (!$list || empty($list)) {
-                    $this->readerWriter->createLog(
-                        'DMN try ' . $this->loop_tries
-                        . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.'
-                    );
+//                if (!$list || empty($list)) {
+//                    $this->readerWriter->createLog(
+//                        'DMN try ' . $this->loop_tries
+//                        . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.'
+//                    );
+//
+//                    sleep(3);
+//                }
+//            } while ($this->loop_tries < $this->loop_max_tries && empty($list));
 
-                    sleep(3);
-                }
-            } while ($this->loop_tries < $this->loop_max_tries && empty($list));
-
-            // in case the list is empty or not array
-            if (!is_array($list) || empty($list)) {
-                $msg = 'DMN Callback error - there is no Order for this DMN data.';
-
-                $this->readerWriter->createLog($msg);
-                $this->jsonOutput->setData($msg);
-                $this->jsonOutput->setHttpResponseCode(400);
-
-                $this->createAutoVoid();
-
-                return false;
-            }
-
-            if (TransactionInterface::TXN_ID == $field) {
-                $this->order = current($list)->getOrder();
-            }
-            else {
-                $this->order = current($list);
-            }
+            // if we didn't found the order by Nuvei Transaction ID check the other cases
+//            if (!is_object($this->order)) {
+//                // in case the list is empty or not array
+//                if (!is_array($list) || empty($list)) {
+//                    $msg = 'DMN Callback error - there is no Order for this DMN data.';
+//
+//                    $this->readerWriter->createLog($msg);
+//                    $this->jsonOutput->setData($msg);
+//                    $this->jsonOutput->setHttpResponseCode(400);
+//
+//                    $this->createAutoVoid();
+//
+//                    return false;
+//                }
+//
+//                if (TransactionInterface::TXN_ID == $field) {
+//                    $this->order = current($list)->getOrder();
+//                }
+//                else {
+//                    $this->order = current($list);
+//                }
+//            }
 
             // in case the Order is not an object
             if (!is_object($this->order)) {
@@ -1818,14 +1850,19 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        // for the initial requests use the Quote ID
+        // for the initial requests use the Quote ID or Order Incerement ID
         if (isset($this->params['transactionType'])
             && in_array($this->params['transactionType'], ['Auth', 'Sale'])
         ) {
             if (!empty($this->params["clientUniqueId"])) {
-                $this->readerWriter->createLog('order identificator - quoteId');
-                $this->quoteId = current(explode('_', $this->params["clientUniqueId"]));
-                return;
+                if (strpos($this->params["clientUniqueId"], '_') === false) {
+                    $this->readerWriter->createLog('order identificator - orderIncrementId');
+                    $this->orderIncrementId = $this->params["clientUniqueId"];
+                }
+                else {
+                    $this->readerWriter->createLog('order identificator - quoteId');
+                    $this->quoteId = current(explode('_', $this->params["clientUniqueId"]));
+                }
             }
             
             return;
@@ -1919,6 +1956,38 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         return $fraud;
+    }
+    
+    /**
+     * We expect single result.
+     * 
+     * @return array $orderCollection
+     */
+    private function searchOrderByNuveiTrId()
+    {
+        $this->readerWriter->createLog($this->params['TransactionID'], 'searchOrderByNuveiTrId()');
+        
+        // Load the payment collection
+        $paymentCollection = $this->paymentCollectionFactory->create();
+        
+        // Filter the payment collection by additional_information field
+        $paymentCollection->addFieldToFilter(
+            'additional_information',
+            ['like' => '%' . Payment::TRANSACTION_ID . '":"' . $this->params['TransactionID'] . '%']
+        );
+        
+        // Extract order IDs from the payment collection
+        $orderIds = $paymentCollection->getColumnValues('parent_id');
+        
+        $this->readerWriter->createLog($orderIds, 'searchOrderByNuveiTrId() $orderIds');
+        
+        // Load the order collection based on the retrieved order IDs
+        $orderCollection = $this->orderCollectionFactory->create()
+            ->addFieldToFilter('entity_id', ['in' => $orderIds]);
+        
+        $this->readerWriter->createLog(count($orderCollection), 'searchOrderByNuveiTrId() $orderCollection count');
+
+        return $orderCollection;
     }
     
 }

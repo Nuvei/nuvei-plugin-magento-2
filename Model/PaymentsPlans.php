@@ -22,6 +22,7 @@ class PaymentsPlans
     private $quoteFactory;
     private $cartRepo;
     private $checkoutSession;
+    private $order;
     
     public function __construct(
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
@@ -62,16 +63,18 @@ class PaymentsPlans
         try {
             // 1. when we search in the Cart
             if (0 == $product_id && empty($params)) {
-                $itemsQty = $quote->getItemsSummaryQty();
+                $itemsQty = !empty($this->order) 
+                    ? $this->order->getTotalItemCount() : $quote->getItemsSummaryQty();
         
                 if (0 == $itemsQty) {
                     $this->readerWriter->createLog('Items quantity is 0');
                     return $return_arr;
                 }
                 
-                $items = $quote->getItems();
+                $items = !empty($this->order)
+                    ? $this->order->getItems() : $quote->getItems();
                 
-                $this->readerWriter->createLog((array) $quote->getItems());
+                $this->readerWriter->createLog((array) $items, 'Items');
                 
                 if (empty($items) || !is_array($items)) {
                     $this->readerWriter->createLog(
@@ -304,6 +307,13 @@ class PaymentsPlans
     public function setQuoteId($quoteId = '')
     {
         $this->quoteId = $quoteId;
+        
+        return $this;
+    }
+    
+    public function setOrder($order)
+    {
+        $this->order = $order;
         
         return $this;
     }

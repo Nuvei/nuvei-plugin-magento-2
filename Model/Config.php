@@ -59,6 +59,9 @@ class Config
         'update-order'
     ];
     
+    const PROD_ENDPOINT     = 'https://secure.safecharge.com/ppp/';
+    const SANDBOX_ENDPOINT  = 'https://ppp-test.nuvei.com/ppp/';
+    
     private $traceId;
     
     /**
@@ -524,8 +527,10 @@ class Config
             'form_key'  => $this->formKey->getFormKey(),
         ];
         
+        
         return $this->urlBuilder->getUrl(
-            'nuvei_checkout/payment/callback_complete',
+//            'nuvei_checkout/payment/callback_complete',
+            'checkout/onepage/success/',
             $params
         );
     }
@@ -845,4 +850,30 @@ class Config
         
         return $email;
     }
+    
+    /**
+     * Return full endpoint to particular method for request call.
+     *
+     * @param string $requestMethod
+     * @param bool $isRest
+     * 
+     * @return string
+     */
+    public function getRequestEndpoint($requestMethod, $isRest = true)
+    {
+        $endpoint = self::PROD_ENDPOINT;
+        
+        if ($this->isTestModeEnabled() === true) {
+            $endpoint = self::SANDBOX_ENDPOINT;
+        }
+        
+        if ($isRest) {
+            $endpoint .= 'api/v1/';
+        }
+//        $method     = $this->getRequestMethod();
+
+//        return $endpoint . $method . '.do';
+        return $endpoint . $requestMethod . '.do';
+    }
+    
 }

@@ -235,10 +235,10 @@ class Payment implements MethodInterface
         $order->setStatus(Payment::SC_PROCESSING);
         
         /**
-* 
+         * 
          *
- * @var RequestInterface $request 
-*/
+         * @var RequestInterface $request 
+        */
         $request = $this->paymentRequestFactory->create(
             AbstractRequest::PAYMENT_REFUND_METHOD,
             $payment,

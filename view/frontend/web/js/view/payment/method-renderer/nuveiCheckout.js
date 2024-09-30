@@ -59,6 +59,11 @@ function nuveiPrePayment(paymentDetails) {
 			return;
 		}
         
+        // validate shipping method
+//        if (jQuery('#co-shipping-method-form input[type="radio"]').length > 0) {
+//            var isShippingSelected = false;
+//        }
+        
         // check if the hidden submit button is enabled
         if(jQuery('#nuvei_default_pay_btn').hasClass('disabled')) {
             reject(jQuery.mage.__('Please, check all required fields are filled!'));
@@ -88,6 +93,20 @@ function nuveiUpdateOrder(resolve, reject) {
                 }
                 
                 nuveiWaitSdkResponse = true;
+                
+                // if we get new Session Token, update the input
+//                if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
+//                    document.getElementById('nuvei_session_token').value = resp.sessionToken;
+//                }
+                
+                if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
+                    window.nuveiSuccessUrl = resp.successUrl;
+                }
+                
+                if (resp.hasOwnProperty('orderId') && 0 < resp.orderId) {
+                    window.nuveiSavedOrderId = resp.orderId;
+                }
+                
                 resolve();
                 return;
             }
@@ -133,6 +152,9 @@ function nuveiAfterSdkResponse(resp) {
         && resp.hasOwnProperty('reason')
         && resp.reason.toLowerCase().search('the currency is not supported') >= 0
     ) {
+        nuveiShowLoader();
+        nuveiWhenTransDeclined();
+
         if(!alert(resp.reason)) {
             nuveiHideLoader();
             return;
@@ -144,6 +166,9 @@ function nuveiAfterSdkResponse(resp) {
 		|| !resp.hasOwnProperty('result')
 		|| !resp.hasOwnProperty('transactionId')
 	) {
+        nuveiShowLoader();
+        nuveiWhenTransDeclined();
+
         var errorMsg = jQuery.mage.__('Unexpected error, please try again later!');
         
         if (resp.hasOwnProperty('error') && '' != resp.error) {
@@ -157,6 +182,9 @@ function nuveiAfterSdkResponse(resp) {
 
 	// on Declined
 	if(resp.result == 'DECLINED') {
+        nuveiShowLoader();
+        nuveiWhenTransDeclined();
+        
         if (resp.hasOwnProperty('errorDescription')
             && 'insufficient funds' == resp.errorDescription.toLowerCase()
         ) {
@@ -175,25 +203,29 @@ function nuveiAfterSdkResponse(resp) {
 
     // on Approved or Pending
     if (resp.result == 'APPROVED' || resp.result == 'PENDING') {
-        // before click on submit button
-//        var checkoutForm    = jQuery('#nuvei_default_pay_btn').closest('form');
-//        var trIdInput       = checkoutForm.find('#nuvei_transaction_id');
-//        
-////        if (trIdInput.length > 0) {
-//            trIdInput.val(resp.transactionId);
-////        }
-////        else {
-////            checkoutForm.append('<input type="hidden" id="nuvei_transaction_id" name="nuvei_transaction_id" value="'+ resp.transactionId +'" />');
-////        }
-//        
-//        checkoutForm.attr('action', window.checkoutConfig.payment[nuveiGetCode()].checkoutFormAction);
-//        checkoutForm.attr('method', 'POST');
+        var checkoutForm = jQuery('#nuvei_default_pay_btn').closest('form');
+        
+        document.getElementById('nuvei_transaction_id').value = resp.transactionId;
+        
+        checkoutForm.attr('action', window.checkoutConfig.payment[nuveiGetCode()].checkoutFormAction);
+        checkoutForm.attr('method', 'POST');
+        
+        // there must be nuveiSuccessUrl
+        if (window.nuveiSuccessUrl) {
+            console.log(window.nuveiSuccessUrl);
+            
+            window.location = window.nuveiSuccessUrl;
+            return;
+        }
         
         // submit the form
-        jQuery('#nuvei_default_pay_btn').trigger('click');
-//        checkoutForm.submit();
+//        jQuery('#nuvei_default_pay_btn').trigger('click');
+        checkoutForm.submit();
         return;
     }
+
+    nuveiShowLoader();
+    nuveiWhenTransDeclined();
 
 	// when not Declined, but not Approved also
     var respError = 'Error with your Payment. Please try again later!';
@@ -209,9 +241,53 @@ function nuveiAfterSdkResponse(resp) {
         nuveiHideLoader();
         return;
     }
-
-	// on Success, Approved
 };
+
+function nuveiWhenTransDeclined() {
+    var paramsStr   = '?nuveiAction=transactionDeclined&nuveiSavedOrderId=' + window.nuveiSavedOrderId;
+    var xmlhttp     = new XMLHttpRequest();
+    
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+            console.log('Request response', xmlhttp.response);
+            
+            if (xmlhttp.status == 200) {
+				var resp = JSON.parse(xmlhttp.response);
+                
+                if (!resp.hasOwnProperty('success') || 0 == resp.success) {
+                    window.location.reload();
+                    nuveiHideLoader();
+                    return;
+                }
+                
+//                if (!resp.hasOwnProperty('redirectUrl') || '' != resp.redirectUrl) {
+////                    window.location = resp.redirectUrl;
+//                    nuveiHideLoader();
+//                    return;
+//                }
+                
+                // stay at the page
+                nuveiHideLoader();
+                return;
+            }
+           
+			if (xmlhttp.status == 400) {
+                console.log('There was an error.');
+                window.location.reload();
+                nuveiHideLoader();
+                return;
+            }
+		   
+			console.log('Unexpected response code.');
+            window.location.reload();
+			nuveiHideLoader();
+			return;
+        }
+    };
+    
+    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
+    xmlhttp.send();
+}
 
 // when the SDK Pay button was clicked and the script wait for a reponse, try to prevent user leave the page.
 window.addEventListener('beforeunload', function(e) {
@@ -293,11 +369,16 @@ define(
             },
 
 			getSessionToken: function() {
-                var paymentMethod = quote.paymentMethod();
+                var paymentMethod   = quote.paymentMethod();
+                var shippingMethod  = quote.shippingMethod();
                 
                 self.writeLog('getSessionToken', paymentMethod);
                 
-                // Errors
+                console.log(quote);
+                console.log(quote.shippingMethod());
+                console.log(quote.isVirtual());
+                
+                // Check for payment method
                 if (null == paymentMethod
                     || !paymentMethod
                     || ( paymentMethod.hasOwnProperty('method') 
@@ -311,7 +392,24 @@ define(
                             '#nuvei_checkout length': $("#nuvei_checkout").html().length
                         }
                     );
+            
                     return;
+                }
+                
+                // Check for shipping method
+                if (!quote.isVirtual()) {
+                    if (null == shippingMethod
+                        || !shippingMethod
+                        || !shippingMethod.hasOwnProperty('method_code') 
+                    ) {
+                        self.showGeneralError(jQuery.mage.__('Please, select a Shipping method!'));
+                
+                        console.log('shippingMethod is empty.', shippingMethod);
+                        return;
+                    }
+                    else {
+                        jQuery('#nuvei_general_error').hide();
+                    }
                 }
                 
                 // Cart with mixed products
@@ -325,12 +423,6 @@ define(
                 ///////////////////////////////////
                 
                 nuveiShowLoader();
-                
-//                var checkoutForm    = jQuery('#nuvei_default_pay_btn').closest('form');
-//                var trIdInput       = checkoutForm.find('#nuvei_transaction_id');
-//                if (trIdInput.length == 0) {
-//                    checkoutForm.append('<input type="hidden" id="nuvei_transaction_id" name="nuvei_transaction_id" value="" />');
-//                }
                 
                 var xmlhttp = new XMLHttpRequest();
                 
@@ -349,22 +441,18 @@ define(
                                     return;
                                 }
                                 
-                                console.log('nuveiLoadCheckout update order sessionToken problem, reload the page');
-
-                                alert(jQuery.mage.__('Missing mandatory payment details. Please reload the page and try again!'));
+                                alert(jQuery.mage.
+                                    __('Missing mandatory payment details. Please reload the page and try again!'));
 
                                 nuveiHideLoader();
                                 return;
                             }
                             
-                            console.log('sessionToken', resp.sessionToken);
-
                             self.nuveiCollectSdkParams();
                             self.checkoutSdkParams.sessionToken = resp.sessionToken;
                             self.checkoutSdkParams.amount       = self.checkoutSdkParams.amount.toString();
                             
-                            console.log('load checkout sdk', self.checkoutSdkParams);
-                            console.log('is #nuvei_checkout exists', $('#nuvei_checkout').length);
+                            $('#nuvei_session_token').val(resp.sessionToken);
                             
                             self.loadSdk();
                             return;
