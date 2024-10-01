@@ -24,6 +24,8 @@ function nuveiValidateAgreement(hideError) {
 	var nuveiAgreementsInputPath	= '.payment-method._active div.checkout-agreements input';
 	var isValid						= true;
 
+    // we can check also  window.checkoutConfig.checkoutAgreements.isEnabled
+
 	if (!nuveiAgreementsConfig.isEnabled
 		|| jQuery(nuveiAgreementsInputPath).length === 0
 	) {
@@ -54,8 +56,9 @@ function nuveiPrePayment(paymentDetails) {
 	return new Promise((resolve, reject) => {
 		// validate user agreement
 		if (!nuveiValidateAgreement()) {
-			reject(jQuery.mage.__('Please, accept required agreement!'));
+			reject();
 			nuveiHideLoader();
+            nuveiShowGeneralError(jQuery.mage.__('Please, accept required agreement!'))
 			return;
 		}
         
@@ -66,8 +69,9 @@ function nuveiPrePayment(paymentDetails) {
         
         // check if the hidden submit button is enabled
         if(jQuery('#nuvei_default_pay_btn').hasClass('disabled')) {
-            reject(jQuery.mage.__('Please, check all required fields are filled!'));
+            reject();
 			nuveiHideLoader();
+            nuveiShowGeneralError(jQuery.mage.__('Please, check all required fields are filled!'))
 			return;
         }
 		
@@ -409,7 +413,7 @@ define(
                         || !shippingMethod
                         || !shippingMethod.hasOwnProperty('method_code') 
                     ) {
-                        self.showGeneralError(jQuery.mage.__('Please, select a Shipping method!'));
+                        nuveiShowGeneralError(jQuery.mage.__('Please, select a Shipping method!'));
                 
                         console.log('shippingMethod is empty.', shippingMethod);
                         return;
@@ -423,7 +427,7 @@ define(
                 if(window.checkoutConfig.payment[self.getCode()].isPaymentPlan
                     && quote.getItems().length > 1
                 ) {
-                    self.showGeneralError(jQuery.mage.__('You can not combine a Product with Nuvei Payment with another product. To continue, please remove some of the Product in your Cart!'));
+                    nuveiShowGeneralError(jQuery.mage.__('You can not combine a Product with Nuvei Payment with another product. To continue, please remove some of the Product in your Cart!'));
                     return;
                 }
                 
@@ -513,12 +517,12 @@ define(
                 self.checkoutSdkParams.onResult		= nuveiAfterSdkResponse;
             },
 			
-			showGeneralError: function(msg) {
-//				jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
-//				jQuery('#nuvei_general_error').show();
-//				document.getElementById("nuvei_general_error").scrollIntoView();
-                nuveiShowGeneralError();
-			},
+//			showGeneralError: function(msg) {
+////				jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
+////				jQuery('#nuvei_general_error').show();
+////				document.getElementById("nuvei_general_error").scrollIntoView();
+//                nuveiShowGeneralError(msg);
+//			},
 			
             // event function
 			scBillingAddrChange: function(_address) {

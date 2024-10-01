@@ -422,10 +422,12 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 ? $this->params['ExErrCode'] : "Unknown";
 
             $this->order->addStatusHistoryComment(
-                '<b>' . $this->params['transactionType'] . '</b> '
-                    . __("request, response status is") . ' <b>' . $this->params['Status'] . '</b>.<br/>'
+                __("Response status: ") . ' <b>' . $this->params['Status'] . '</b>.<br/>'
+                    . __('Transaction type: ') . $this->params['transactionType'] . '.'
                     . __('Code: ') . $this->params['ErrCode'] . ',<br/>'
-                    . __('Reason: ') . $this->params['ExErrCode'] . '.',
+                    . __('Reason: ') . $this->params['ExErrCode'] . '.'
+                    . __('Message: ') . $this->params['message'] . '.'
+                    . __('Transaction ID: ') . $this->params['TransactionID'] . '.',
                 $this->sc_transaction_type
             );
         }
