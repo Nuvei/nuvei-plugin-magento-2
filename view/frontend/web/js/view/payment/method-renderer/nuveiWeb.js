@@ -828,9 +828,10 @@ define(
             },
             
             showGeneralError: function(msg) {
-                jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
-                jQuery('#nuvei_general_error').show();
-                document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
+//                jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
+//                jQuery('#nuvei_general_error').show();
+//                document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
+                nuveiShowGeneralError();
             },
 			
             nuveiInitFields: function() {

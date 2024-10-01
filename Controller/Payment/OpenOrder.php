@@ -16,6 +16,9 @@ use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
  */
 class OpenOrder extends Action
 {
+//    protected $messageManager;
+
+
     /**
      * @var ModuleConfig
      */
@@ -32,7 +35,7 @@ class OpenOrder extends Action
     private $requestFactory;
     
     private $readerWriter;
-//    private $cart;
+    private $cart;
     private $quoteFactory;
 //    private $checkoutSession;
     private $quoteRepository;
@@ -59,7 +62,7 @@ class OpenOrder extends Action
         JsonFactory $jsonResultFactory,
         RequestFactory $requestFactory,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-//        \Magento\Checkout\Model\Cart $cart,
+        \Magento\Checkout\Model\Cart $cart,
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
 //        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -69,6 +72,7 @@ class OpenOrder extends Action
         \Magento\Quote\Api\Data\AddressInterfaceFactory $addressFactory,
         \Magento\Quote\Model\Quote\ItemFactory $quoteItemFactory,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+//        \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
         parent::__construct($context);
 
@@ -76,7 +80,7 @@ class OpenOrder extends Action
         $this->jsonResultFactory    = $jsonResultFactory;
         $this->requestFactory       = $requestFactory;
         $this->readerWriter         = $readerWriter;
-//        $this->cart                 = $cart;
+        $this->cart                 = $cart;
         $this->quoteFactory         = $quoteFactory;
 //        $this->checkoutSession      = $checkoutSession;
         $this->quoteRepository      = $quoteRepository;
@@ -86,6 +90,7 @@ class OpenOrder extends Action
         $this->addressFactory       = $addressFactory;
         $this->quoteItemFactory     = $quoteItemFactory;
         $this->orderResourceModel   = $orderResourceModel;
+//        $this->messageManager       = $messageManager;
     }
 
     /**
@@ -166,23 +171,24 @@ class OpenOrder extends Action
         $result = $this->jsonResultFactory->create()
             ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
         
-        $request = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
-        
+        $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $quoteId    = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
         $resp       = $request
             ->setQuoteId($quoteId)
             ->prePaymentCheck();
 
-        $successUrl = $this->_url->getUrl('checkout/onepage/success/');
+        $successUrl = $this->moduleConfig->getCallbackSuccessUrl($quoteId);
 
-        $this->readerWriter->createLog([$successUrl, $resp->orderId], 'nuveiPrePayment()');
-
-        return $result->setData([
+        $respData = [
             "success"       => (int) !$resp->error,
             'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
             'successUrl'    => $successUrl,
             'orderId'       => isset($resp->orderId) ? $resp->orderId : 0,
-        ]);
+        ];
+        
+        $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');
+
+        return $result->setData($respData);
     }
     
     private function onTransactionDeclined()
@@ -200,87 +206,124 @@ class OpenOrder extends Action
             }
 
             // create new quote
-            $quote = $this->quoteFactory->create();
-            $quote->setStoreId($order->getStoreId()); // Set the store from the order
-            $quote->setCustomerId($order->getCustomerId()); // Set customer ID
-            $quote->setCustomerEmail($order->getCustomerEmail()); // Set customer email
-
-            // Handle guest customers
-            if ($order->getCustomerIsGuest()) {
-                $quote->setCustomerIsGuest(true);
-                $quote->setCustomerGroupId(\Magento\Customer\Api\Data\GroupInterface::NOT_LOGGED_IN_ID);
-            }
-
-            $payment        = $order->getPayment();
-            $method         = $payment->getMethod();
-            $quotePayment   = $quote->getPayment();
-
-            $quotePayment->setMethod($method);
-
-            $orderBillingAddress    = $order->getBillingAddress();
-            $billingAddress         = $this->addressFactory->create();
-
-            // Map the order's billing address data to the quote's billing address
-            $billingAddress
-                ->setFirstname($orderBillingAddress->getFirstname())
-                ->setLastname($orderBillingAddress->getLastname())
-                ->setStreet($orderBillingAddress->getStreet())
-                ->setCity($orderBillingAddress->getCity())
-                ->setRegion($orderBillingAddress->getRegion())
-                ->setRegionId($orderBillingAddress->getRegionId())
-                ->setPostcode($orderBillingAddress->getPostcode())
-                ->setCountryId($orderBillingAddress->getCountryId())
-                ->setTelephone($orderBillingAddress->getTelephone())
-                ->setEmail($orderBillingAddress->getEmail());
-
-            $quote->setBillingAddress($billingAddress);
-
-            if (!$order->getIsVirtual()) {
-                $orderShippingAddress   = $order->getShippingAddress();
-                $shippingMethod         = $order->getShippingMethod();
-                $shippingAddress        = $this->addressFactory->create();
-
-                $shippingAddress
-                    ->setFirstname($orderShippingAddress->getFirstname())
-                    ->setLastname($orderShippingAddress->getLastname())
-                    ->setStreet($orderShippingAddress->getStreet())
-                    ->setCity($orderShippingAddress->getCity())
-                    ->setRegion($orderShippingAddress->getRegion())
-                    ->setRegionId($orderShippingAddress->getRegionId())
-                    ->setPostcode($orderShippingAddress->getPostcode())
-                    ->setCountryId($orderShippingAddress->getCountryId())
-                    ->setTelephone($orderShippingAddress->getTelephone())
-                    ->setEmail($orderShippingAddress->getEmail())
-                    ->setCollectShippingRates(true)
-                    ->setShippingMethod($shippingMethod);
-
-                $quote->setShippingAddress($shippingAddress);
-                $quote->collectTotals();
-            }
-
-            // add the items
-            foreach ($order->getAllItems() as $orderItem) {
-                $product = $this->productRepository->getById($orderItem->getProductId());
-
-                // Check if the product is in stock and enabled
-                if (!$product->getIsSalable()) {
-                    $this->readerWriter->createLog('Product ' . $product->getSku() . ' is not available for sale.');
+//            $quote = $this->quoteFactory->create();
+//            $quote->setStoreId($order->getStoreId()); // Set the store from the order
+//            $quote->setCustomerId($order->getCustomerId()); // Set customer ID
+//            $quote->setCustomerEmail($order->getCustomerEmail()); // Set customer email
+//
+//            // Handle guest customers
+//            if ($order->getCustomerIsGuest()) {
+//                $quote->setCustomerIsGuest(true);
+//                $quote->setCustomerGroupId(\Magento\Customer\Api\Data\GroupInterface::NOT_LOGGED_IN_ID);
+//            }
+//
+//            $payment        = $order->getPayment();
+//            $method         = $payment->getMethod();
+//            $quotePayment   = $quote->getPayment();
+//
+//            $quotePayment->setMethod($method);
+//
+//            $orderBillingAddress    = $order->getBillingAddress();
+//            $billingAddress         = $this->addressFactory->create();
+//
+//            // Map the order's billing address data to the quote's billing address
+//            $billingAddress
+//                ->setFirstname($orderBillingAddress->getFirstname())
+//                ->setLastname($orderBillingAddress->getLastname())
+//                ->setStreet($orderBillingAddress->getStreet())
+//                ->setCity($orderBillingAddress->getCity())
+//                ->setRegion($orderBillingAddress->getRegion())
+//                ->setRegionId($orderBillingAddress->getRegionId())
+//                ->setPostcode($orderBillingAddress->getPostcode())
+//                ->setCountryId($orderBillingAddress->getCountryId())
+//                ->setTelephone($orderBillingAddress->getTelephone())
+//                ->setEmail($orderBillingAddress->getEmail());
+//
+//            $quote->setBillingAddress($billingAddress);
+//
+//            if (!$order->getIsVirtual()) {
+//                $orderShippingAddress   = $order->getShippingAddress();
+//                $shippingMethod         = $order->getShippingMethod();
+//                $shippingAddress        = $this->addressFactory->create();
+//
+//                $shippingAddress
+//                    ->setFirstname($orderShippingAddress->getFirstname())
+//                    ->setLastname($orderShippingAddress->getLastname())
+//                    ->setStreet($orderShippingAddress->getStreet())
+//                    ->setCity($orderShippingAddress->getCity())
+//                    ->setRegion($orderShippingAddress->getRegion())
+//                    ->setRegionId($orderShippingAddress->getRegionId())
+//                    ->setPostcode($orderShippingAddress->getPostcode())
+//                    ->setCountryId($orderShippingAddress->getCountryId())
+//                    ->setTelephone($orderShippingAddress->getTelephone())
+//                    ->setEmail($orderShippingAddress->getEmail())
+////                    ->setCollectShippingRates(true)
+////                    ->setShippingMethod($shippingMethod)
+//                        ;
+//
+//                $quote->setShippingAddress($shippingAddress);
+//                
+//                $quote->getShippingAddress()->setCollectShippingRates(true);
+//                $quote->collectTotals();
+//                
+//                $shippingAddress->setShippingMethod($shippingMethod);
+//                
+//                $quote->setShippingAddress($shippingAddress);
+//            }
+//
+//            // add the items
+//            foreach ($order->getAllItems() as $orderItem) {
+//                $product = $this->productRepository->getById($orderItem->getProductId());
+//
+//                // Check if the product is in stock and enabled
+//                if (!$product->getIsSalable()) {
+//                    $this->readerWriter->createLog('Product ' . $product->getSku() . ' is not available for sale.');
+//                    continue;
+//                }
+//
+//                $quoteItem = $this->quoteItemFactory->create();
+//                $quoteItem->setProduct($product);
+//                $quoteItem->setQty($orderItem->getQtyOrdered());
+//                $quote->addItem($quoteItem);
+//            }
+//
+//            $this->quoteRepository->save($quote);
+            
+            
+            // create Reorder
+            // Get all items from the previous order
+            $orderItems = $order->getItems();
+            
+            foreach ($orderItems as $orderItem) {
+                if ($orderItem->getParentItemId()) {
+                    // Skip parent items in case of configurable or bundle products
                     continue;
                 }
 
-                $quoteItem = $this->quoteItemFactory->create();
-                $quoteItem->setProduct($product);
-                $quoteItem->setQty($orderItem->getQtyOrdered());
-                $quote->addItem($quoteItem);
+                // Load the product by product ID
+                $product = $this->productRepository->getById($orderItem->getProductId());
+
+                // Prepare options if the product has custom options (configurable, etc.)
+                $options = $orderItem->getProductOptions();
+                $buyRequest = new \Magento\Framework\DataObject($options['info_buyRequest'] ?? []);
+
+                // Add the product to the cart
+                $this->cart->addProduct($product, $buyRequest);
             }
 
-            $this->quoteRepository->save($quote);
+            // Save the cart (quote)
+            $this->cart->save();
 
             // TODO delete the order at the end?
     //                $this->orderResourceModel->delete($order);
 
+            $this->messageManager->addErrorMessage(__('Your Payment was declined. Please, try again!'));
+            
+            return $this->_redirect('checkout/cart');
+            
             return $result->setData([
                 "success" => 1,
+                'redirectUrl' => $this->_redirect('checkout/cart')
             ]);
         }
         catch (\Exception $e) {

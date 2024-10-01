@@ -38,6 +38,18 @@ function nuveiHideLoader() {
     jQuery('.nuvei-loading-mask').css('display', 'none');
 }
 
+/**
+ * Common function to show error messages.
+ * 
+ * @param string msg
+ * @returns void
+ */
+function nuveiShowGeneralError(msg) {
+    jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
+    jQuery('#nuvei_general_error').show();
+    document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
+}
+
 define(
     [
         'uiComponent',

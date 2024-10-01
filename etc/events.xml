@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    
+    <!-- Disable Order confirmation email by default. -->
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="nuvei_disable_order_email" instance="Nuvei\Checkout\Observer\DisableOrderEmail" />
+    </event>
+    
+    <!-- But Order confirmation email when change the Order status. -->
+    <event name="sales_order_save_after">
+        <observer name="nuvei_checkout_order_status_change" instance="Nuvei\Checkout\Observer\OrderStatusChange" />
+    </event>
+</config>

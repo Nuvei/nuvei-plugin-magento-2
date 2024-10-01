@@ -13,6 +13,7 @@
     * In Model\ConfigProvider class, getCheckoutSdkConfig() method, added checkoutFormAction parameter, which is the callback success URL.
     * In templates/payment/NuveiCheckout were added two custom inputs to hold Nuvei session token and transacion ID.
     * In method-render/nuveiCheckout.js we will fill the above inputs. Here we will check if Shipping Method was selected, if the Order require it.
+    * Added an observer who stop Magento to send email to the client when Order is created. Added second observer to enable this email when the Order status is changed to some of Nuvei statuses.
 ```
 
 # 3.1.9

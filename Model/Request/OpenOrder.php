@@ -108,6 +108,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->quoteRepository  = $quoteRepository;
 //        $this->dataObjectFactory    = $dataObjectFactory;
         $this->cartManagement   = $cartManagement;
+        $this->orderRepo        = $orderRepo;
     }
 
     /**
@@ -333,16 +334,24 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $order_data = $this->quote->getPayment()
             ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
-        // create Order from the Quote
-        $orderId        = $this->cartManagement->placeOrder($this->quote->getId());
-        $this->order    = $this->orderRepo->get($orderId);
-        
-        // Error when place the Order
-        if (!$orderId || !is_numeric($orderId)) {
+        if (!is_array($order_data) || empty($order_data)) {
+            $this->readerWriter->createLog('$order_data is not valid, we need to refresh page and start with new openOrder request.');
+            
             return $this;
         }
         
-        $this->orderId = $orderId;
+        // create Order from the Quote
+        $orderId = $this->cartManagement->placeOrder($this->quote->getId());
+        
+        // Error when place the Order
+        if (!$orderId || !is_numeric($orderId)) {
+            $this->readerWriter->createLog($this->quote->getId(), 'Error when try to create Order from Quote.', 'WARN');
+            
+            return $this;
+        }
+        
+        $this->order    = $this->orderRepo->get($orderId);
+        $this->orderId  = $orderId;
         
         $this->readerWriter->createLog($orderId, 'prePaymentCheck');
         
@@ -700,9 +709,10 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         }
         
         foreach ($this->items as $item) {
-            $childItems = $item->getChildren();
+            $childItems         = $item->getChildren();
+            $stockItemToCheck   = [];
 
-            if (count($childItems)) {
+            if (is_array($childItems)) {
                 foreach ($childItems as $childItem) {
                     $stockItemToCheck[] = $childItem->getProduct()->getId();
                 }
@@ -716,6 +726,10 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                 'qty'   => $item->getQty(),
                 'price' => $item->getPrice(),
             ];
+            
+            if (!is_array($stockItemToCheck) || empty($stockItemToCheck)) {
+                continue;
+            }
 
             foreach ($stockItemToCheck as $productId) {
                 $available = $this->stockState->checkQty($productId, $item->getQty());

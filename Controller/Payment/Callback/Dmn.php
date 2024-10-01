@@ -1350,99 +1350,68 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $value  = '';
         $list   = [];
         
-        if (!empty($this->quoteId)) {
-            $field = 'quote_id';
-            $value = $this->quoteId;
-        }
-        elseif (!empty($this->orderIncrementId)) {
-            $field = 'increment_id';
-            $value = $this->orderIncrementId;
-        }
-        elseif (!empty($this->transactionId)) {
-            $field = TransactionInterface::TXN_ID;
-            $value = $this->transactionId;
-        }
-        
-        $this->readerWriter->createLog([
-            '$identificator value'  => $value,
-            '$identificator name'   => $field,
-        ]);
-        
-        // If the DMN is not Sale or Auth check just once. The Order must be already there.
-        if (!empty($this->params['transactionType'])
-            && !in_array($this->params['transactionType'], ['Sale', 'Auth'])
-        ) {
-            $this->loop_max_tries = 1;
-        }
-        
         try {
-            $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter($field, $value, 'eq')->create();
-
-//            do {
-//                $this->loop_tries++;
+            if (!empty($this->quoteId)) {
+                $field = 'quote_id';
+                $value = $this->quoteId;
                 
-                // first try to get the Order by Nuvei Transaction ID, we hope it is saved in the orderPayment additional information. Here we expect single result so get first one.
+                $searchCriteria = $this->searchCriteriaBuilder
+                    ->addFilter($field, $value, 'eq')->create();
+                
+                // orders list
+                $list = $this->orderRepo->getList($searchCriteria)->getItems();
+
+                if (is_array($list) && !empty($list)) {
+                    $this->order = current($list);
+                }
+            }
+            elseif (!empty($this->orderIncrementId)) {
+                $field = 'increment_id';
+                $value = $this->orderIncrementId;
+                
+                $searchCriteria = $this->searchCriteriaBuilder
+                    ->addFilter($field, $value, 'eq')->create();
+                
+                // orders list
+                $list = $this->orderRepo->getList($searchCriteria)->getItems();
+
+                if (is_array($list) && !empty($list)) {
+                    $this->order = current($list);
+                }
+            }
+            // This is search for secondary operation. We search by relatedTransacionId.
+            elseif (!empty($this->transactionId)) {
+                $field = TransactionInterface::TXN_ID;
+                $value = $this->transactionId;
+                
+                $searchCriteria = $this->searchCriteriaBuilder
+                    ->addFilter($field, $value, 'eq')->create();
+                
+                $list = $this->transactionRepository->getList($searchCriteria)->getItems();
+                    
+                if (is_array($list) && !empty($list)) {
+                    $this->order = current($list)->getOrder();
+                }
+            }
+            // When search for Auth/Sale by its Transacion ID
+            else {
+                $searchCriteria = $this->searchCriteriaBuilder
+                    ->addFilter($field, $value, 'eq')->create();
+                
                 $orderCollection = $this->searchOrderByNuveiTrId();
                 
                 if (!empty($orderCollection)) {
                     foreach ($orderCollection as $order) {
-                        $this->readerWriter->createLog($order->getId(), 'foreach Order ID');
-                        
                         $this->order = $order;
-//                        break 2;
                         break;
                     }
                 }
-                elseif (TransactionInterface::TXN_ID == $field) {
-                    // transactions list
-                    $list = $this->transactionRepository->getList($searchCriteria)->getItems();
-                    
-                    if (is_array($list) && !empty($list)) {
-                        $this->order = current($list)->getOrder();
-                    }
-                }
-                else {
-                    // orders list
-                    $list = $this->orderRepo->getList($searchCriteria)->getItems();
-                    
-                    if (is_array($list) && !empty($list)) {
-                        $this->order = current($list);
-                    }
-                }
+            }
 
-//                if (!$list || empty($list)) {
-//                    $this->readerWriter->createLog(
-//                        'DMN try ' . $this->loop_tries
-//                        . ', there is NO order for TransactionID ' . $this->params['TransactionID'] . ' yet.'
-//                    );
-//
-//                    sleep(3);
-//                }
-//            } while ($this->loop_tries < $this->loop_max_tries && empty($list));
-
-            // if we didn't found the order by Nuvei Transaction ID check the other cases
-//            if (!is_object($this->order)) {
-//                // in case the list is empty or not array
-//                if (!is_array($list) || empty($list)) {
-//                    $msg = 'DMN Callback error - there is no Order for this DMN data.';
-//
-//                    $this->readerWriter->createLog($msg);
-//                    $this->jsonOutput->setData($msg);
-//                    $this->jsonOutput->setHttpResponseCode(400);
-//
-//                    $this->createAutoVoid();
-//
-//                    return false;
-//                }
-//
-//                if (TransactionInterface::TXN_ID == $field) {
-//                    $this->order = current($list)->getOrder();
-//                }
-//                else {
-//                    $this->order = current($list);
-//                }
-//            }
+            $this->readerWriter->createLog([
+                '$identificator value'  => $value,
+                '$identificator name'   => $field,
+            ]);
 
             // in case the Order is not an object
             if (!is_object($this->order)) {

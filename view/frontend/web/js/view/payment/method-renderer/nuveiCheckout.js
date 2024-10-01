@@ -88,16 +88,20 @@ function nuveiUpdateOrder(resolve, reject) {
                 
                 if (!resp.hasOwnProperty('success') || 0 == resp.success) {
                     reject();
-                    window.location.reload();
+                    
+                    if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
+                        window.location.reload();
+                    }
+                    
                     return;
                 }
                 
                 nuveiWaitSdkResponse = true;
                 
                 // if we get new Session Token, update the input
-//                if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
-//                    document.getElementById('nuvei_session_token').value = resp.sessionToken;
-//                }
+                if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
+                    document.getElementById('nuvei_session_token').value = resp.sessionToken;
+                }
                 
                 if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
                     window.nuveiSuccessUrl = resp.successUrl;
@@ -115,15 +119,19 @@ function nuveiUpdateOrder(resolve, reject) {
                 console.log('There was an error.');
                 reject();
                 nuveiHideLoader();
+                nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
                 return;
             }
 		   
 			console.log('Unexpected response code.');
 			reject();
 			nuveiHideLoader();
+            nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
 			return;
         }
     };
+    
+    nuveiShowLoader();
     
     xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
     xmlhttp.send();
@@ -136,7 +144,7 @@ function nuveiUpdateOrder(resolve, reject) {
  * @returns {void|Boolean}
  */
 function nuveiAfterSdkResponse(resp) {
-	console.log('nuveiAfterSdkResponse() resp', resp);
+	console.log('nuveiAfterSdkResponse()', resp);
     
     nuveiWaitSdkResponse = false;
 
@@ -152,11 +160,9 @@ function nuveiAfterSdkResponse(resp) {
         && resp.hasOwnProperty('reason')
         && resp.reason.toLowerCase().search('the currency is not supported') >= 0
     ) {
-        nuveiShowLoader();
-        nuveiWhenTransDeclined();
-
         if(!alert(resp.reason)) {
-            nuveiHideLoader();
+//            nuveiHideLoader();
+            nuveiWhenTransDeclined();
             return;
         }
     }
@@ -166,9 +172,6 @@ function nuveiAfterSdkResponse(resp) {
 		|| !resp.hasOwnProperty('result')
 		|| !resp.hasOwnProperty('transactionId')
 	) {
-        nuveiShowLoader();
-        nuveiWhenTransDeclined();
-
         var errorMsg = jQuery.mage.__('Unexpected error, please try again later!');
         
         if (resp.hasOwnProperty('error') && '' != resp.error) {
@@ -176,29 +179,29 @@ function nuveiAfterSdkResponse(resp) {
         }
 
 		if(!alert(errorMsg)) {
+            nuveiWhenTransDeclined();
 			return;
 		}
 	}
 
 	// on Declined
 	if(resp.result == 'DECLINED') {
-        nuveiShowLoader();
-        nuveiWhenTransDeclined();
-        
         if (resp.hasOwnProperty('errorDescription')
             && 'insufficient funds' == resp.errorDescription.toLowerCase()
         ) {
             if(!alert(jQuery.mage.__('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.'))
             ) {
-                nuveiHideLoader();
+                nuveiWhenTransDeclined();
                 return;
             }
         }
         
-		if(!alert(jQuery.mage.__('Your Payment was DECLINED. Please try another payment method!'))) {
-			nuveiHideLoader();
+        nuveiWhenTransDeclined();
+        
+//		if(!alert(jQuery.mage.__('Your Payment was DECLINED. Please try another payment method!'))) {
+//			nuveiHideLoader();
 			return;
-		}
+//		}
 	}
 
     // on Approved or Pending
@@ -224,27 +227,30 @@ function nuveiAfterSdkResponse(resp) {
         return;
     }
 
-    nuveiShowLoader();
     nuveiWhenTransDeclined();
 
 	// when not Declined, but not Approved also
-    var respError = 'Error with your Payment. Please try again later!';
-
-    if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
-        respError = resp.errorDescription;
-    }
-    else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
-        respError = resp.reason;
-    }
-
-    if(!alert(jQuery.mage.__(respError))) {
-        nuveiHideLoader();
+//    var respError = 'Error with your Payment. Please try again later!';
+//
+//    if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
+//        respError = resp.errorDescription;
+//    }
+//    else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
+//        respError = resp.reason;
+//    }
+//
+//    if(!alert(jQuery.mage.__(respError))) {
+//        nuveiHideLoader();
         return;
-    }
+//    }
 };
 
 function nuveiWhenTransDeclined() {
     var paramsStr   = '?nuveiAction=transactionDeclined&nuveiSavedOrderId=' + window.nuveiSavedOrderId;
+    
+    window.location = window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr;
+    return;
+    
     var xmlhttp     = new XMLHttpRequest();
     
     xmlhttp.onreadystatechange = function() {
@@ -260,13 +266,14 @@ function nuveiWhenTransDeclined() {
                     return;
                 }
                 
-//                if (!resp.hasOwnProperty('redirectUrl') || '' != resp.redirectUrl) {
-////                    window.location = resp.redirectUrl;
-//                    nuveiHideLoader();
-//                    return;
-//                }
+                if (resp.hasOwnProperty('redirectUrl') && '' != resp.redirectUrl) {
+                    console.log('redirect to', resp.redirectUrl);
+                    window.location = resp.redirectUrl;
+                    return;
+                }
                 
-                // stay at the page
+                // a new Quote was genereated, refresh the page to call openOrder
+                window.location = window.location.origin + window.location.pathname;
                 nuveiHideLoader();
                 return;
             }
@@ -507,9 +514,10 @@ define(
             },
 			
 			showGeneralError: function(msg) {
-				jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
-				jQuery('#nuvei_general_error').show();
-				document.getElementById("nuvei_general_error").scrollIntoView();
+//				jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
+//				jQuery('#nuvei_general_error').show();
+//				document.getElementById("nuvei_general_error").scrollIntoView();
+                nuveiShowGeneralError();
 			},
 			
             // event function

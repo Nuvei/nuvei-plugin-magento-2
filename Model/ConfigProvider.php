@@ -143,6 +143,7 @@ class ConfigProvider extends CcGenericConfigProvider
                     'checkoutFormAction'        => $this->moduleConfig->getCallbackSuccessUrl(),
                     'getUpdateOrderUrl'         => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
                     'isPaymentPlan'             => $isPaymentPlan,
+                    'unexpectedErrorMsg'        => __('Unexpected error. Please try again later!'),
                     
                     // we will set some of the parameters in the JS file
                     'nuveiCheckoutParams' => [

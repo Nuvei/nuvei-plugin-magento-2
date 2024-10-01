@@ -23,6 +23,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     private $paymentsPlans;
     private $orderRepo;
     private $countryInfo;
+    private $countryFactory;
     
     /**
      * @param Config        $config
@@ -40,7 +41,8 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
-        \Magento\Directory\Api\Data\CountryInformationInterface $countryInfo
+        \Magento\Directory\Api\Data\CountryInformationInterface $countryInfo,
+        \Magento\Directory\Model\CountryFactory $countryFactory
     ) {
         parent::__construct(
             $config,
@@ -53,6 +55,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         $this->paymentsPlans    = $paymentsPlans;
         $this->orderRepo        = $orderRepo;
         $this->countryInfo      = $countryInfo;
+        $this->countryFactory   = $countryFactory;
     }
 
     /**
@@ -127,6 +130,8 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         if (!empty ($this->orderId)) {
             $order = $this->orderRepo->get($this->orderId);
             
+            $this->readerWriter->createLog($this->orderId, 'orderId');
+            
             // iterate over Items and search for Subscriptions
             $items_data = $this->paymentsPlans
                 ->setOrder($order)
@@ -136,11 +141,13 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             
             $this->config->setNuveiUseCcOnly(!empty($subs_data) ? true : false);
             
-            $amount         = $order->getBaseGrandTotal();
+            $amount         = (string) number_format((float) $order->getBaseGrandTotal(), 2, '.');
             $currency       = $order->getBaseCurrencyCode();
             $billingAddress = $order->getBillingAddress();
-            $billingCountry = $this->countryInfo
-                ->getCountryInfo($billingAddress->getCountryId())->getFullNameEnglish();
+            $billingCountry = $this->countryFactory->create()
+                ->loadByCode($billingAddress->getCountryId())
+                ->getName();
+//                ->getCountryInfo($billingAddress->getCountryId())->getFullNameEnglish();
             
             $params = array_merge_recursive(
                 parent::getParams(),
@@ -150,15 +157,21 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                     'billingAddress'    => [
                         "firstName" => $billingAddress->getFirstname(),
                         "lastName"  => $billingAddress->getLastname(),
-                        "address"   => str_replace(array("\n", "\r", '\\'), ' ', $billingAddress->getStreet()),
+//                        "address"   => str_replace(array("\n", "\r", '\\'), ' ', $billingAddress->getStreet()),
+                        "address"   => str_replace(
+                            array("\n", "\r", '\\'), 
+                            ' ', 
+                            implode(', ', $billingAddress->getStreet())
+                        ),
                         "phone"     => $billingAddress->getTelephone(),
                         "zip"       => $billingAddress->getPostcode(),
                         "city"      => $billingAddress->getCity(),
-                        'country'   => $billingCountry,
+//                        'country'   => $billingCountry,
+                        'country'   => $billingAddress->getCountryId(),
                         'email'     => $billingAddress->getEmail(),
                     ],
                     'items'             => [[
-                        'name'      => 'magento_order',
+                        'name'      => 'Magento Order',
                         'price'     => $amount,
                         'quantity'  => 1,
                     ]],
@@ -174,17 +187,24 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             );
             
             if ($shippingAddress = $order->getShippingAddress()) {
-                $shippingCountry = $this->countryInfo
-                    ->getCountryInfo($shippingAddress->getCountryId())->getFullNameEnglish();
+                $shippingCountry = $this->countryFactory->create()
+                    ->loadByCode($shippingAddress->getCountryId())
+                    ->getName();
                 
                 $params['shippingAddress'] = [
                     "firstName" => $shippingAddress->getFirstname(),
                     "lastName"  => $shippingAddress->getLastname(),
-                    "address"   => implode(', ', $shippingAddress->getStreet()),
+//                    "address"   => implode(', ', $shippingAddress->getStreet()),
+                    "address"   => str_replace(
+                        array("\n", "\r", '\\'), 
+                        ' ', 
+                        implode(', ', $shippingAddress->getStreet())
+                    ),
                     "phone"     => $shippingAddress->getTelephone(),
                     "zip"       => $shippingAddress->getPostcode(),
                     "city"      => $shippingAddress->getCity(),
-                    'country'   => $shippingCountry,
+//                    'country'   => $shippingCountry,
+                    'country'   => $shippingAddress->getCountryId(),
                     'email'     => $shippingAddress->getEmail(),
                 ];
             }
@@ -204,6 +224,8 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             }
 
             $quoteId = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
+            
+            $this->readerWriter->createLog($quoteId, '$quoteId');
 
             // iterate over Items and search for Subscriptions
             $items_data = $this->paymentsPlans->getProductPlanData();
@@ -247,7 +269,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         
         $this->readerWriter->createLog([
             '$subs_data'            => $subs_data,
-            'quoteId'               => $quoteId,
             'getQuoteBaseCurrency'  => $currency,
         ]);
         
