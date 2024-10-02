@@ -1,5 +1,5 @@
 <script>
-    var nuveiData               = <?php echo $block->escapeHtml($block->getPaymentPlans()); ?>;
+    var nuveiData               = <?= $block->getPaymentPlans(); ?>;
     var nuveiPaymentPlans       = nuveiData.plans;
     var nuveiDropdownPlanVal    = 1;
     
@@ -96,12 +96,18 @@
             }
 
             $(document).ready(function(){
+                console.log('doc ready')
+                
                 $do.get('select[name="product[nuvei_payment_plans]"]', function(elem){
                     nuveiDropdownPlanVal = elem.value;
+                    
+                    console.log('do event')
                     
                     nuveiPopulateData(nuveiDropdownPlanVal);
                     
                     $('body').on('change', 'select[name="product[nuvei_payment_plans]"]', function(){
+                        console.log('payment plan select change')
+                        
                         nuveiDropdownPlanVal = $(this).val();
                         
                         if(!nuveiPaymentPlans.hasOwnProperty(nuveiDropdownPlanVal)) {

@@ -18,10 +18,12 @@ class Status extends Column
     /**
      * Constructor
      *
-     * @param ContextInterface   $context
-     * @param UiComponentFactory $uiComponentFactory
-     * @param array              $components
-     * @param array              $data
+     * @param ContextInterface      $context
+     * @param UiComponentFactory    $uiComponentFactory
+     * @param Order                 $collection
+     * @param ReaderWriter          $readerWriter
+     * @param array                 $components
+     * @param array                 $data
      */
     public function __construct(
         ContextInterface $context,
@@ -55,21 +57,21 @@ class Status extends Column
                         continue;
                     }
                     
-                    $ord_trans_data = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
-                    $subscr_ids     = '';
+//                    $ord_trans_data = $orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
+//                    $subscr_ids     = '';
                     
-                    if (2000000116 <= $item['increment_id']) {
-                        $this->readerWriter->createLog($item['increment_id']);
-                        $this->readerWriter->createLog($ord_trans_data);
-                    }
+//                    if (2000000116 <= $item['increment_id']) {
+//                        $this->readerWriter->createLog($item['increment_id']);
+//                        $this->readerWriter->createLog($ord_trans_data);
+//                    }
                     
-                    //                    $this->readerWriter->createLog(
-                    //                        [
-                    //                            $item['increment_id'],
-                    //                            $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID),
-                    //                        ], 
-                    //                        'getAdditionalInformation'
-                    //                    );
+//                    $this->readerWriter->createLog(
+//                        [
+//                            $item['increment_id'],
+//                            $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID),
+//                        ], 
+//                        'getAdditionalInformation'
+//                    );
                     
                     $dataSource['data']['items'][$key]['has_nuvei_subscr']
                         = (bool) $orderPayment->getAdditionalInformation(Payment::SUBSCR_ID);
