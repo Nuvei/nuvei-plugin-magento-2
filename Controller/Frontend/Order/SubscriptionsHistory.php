@@ -176,7 +176,8 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
                 return [];
             }
             
-            $product_data = $this->paymentsPlans->getProductPlanData($params['prodId'], $prod_options);
+//            $product_data = $this->paymentsPlans->getProductPlanData($params['prodId'], $prod_options);
+            $product_data = $this->paymentsPlans->getProductPlanDataById($params['prodId'], $prod_options);
             
             if (empty($product_data) || !is_array($product_data)) {
                 $this->readerWriter->createLog(

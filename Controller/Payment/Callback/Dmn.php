@@ -423,10 +423,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
             $this->order->addStatusHistoryComment(
                 __("Response status: ") . ' <b>' . $this->params['Status'] . '</b>.<br/>'
-                    . __('Transaction type: ') . $this->params['transactionType'] . '.'
+                    . __('Transaction type: ') . $this->params['transactionType'] . ',<br/>'
                     . __('Code: ') . $this->params['ErrCode'] . ',<br/>'
-                    . __('Reason: ') . $this->params['ExErrCode'] . '.'
-                    . __('Message: ') . $this->params['message'] . '.'
+                    . __('Reason: ') . $this->params['ExErrCode'] . ',<br/>'
+                    . __('Message: ') . $this->params['message'] . ',<br/>'
                     . __('Transaction ID: ') . $this->params['TransactionID'] . '.',
                 $this->sc_transaction_type
             );
@@ -438,14 +438,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return $this->jsonOutput;
         }
         
-        // try to create Subscription plans
-        $this->createSubscription($this->orderIncrementId);
-        
-        // Cancel active Subscriptions, if there are any
-        if (in_array($status, ['approved', 'success'])
-            && 'void' == $tr_type_param
-        ) {
-            $this->paymentModel->cancelSubscription($this->orderPayment);
+        // Only in case of approved transactions.
+        if ( in_array($status, ['approved', 'success']) ) {
+            // try to create Subscription plans
+            $this->createSubscription($this->orderIncrementId);
+            
+            // Cancel active Subscriptions, if there are any
+            if ('void' == $tr_type_param) {
+                $this->paymentModel->cancelSubscription($this->orderPayment);
+            }
         }
         
         $msg = 'DMN process end for Order #' . $this->orderIncrementId;
