@@ -60,6 +60,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
 //    private $dataObjectFactory;
     private $cartManagement;
     private $orderRepo;
+    private $onepageCheckout;
     
     /**
      * OpenOrder constructor.
@@ -89,7 +90,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
 //        \Magento\Framework\DataObjectFactory $dataObjectFactory,
         \Magento\Quote\Api\CartManagementInterface $cartManagement,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepo
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
+        \Magento\Checkout\Model\Type\Onepage $onepageCheckout
     ) {
         parent::__construct(
             $config,
@@ -109,6 +111,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
 //        $this->dataObjectFactory    = $dataObjectFactory;
         $this->cartManagement   = $cartManagement;
         $this->orderRepo        = $orderRepo;
+        $this->onepageCheckout  = $onepageCheckout;
     }
 
     /**
@@ -289,6 +292,13 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         return $this;
     }
     
+    public function setOrderId($orderId)
+    {
+        $this->orderId = $orderId;
+        
+        return $this;
+    }
+    
     /**
      * This is about the REST user.
      * 
@@ -330,9 +340,55 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->error    = 1;
         $this->quote    = empty($this->quoteId) 
             ? $this->cart->getQuote() : $this->quoteFactory->create()->load($this->quoteId);
+//        
+//        $order_data = $this->quote->getPayment()
+//            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
+//        
+//        if (!is_array($order_data) || empty($order_data)) {
+//            $this->readerWriter->createLog('$order_data is not valid, we need to refresh page and start with new openOrder request.');
+//            
+//            return $this;
+//        }
         
-        $order_data = $this->quote->getPayment()
+        // debug log
+//        $billingAddress = $this->quote->getBillingAddress();
+//        
+//        $this->readerWriter->createLog([
+//            
+//        ]);
+        
+//        if (!$billingAddress 
+//            || !$billingAddress->getFirstName() 
+//            || !$billingAddress->getLastName() 
+//            || !$billingAddress->getStreet() 
+//            || !$billingAddress->getCity() 
+//            || !$billingAddress->getPostcode()
+//            || !$billingAddress->getTelephone()
+//            || !$billingAddress->getCountryId()
+//        ) {
+//            $this->readerWriter->createLog((array) $billingAddress, 'billing address is missing');
+//            
+//            throw new \Magento\Framework\Exception\LocalizedException(__('Billing address is incomplete.'));
+//        }
+        
+//        $this->onepageCheckout->getCheckoutMethod();
+        // create Order from the Quote
+//        $orderId = $this->cartManagement->placeOrder($this->quote->getId());
+        
+        // Error when place the Order
+//        if (!$orderId || !is_numeric($orderId)) {
+//            $this->readerWriter->createLog($this->quote->getId(), 'Error when try to create Order from Quote.', 'WARN');
+//            
+//            return $this;
+//        }
+        
+        $this->order = $this->orderRepo->get($this->orderId);
+//        $this->orderId  = $orderId;
+//        
+        $order_data = $this->order->getPayment()
             ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
+        
+        $this->readerWriter->createLog([$this->orderId, $order_data], 'prePaymentCheck');
         
         if (!is_array($order_data) || empty($order_data)) {
             $this->readerWriter->createLog('$order_data is not valid, we need to refresh page and start with new openOrder request.');
@@ -340,27 +396,13 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             return $this;
         }
         
-        // create Order from the Quote
-        $orderId = $this->cartManagement->placeOrder($this->quote->getId());
-        
-        // Error when place the Order
-        if (!$orderId || !is_numeric($orderId)) {
-            $this->readerWriter->createLog($this->quote->getId(), 'Error when try to create Order from Quote.', 'WARN');
-            
-            return $this;
-        }
-        
-        $this->order    = $this->orderRepo->get($orderId);
-        $this->orderId  = $orderId;
-        
-        $this->readerWriter->createLog($orderId, 'prePaymentCheck');
-        
         // update order to pass the final data
         $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
 
         $req_resp = $update_order_request
             ->setOrderData($order_data)
-            ->setOrderId($orderId)
+//            ->setOrderId($orderId)
+            ->setOrderId($this->orderId)
             ->process();
         
 //        $this->successUrl = $this->config->getCallbackSuccessUrl($this->quote->getId());
@@ -377,75 +419,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->error = 0;
         
         return $this;
-        
-        # TODO create Order here and UpdateOrder by the Saved Order, not Quote ::END
-        
-//        $order_data = $this->quote->getPayment()
-//            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA); // we need itemsBaseInfoHash
-//        
-//        $this->readerWriter->createLog($order_data, 'prePaymentCheck');
-//        
-//        $this->items        = $this->quote->getItems();
-//        $items_base_data    = $this->isProductAvailable();
-//        $this->error        = 1;
-//        $magentoVersionInt  = str_replace('.', '', (string) $this->config->getMagentoVersion());
-//        $quotePM            = '';
-//        
-//        if ($this->quote->getPayment()) {
-//            $quotePM = $this->quote->getPayment()->getMethod();
-//        }
-//        
-//        $quoteAddresses = [
-//            'shippingAddress'   => $this->config->getQuoteShippingAddress(),
-//            'billingAddress'    => $this->config->getQuoteBillingAddress(),
-//        ];
-//        
-//        // Error, when create-order-data does not match current data, we need to update the order
-//        if (empty($order_data['itemsBaseInfoHash'])
-//            || empty($order_data['userDataHash'])
-//            || $order_data['itemsBaseInfoHash'] != hash('md5', $this->serializer->serialize($items_base_data))
-//            || $order_data['totalAmount'] != $this->config->getQuoteBaseTotal()
-//            || $order_data['userDataHash'] != hash('md5', $this->serializer->serialize($quoteAddresses))
-//                
-//        ) {
-//            $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
-//
-//            $req_resp = $update_order_request
-//                ->setOrderData($order_data)
-//                ->setQuoteId($this->quote->getId())
-//                ->process();
-//            
-//            // if UpdateOrder fails - refresh the page
-//            if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
-//                // unlock the Quote
-//                $this->quote->setData('is_locked', 0);
-////                $this->quote->setIsLocked(false);
-//                $this->quoteRepository->save($this->quote);
-////                $this->quote->save();
-//                
-//                return $this;
-//            }
-//            
-//            // if success update the data
-//            $this->setCreateOrderData($req_resp, $items_base_data, $order_data);
-//        }
-//        
-//        // success
-//        $this->error = 0;
-//        
-//        // return the Session Token if we have it
-//        if (!empty($req_resp['sessionToken'])) {
-//            $this->sessionToken = $req_resp['sessionToken'];
-//        }
-//        
-//        // mod for Magenteo 2.3.x to set in Quote the Payment Method
-//        if (240 > $magentoVersionInt && $quotePM != Payment::METHOD_CODE) {
-//            $this->quote->setPaymentMethod(Payment::METHOD_CODE);
-//            $this->quote->getPayment()->importData(['method' => Payment::METHOD_CODE]);
-//            $this->quote->save();
-//        }
-//        
-//        return $this;
     }
     
     /**

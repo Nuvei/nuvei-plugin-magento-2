@@ -124,8 +124,9 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
      */
     protected function getParams()
     {
-        // We can collect the details from the Order or from the Quote
+        $subs_data = [];
         
+        // We can collect the details from the Order or from the Quote
         // Case 1 - when we have Order
         if (!empty ($this->orderId)) {
             $order = $this->orderRepo->get($this->orderId);

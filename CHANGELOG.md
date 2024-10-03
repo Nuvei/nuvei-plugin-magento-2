@@ -4,15 +4,14 @@
 # 3.2.0
 ```
     * Nuvei Transaction will be create after the Magneto Order is saved. For those transacions as identificator will be used Order Increment ID.
-    * In Callback\Completed class fixed some comments. When the Order is saved in this class, add Nuvei Transaction ID to the Magento Order.
+    * In Callback\Completed when the Order is saved, add Nuvei Transaction ID to the Magento Order.
     * In Callback\Dmn class, the loop who delay DMN logic until Magento save the Order was removed.
-    * In Request\OpenOrder class get the Quote ID using specific method in Config class, not directly from Checkout\Session class. Now the Magento Order is saved in prePaymentCheck() method.
+    * In Request\OpenOrder class get the Quote ID using specific method in Config class, not directly from Checkout\Session class.
     * In Request\PaymentApm class, removed some commented parts of code. Use the specific method in Config class to get the Quote ID.
     * In Request\UpdateOrder class use the specific method in Config class to get the Quote ID. In case $this->orderData['clientRequestId'] is not set, generate new clientRequestId. When we call updateOrder, we check if the current data will be get from the Quote or from the saved Order.
     * In Model\Config class in all cases when need to get information from Quote, use Checkout\Cart method to get Quote instead of Checkout\Session class. Few methods were marked as depricated. The method who get the request endpoints were moved here from AbstractRequest class, the constants keeping the endpoint bases were also moved here.
     * In Model\ConfigProvider class, getCheckoutSdkConfig() method, added checkoutFormAction parameter, which is the callback success URL.
-    * In templates/payment/NuveiCheckout were added two custom inputs to hold Nuvei session token and transacion ID.
-    * In method-render/nuveiCheckout.js we will fill the above inputs. Here we will check if Shipping Method was selected, if the Order require it.
+    * In templates/payment/NuveiCheckout were added two custom inputs to hold Nuvei session token and transacion ID. The template "Pay" button now is visible and will be used instead Simply Connect "Pay" button.
     * Added an observer who stop Magento to send email to the client when Order is created. Added second observer to enable this email when the Order status is changed to some of Nuvei statuses.
 ```
 

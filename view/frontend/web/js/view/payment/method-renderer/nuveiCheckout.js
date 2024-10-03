@@ -53,34 +53,32 @@ function nuveiValidateAgreement(hideError) {
 function nuveiPrePayment(paymentDetails) {
 	console.log('nuveiPrePayment()');
 	
+//    jQuery('#nuvei_default_pay_btn').trigger('click');
+//    return;
+    
 	return new Promise((resolve, reject) => {
 		// validate user agreement
-		if (!nuveiValidateAgreement()) {
-			reject();
-			nuveiHideLoader();
-            nuveiShowGeneralError(jQuery.mage.__('Please, accept required agreement!'))
-			return;
-		}
-        
-        // validate shipping method
-//        if (jQuery('#co-shipping-method-form input[type="radio"]').length > 0) {
-//            var isShippingSelected = false;
-//        }
+//		if (!nuveiValidateAgreement()) {
+//			reject();
+//			nuveiHideLoader();
+//            nuveiShowGeneralError(jQuery.mage.__('Please, accept required agreement!'))
+//			return;
+//		}
         
         // check if the hidden submit button is enabled
-        if(jQuery('#nuvei_default_pay_btn').hasClass('disabled')) {
-            reject();
-			nuveiHideLoader();
-            nuveiShowGeneralError(jQuery.mage.__('Please, check all required fields are filled!'))
-			return;
-        }
+//        if(jQuery('#nuvei_default_pay_btn').hasClass('disabled')) {
+//            reject();
+//			nuveiHideLoader();
+//            nuveiShowGeneralError(jQuery.mage.__('Please, check all required fields are filled!'))
+//			return;
+//        }
 		
 		nuveiUpdateOrder(resolve, reject);
 	});
 };
 
 function nuveiUpdateOrder(resolve, reject) {
-    var paramsStr   = '?nuveiAction=nuveiPrePayment';
+    var paramsStr   = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
     var xmlhttp     = new XMLHttpRequest();
     
     xmlhttp.onreadystatechange = function() {
@@ -94,7 +92,8 @@ function nuveiUpdateOrder(resolve, reject) {
                     reject();
                     
                     if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-                        window.location.reload();
+//                        window.location.reload();
+                        nuveiWhenTransDeclined();
                     }
                     
                     return;
@@ -111,9 +110,9 @@ function nuveiUpdateOrder(resolve, reject) {
                     window.nuveiSuccessUrl = resp.successUrl;
                 }
                 
-                if (resp.hasOwnProperty('orderId') && 0 < resp.orderId) {
-                    window.nuveiSavedOrderId = resp.orderId;
-                }
+//                if (resp.hasOwnProperty('orderId') && 0 < resp.orderId) {
+//                    window.nuveiSavedOrderId = resp.orderId;
+//                }
                 
                 resolve();
                 return;
@@ -122,15 +121,25 @@ function nuveiUpdateOrder(resolve, reject) {
 			if (xmlhttp.status == 400) {
                 console.log('There was an error.');
                 reject();
-                nuveiHideLoader();
-                nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
+//                nuveiHideLoader();
+//                nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
+                
+                if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
+                    nuveiWhenTransDeclined();
+                }
+                
                 return;
             }
 		   
 			console.log('Unexpected response code.');
 			reject();
-			nuveiHideLoader();
-            nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
+//			nuveiHideLoader();
+//            nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
+
+            if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
+                nuveiWhenTransDeclined();
+            }
+            
 			return;
         }
     };
@@ -314,14 +323,24 @@ define(
         'Magento_Payment/js/view/payment/cc-form',
         'ko',
         'Magento_Checkout/js/model/quote',
-        'mage/translate'
+        'mage/translate',
+//        'mage/url',
+        'Magento_Checkout/js/action/place-order',
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Checkout/js/model/error-processor',
+        'Magento_Customer/js/customer-data'
     ],
     function(
         $,
         Component,
         ko,
         quote,
-        mage
+        mage,
+//        urlBuilder, 
+        placeOrderAction, 
+        additionalValidators, 
+        errorProcessor,
+        customerData
     ) {
         'use strict';
 
@@ -513,16 +532,10 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2).toString();
                 }
 
+                self.checkoutSdkParams.payButton    = 'noButton';
                 self.checkoutSdkParams.prePayment	= nuveiPrePayment;
                 self.checkoutSdkParams.onResult		= nuveiAfterSdkResponse;
             },
-			
-//			showGeneralError: function(msg) {
-////				jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
-////				jQuery('#nuvei_general_error').show();
-////				document.getElementById("nuvei_general_error").scrollIntoView();
-//                nuveiShowGeneralError(msg);
-//			},
 			
             // event function
 			scBillingAddrChange: function(_address) {
@@ -580,6 +593,8 @@ define(
              * @returns void
              */
             loadSdk: function() {
+                console.log('load SDK');
+                
                 // in case of some reloads or when Zero Checkout method is active
                 if ($('#nuvei_checkout').length == 0) { // TODO get it as variable!
                     console.log('Missing nuvei_checkout container. Do not load SimplyConnect');
@@ -587,12 +602,54 @@ define(
                     nuveiHideLoader();
                     return;
                 }
-
+                
                 // call the SDK
                 simplyConnect(self.checkoutSdkParams);
 
                 nuveiHideLoader();
                 return;
+            },
+            
+            // Override the default place order action
+            placeOrder: function (data, event) {
+                console.log('custom placeOrder')
+
+                var self = this;
+
+                if (event) {
+                    event.preventDefault();
+                }
+
+                // Validate before placing order
+                if (this.validate() && additionalValidators.validate()) {
+                    // Call the place order action and prevent the immediate redirect
+                    placeOrderAction(this.getData(), this.messageContainer)
+                        .done(function (orderId) {
+                            console.log(orderId)
+                            
+                            // In case the response is not numeric.
+                            if (isNaN(orderId)) {
+                                self.messageContainer.addErrorMessage({
+                                    message: jQuery.mage.__('There was an issue placing the order. Please try again.')
+                                });
+                                
+                                return false;
+                            }
+                            
+                            window.nuveiSavedOrderId = orderId;
+                            
+                            checkout.submitPayment();
+                            return true;
+                        })
+                        .fail(function (response) {
+                            // Display the error message when order placement fails
+                            errorProcessor.process(response, self.messageContainer);
+                        });
+
+                    return true;
+                }
+
+                return false;
             },
             
 			/**

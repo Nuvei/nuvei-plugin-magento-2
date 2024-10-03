@@ -175,6 +175,7 @@ class OpenOrder extends Action
         $quoteId    = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
         $resp       = $request
             ->setQuoteId($quoteId)
+            ->setOrderId($this->getRequest()->getParam('orderId'))
             ->prePaymentCheck();
 
         $successUrl = $this->moduleConfig->getCallbackSuccessUrl($quoteId);
@@ -183,7 +184,7 @@ class OpenOrder extends Action
             "success"       => (int) !$resp->error,
             'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
             'successUrl'    => $successUrl,
-            'orderId'       => isset($resp->orderId) ? $resp->orderId : 0,
+//            'orderId'       => isset($resp->orderId) ? $resp->orderId : 0,
         ];
         
         $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');
