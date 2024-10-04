@@ -388,7 +388,7 @@
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\GetMerchantPaymentMethods</source_model>
 					</field>
 					
-					<field id="pay_btn_text"
+<!--					<field id="pay_btn_text"
 						   translate="label"
 						   type="select"
 						   sortOrder="70"
@@ -399,7 +399,7 @@
 						<label>Choose the Text on the Pay button</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\PayButtonText</source_model>
 						<config_path>payment/nuvei/pay_btn_text</config_path>
-					</field>
+					</field>-->
 					
 					<field id="auto_expand_pms"
 						   translate="label"

@@ -40,7 +40,6 @@
                 <specificcountry/>
 
                 <!-- Advanced Configuration. -->
-                <!--<use_dev_sdk>0</use_dev_sdk>-->
                 <use_dcc>enable</use_dcc>
 				<pay_btn_text>amountButton</pay_btn_text>
 				<auto_expand_pms>1</auto_expand_pms>

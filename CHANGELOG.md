@@ -13,6 +13,7 @@
     * In Model\ConfigProvider class, getCheckoutSdkConfig() method, added checkoutFormAction parameter, which is the callback success URL.
     * In templates/payment/NuveiCheckout were added two custom inputs to hold Nuvei session token and transacion ID. The template "Pay" button now is visible and will be used instead Simply Connect "Pay" button.
     * Added an observer who stop Magento to send email to the client when Order is created. Added second observer to enable this email when the Order status is changed to some of Nuvei statuses.
+    * The option to change Simply Connect Pay button text was removed.
 ```
 
 # 3.1.9
