@@ -13,6 +13,8 @@ var nuveiAgreementsConfig = window.checkoutConfig ? window.checkoutConfig.checko
  */
 var nuveiWaitSdkResponse = false;
 
+var isSimplyConnectFormValid = false;
+
 /**
  * Validate checkout agreements.
  *
@@ -76,6 +78,15 @@ function nuveiPrePayment(paymentDetails) {
 		nuveiUpdateOrder(resolve, reject);
 	});
 };
+
+/**
+ * Checks if the SDK form is valid and set it to a global variable.
+ * 
+ * @param {object} params
+ */
+function nuveiIsSdkFormValid(params) {
+    isSimplyConnectFormValid = params.isFormValid;
+}
 
 function nuveiUpdateOrder(resolve, reject) {
     var paramsStr   = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
@@ -532,9 +543,10 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2).toString();
                 }
 
-                self.checkoutSdkParams.payButton    = 'noButton';
-                self.checkoutSdkParams.prePayment	= nuveiPrePayment;
-                self.checkoutSdkParams.onResult		= nuveiAfterSdkResponse;
+                self.checkoutSdkParams.payButton        = 'noButton';
+                self.checkoutSdkParams.prePayment       = nuveiPrePayment;
+                self.checkoutSdkParams.onFormValidated  = nuveiIsSdkFormValid;
+                self.checkoutSdkParams.onResult         = nuveiAfterSdkResponse;
             },
 			
             // event function
@@ -612,9 +624,15 @@ define(
             
             // Override the default place order action
             placeOrder: function (data, event) {
-                console.log('custom placeOrder')
+                console.log('custom placeOrder');
+                
+                if (!isSimplyConnectFormValid) {
+                    nuveiShowGeneralError(jQuery.mage.__('Please, fill all fields of the selected payment method!'));
+                    return false;
+                }
 
-                var self = this;
+                nuveiWaitSdkResponse    = true;
+                var self                = this;
 
                 if (event) {
                     event.preventDefault();
@@ -625,7 +643,7 @@ define(
                     // Call the place order action and prevent the immediate redirect
                     placeOrderAction(this.getData(), this.messageContainer)
                         .done(function (orderId) {
-                            console.log(orderId)
+                            console.log(orderId);
                             
                             // In case the response is not numeric.
                             if (isNaN(orderId)) {

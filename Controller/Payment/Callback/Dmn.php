@@ -394,7 +394,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
             if ($this->is_partial_settle === true) {
                 $msg_transaction .= __("Partial ");
             }
-
+            
+            // If the user used DCC add the information.
+            $trAmountTxt = number_format($this->params['totalAmount'], 2, '.', '')
+                . ' ' . $this->params['currency'];
+            
+            if ( ($this->params['currency'] != $this->params['customField5'])
+                || ($this->params['totalAmount'] != $this->params['customField1'])
+            ) {
+                $trAmountTxt .= ' (DCC ' . number_format($this->params['customField1'], 2, '.', '')
+                    . ' ' . $this->params['customField5'] . ')';
+            }
+            
             $msg_transaction .= __($this->params['transactionType']) . ' </b> request.<br/>';
 
             $this->order->addStatusHistoryComment(
@@ -403,8 +414,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     . __('Payment Method: ') . $this->params['payment_method'] . '.<br/>'
                     . __('Transaction ID: ') . $this->params['TransactionID'] . '.<br/>'
                     . __('Related Transaction ID: ') . $this->params['relatedTransactionId'] . '.<br/>'
-                    . __('Transaction Amount: ') . number_format($this->params['totalAmount'], 2, '.', '')
-                    . ' ' . $this->params['currency'] . '.'
+                    . __('Transaction Amount: ') . $trAmountTxt . '.'
                     . $this->refund_msg,
                 $this->sc_transaction_type
             );
