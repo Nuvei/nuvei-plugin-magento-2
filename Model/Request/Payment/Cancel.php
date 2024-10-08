@@ -4,7 +4,6 @@ namespace Nuvei\Checkout\Model\Request\Payment;
 
 use Magento\Framework\Exception\PaymentException;
 use Nuvei\Checkout\Model\AbstractRequest;
-//use Nuvei\Checkout\Model\AbstractResponse;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Model\Request\AbstractPayment;
 use Nuvei\Checkout\Model\RequestInterface;
@@ -169,10 +168,8 @@ class Cancel extends AbstractPayment implements RequestInterface
             throw new PaymentException(__($msg));
         }
         
-        $this->readerWriter->createLog([$order->getBaseTotalInvoiced(), $trans_to_void_data], 'Transaction to Cancel');
+        $this->readerWriter->createLog($trans_to_void_data, 'Transaction to Cancel');
         
-        //        $amount     = (float) $trans_to_void_data[Payment::TRANSACTION_TOTAL_AMOUN];
-        //        $amount     = round($order->getBaseTotalInvoiced(), 2);
         $amount     = round($order->getBaseGrandTotal(), 2);
         $auth_code  = !empty($trans_to_void_data[Payment::TRANSACTION_AUTH_CODE])
             ? $trans_to_void_data[Payment::TRANSACTION_AUTH_CODE] : '';

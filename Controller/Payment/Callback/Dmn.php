@@ -761,15 +761,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter->createLog($this->order->getStatus(), 'processVoidDmn()');
         
         // wait Magento to set processing status
-        while(!in_array($this->order->getStatus(), [Payment::SC_PROCESSING, Order::STATE_PROCESSING])
+        while(!in_array($this->order->getStatus(), [Payment::SC_PROCESSING, Order::STATE_PROCESSING, Order::STATE_CANCELED])
             && $this->loop_tries < $this->loop_max_tries
         ) {
             $this->loop_tries++;
             
             $this->readerWriter->createLog(
                 [
-                    'order status'  => $this->order->getStatus(),
-                    'tryouts'       => $this->loop_tries,
+                    'current order status' => $this->order->getStatus(),
+                    'tryouts' => $this->loop_tries,
                 ],
                 'processVoidDmn() wait for Magento to set Proccessing status.'
             );

@@ -3,7 +3,6 @@
 namespace Nuvei\Checkout\Model\Request;
 
 use Nuvei\Checkout\Model\AbstractRequest;
-//use Nuvei\Checkout\Model\AbstractResponse;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Model\RequestInterface;
 

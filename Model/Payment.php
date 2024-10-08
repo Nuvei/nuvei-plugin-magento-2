@@ -295,7 +295,7 @@ class Payment implements MethodInterface
         $total  = $order->getBaseGrandTotal();
         $status = $order->getStatus();
         // set processing status
-        $order->setStatus(self::SC_PROCESSING);
+//        $order->setStatus(self::SC_PROCESSING);
         
         $this->readerWriter->createLog(
         //            [
@@ -311,13 +311,6 @@ class Payment implements MethodInterface
             'Payment Void.'
         );
         
-        //        foreach($order->getInvoiceCollection()->getItems() as $inv) {
-        //            $this->readerWriter->createLog(
-        //                (array) $inv,
-        //                'invoices'
-        //            );
-        //        }
-        
         // Void of Zero Total amount
         if (0 == (float) $total && self::SC_AUTH == $status) {
             $success = $this->cancelSubscription($payment);
@@ -329,19 +322,15 @@ class Payment implements MethodInterface
             return $this;
             
         }
-        // /Void of Zero Total amount
         
-        /**
-* 
-         *
- * @var RequestInterface $request 
-*/
         $request = $this->paymentRequestFactory->create(
             AbstractRequest::PAYMENT_VOID_METHOD,
             $payment
         );
         
         $resp = $request->process();
+        
+        $order->addStatusHistoryComment(__('A Void request was send. Please, wait for the response!'));
         
         // some error
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {

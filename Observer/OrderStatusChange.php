@@ -30,7 +30,7 @@ class OrderStatusChange implements ObserverInterface
     }
     
     /**
-     * Execute the observer
+     * Execute the observer.
      *
      * @param Observer $observer
      * @return void
