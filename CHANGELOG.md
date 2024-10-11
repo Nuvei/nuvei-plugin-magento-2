@@ -15,6 +15,7 @@
     * Added an observer who stop Magento to send email to the client when Order is created. Added second observer to enable this email when the Order status is changed to some of Nuvei statuses.
     * The option to change Simply Connect Pay button text was removed.
     * Fix for the wrong Order Status when Cancel Nuvei Auth Order.
+    * Simply Connect Tag URL was added into the plugin whitelist xml.
 ```
 
 # 3.1.9

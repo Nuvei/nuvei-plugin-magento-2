@@ -7,6 +7,7 @@
                 <value id="devdocs-base" type="host"></value>
                 <value id="magento" type="host">https://magento.com</value>
                 <value id="safecharge-checkout-sdk" type="host">https://cdn.safecharge.com</value>
+                <value id="safecharge-checkout-sdk-tag" type="host">https://devmobile.sccdev-qa.com</value>
                 <value id="safecharge-int-checkout-sdk" type="host">https://cdn-int.safecharge.com</value>
                 <value id="gpay-script" type="host">https://play.google.com</value>
             </values>
@@ -27,6 +28,7 @@
             <values>
             	<value id="safecharge-int-checkout-sdk-img" type="host">https://cdn-int.safecharge.com</value>
                 <value id="safecharge-checkout-sdk-img" type="host">https://cdn.safecharge.com</value>
+                <value id="safecharge-checkout-sdk-img-tag" type="host">https://devmobile.sccdev-qa.com</value>
                 <value id="safecharge-ppp-img" type="host">https://secure.safecharge.com/</value>
             </values>
         </policy>
@@ -34,6 +36,7 @@
          <policy id="style-src">
             <values>
             	<value id="safecharge-checkout-sdk-style" type="host">https://cdn.safecharge.com</value>
+            	<value id="safecharge-checkout-sdk-style-tag" type="host">https://devmobile.sccdev-qa.com</value>
             	<value id="google-fonts-style" type="host"> https://fonts.googleapis.com</value>
             </values>
         </policy>
