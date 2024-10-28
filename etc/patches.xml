@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<patches>
+    <patch>
+        <type>data</type>
+        <class>Nuvei\Checkout\Setup\Patch\Data\NuveiPatch200</class>
+    </patch>
+    
+    <patch>
+        <type>data</type>
+        <class>Nuvei\Checkout\Setup\Patch\Data\NuveiPatch320</class>
+    </patch>
+</patches>

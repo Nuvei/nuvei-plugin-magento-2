@@ -125,7 +125,6 @@ class Toolbar
                         Payment::SC_REFUNDED, 
                         Payment::SC_PROCESSING, 
                         Payment::SC_VOIDED, 
-                    //                        Payment::SC_AUTH, 
                         'closed'
                     ]
                 )

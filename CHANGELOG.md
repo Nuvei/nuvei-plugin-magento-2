@@ -16,6 +16,8 @@
     * The option to change Simply Connect Pay button text was removed.
     * Fix for the wrong Order Status when Cancel Nuvei Auth Order.
     * Simply Connect Tag URL was added into the plugin whitelist xml.
+    * Added new patch to modify some of Nuvei Statuses states.
+    * On Credit memo, do not send temp status Nuvei Pending.
 ```
 
 # 3.1.9

@@ -229,14 +229,12 @@ class Payment implements MethodInterface
      */
     public function refund(InfoInterface $payment, $amount)
     {
-        $order  = $payment->getOrder();
-        $status = $order->getStatus();
+//        $order  = $payment->getOrder();
+//        $status = $order->getStatus();
         
-        $order->setStatus(Payment::SC_PROCESSING);
+//        $order->setStatus(Payment::SC_PROCESSING);
         
         /**
-         * 
-         *
          * @var RequestInterface $request 
         */
         $request = $this->paymentRequestFactory->create(
@@ -249,7 +247,7 @@ class Payment implements MethodInterface
         
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
             // revert old Order Status
-            $order->setStatus($status);
+//            $order->setStatus($status);
             
             if (!empty($resp['gwErrorReason'])) {
                 throw new \Magento\Framework\Exception\LocalizedException(__($resp['gwErrorReason']));

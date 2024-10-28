@@ -1,43 +1,23 @@
 <?php
 
-/**
- * Add new patch file or change the namer of the current one,
- * every time we need to add something new into it.
- */
-
 namespace Nuvei\Checkout\Setup\Patch\Data;
 
 use Magento\Sales\Model\Order\StatusFactory as OrderStatusFactory;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Sales\Model\Order;
-//use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory; // this class will be generated during the compile
+
+/**
+ * With this patch we add Nuvei custom statuses, and the attributes
+ * for the Nuvei rebillig.
+ */
 
 class NuveiPatch200 implements DataPatchInterface
 {
-    /**
-     * 
-     *
-     * @var ModuleDataSetupInterface 
-     */
     private $moduleDataSetup;
-
-    /**
-     * 
-     *
-     * @var EavSetupFactory 
-     */
     private $eavSetupFactory;
-    
-    /**
-     * 
-     *
-     * @var OrderStatusFactory 
-     */
     private $orderStatusFactory;
-    
-    private $readerWriter;
    
     /**
      * @param OrderStatusFactory       $orderStatusFactory
@@ -59,13 +39,6 @@ class NuveiPatch200 implements DataPatchInterface
      */
     public function apply()
     {
-        /**
-* 
-         *
- * @var EavSetup $eavSetup 
-*/
-        $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
-        
         // add few new Order States
         $scVoided = $this->orderStatusFactory->create()
             ->setData('status', 'nuvei_voided')
@@ -103,6 +76,9 @@ class NuveiPatch200 implements DataPatchInterface
             ->save();
         $scCanceled->assignState(Order::STATE_CANCELED, false, true);
         // /add few new Order States
+        
+        # for the rebilling attributes
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
         
         // Admin > Product > Nuvei Subscription details
         // Enable subscription

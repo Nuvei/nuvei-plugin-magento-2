@@ -55,26 +55,7 @@ function nuveiValidateAgreement(hideError) {
 function nuveiPrePayment(paymentDetails) {
 	console.log('nuveiPrePayment()');
 	
-//    jQuery('#nuvei_default_pay_btn').trigger('click');
-//    return;
-    
 	return new Promise((resolve, reject) => {
-		// validate user agreement
-//		if (!nuveiValidateAgreement()) {
-//			reject();
-//			nuveiHideLoader();
-//            nuveiShowGeneralError(jQuery.mage.__('Please, accept required agreement!'))
-//			return;
-//		}
-        
-        // check if the hidden submit button is enabled
-//        if(jQuery('#nuvei_default_pay_btn').hasClass('disabled')) {
-//            reject();
-//			nuveiHideLoader();
-//            nuveiShowGeneralError(jQuery.mage.__('Please, check all required fields are filled!'))
-//			return;
-//        }
-		
 		nuveiUpdateOrder(resolve, reject);
 	});
 };
@@ -103,7 +84,6 @@ function nuveiUpdateOrder(resolve, reject) {
                     reject();
                     
                     if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-//                        window.location.reload();
                         nuveiWhenTransDeclined();
                     }
                     
@@ -121,10 +101,6 @@ function nuveiUpdateOrder(resolve, reject) {
                     window.nuveiSuccessUrl = resp.successUrl;
                 }
                 
-//                if (resp.hasOwnProperty('orderId') && 0 < resp.orderId) {
-//                    window.nuveiSavedOrderId = resp.orderId;
-//                }
-                
                 resolve();
                 return;
             }
@@ -132,8 +108,6 @@ function nuveiUpdateOrder(resolve, reject) {
 			if (xmlhttp.status == 400) {
                 console.log('There was an error.');
                 reject();
-//                nuveiHideLoader();
-//                nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
                 
                 if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
                     nuveiWhenTransDeclined();
@@ -144,8 +118,6 @@ function nuveiUpdateOrder(resolve, reject) {
 		   
 			console.log('Unexpected response code.');
 			reject();
-//			nuveiHideLoader();
-//            nuveiShowGeneralError(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg);
 
             if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
                 nuveiWhenTransDeclined();
@@ -185,7 +157,6 @@ function nuveiAfterSdkResponse(resp) {
         && resp.reason.toLowerCase().search('the currency is not supported') >= 0
     ) {
         if(!alert(resp.reason)) {
-//            nuveiHideLoader();
             nuveiWhenTransDeclined();
             return;
         }
@@ -221,11 +192,7 @@ function nuveiAfterSdkResponse(resp) {
         }
         
         nuveiWhenTransDeclined();
-        
-//		if(!alert(jQuery.mage.__('Your Payment was DECLINED. Please try another payment method!'))) {
-//			nuveiHideLoader();
-			return;
-//		}
+        return;
 	}
 
     // on Approved or Pending
@@ -246,27 +213,12 @@ function nuveiAfterSdkResponse(resp) {
         }
         
         // submit the form
-//        jQuery('#nuvei_default_pay_btn').trigger('click');
         checkoutForm.submit();
         return;
     }
 
     nuveiWhenTransDeclined();
-
-	// when not Declined, but not Approved also
-//    var respError = 'Error with your Payment. Please try again later!';
-//
-//    if(resp.hasOwnProperty('errorDescription') && '' != resp.errorDescription) {
-//        respError = resp.errorDescription;
-//    }
-//    else if(resp.hasOwnProperty('reason') && '' != resp.reason) {
-//        respError = resp.reason;
-//    }
-//
-//    if(!alert(jQuery.mage.__(respError))) {
-//        nuveiHideLoader();
-        return;
-//    }
+    return;
 };
 
 function nuveiWhenTransDeclined() {
@@ -335,7 +287,6 @@ define(
         'ko',
         'Magento_Checkout/js/model/quote',
         'mage/translate',
-//        'mage/url',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/error-processor',
@@ -347,7 +298,6 @@ define(
         ko,
         quote,
         mage,
-//        urlBuilder, 
         placeOrderAction, 
         additionalValidators, 
         errorProcessor,
@@ -414,10 +364,6 @@ define(
                 var shippingMethod  = quote.shippingMethod();
                 
                 self.writeLog('getSessionToken', paymentMethod);
-                
-                console.log(quote);
-                console.log(quote.shippingMethod());
-                console.log(quote.isVirtual());
                 
                 // Check for payment method
                 if (null == paymentMethod

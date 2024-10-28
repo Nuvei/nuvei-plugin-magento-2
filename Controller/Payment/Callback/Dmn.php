@@ -826,7 +826,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         // mark the Order Invoice as Canceld END
         
-        $this->order->setData('state', Order::STATE_CLOSED);
+//        $this->order->setData('state', Order::STATE_CLOSED);
+        $this->order->setData('state', Order::STATE_CANCELED);
 
         $this->saveCorrectTrId('void');
     }
@@ -994,7 +995,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $invCollection                          = $this->order->getInvoiceCollection();
                 $invoice                                = current($invCollection);
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
-                //                $this->sc_transaction_type              = Payment::SC_CANCELED;
                 
                 $this->order->setStatus(Payment::SC_CANCELED);
 
