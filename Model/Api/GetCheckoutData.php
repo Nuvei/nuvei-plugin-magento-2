@@ -402,7 +402,8 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $ooResp     = $request
             ->setIsUserLogged($isUserLogged)
-            ->setQuoteId($quoteId)
+//            ->setQuoteId($quoteId)
+            ->setEntityId($quoteId) // this ID is actualy the Entity ID
             ->setCallerSdk($callerSdk)
             ->process();
         

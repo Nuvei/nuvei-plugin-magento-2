@@ -47,6 +47,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $saveUpo        = null;
     private $callerSdk      = null;
     private $quoteId        = '';
+    private $entityId       = '';
     private $stockState;
     private $countryCode; // string
     private $quote;
@@ -57,7 +58,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     private $httpRequest;
     private $serializer;
     private $quoteRepository;
-//    private $dataObjectFactory;
     private $cartManagement;
     private $orderRepo;
     private $onepageCheckout;
@@ -88,7 +88,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         \Magento\Framework\App\RequestInterface $httpRequest,
         \Magento\Framework\Serialize\Serializer\Serialize $serializer,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-//        \Magento\Framework\DataObjectFactory $dataObjectFactory,
         \Magento\Quote\Api\CartManagementInterface $cartManagement,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
         \Magento\Checkout\Model\Type\Onepage $onepageCheckout
@@ -134,8 +133,20 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     {
         $this->readerWriter->createLog('openOrder');
         
-        $this->quote = empty($this->quoteId) ? $this->cart->getQuote() 
-            : $this->quoteFactory->create()->load($this->quoteId);
+        if (!empty($this->quoteId)) {
+            $this->quote = $this->quoteFactory->create()->load($this->quoteId);
+        }
+        if (!empty($this->entityId)) { // the call from the REST API
+            $this->quote    = $this->quoteRepository->get($this->entityId);
+            $this->quoteId  = $this->quote->getId();
+        }
+        else {
+            $this->quote = $this->cart->getQuote();
+        }
+        
+        
+//        $this->quote = empty($this->quoteId) ? $this->cart->getQuote() 
+//            : $this->quoteFactory->create()->load($this->quoteId);
         
         
 //        $ch = curl_init("https://srv-aws-magento2-4.sccdev-qa.com/rest/V1/carts/" . $this->quoteId); 
@@ -146,7 +157,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
 //        $result = json_decode($result, 1);
 //        $this->readerWriter->createLog($result, 'openOrder');
         
-        $this->items = $this->quote->getItems();
+//        $this->items = $this->quote->getItems();
+        $this->items = $this->quote->getAllVisibleItems();
         
         // check if each item is in stock
         $items_base_data = $this->isProductAvailable();
@@ -288,6 +300,13 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     public function setQuoteId($quoteId = '')
     {
         $this->quoteId = $quoteId;
+        
+        return $this;
+    }
+    
+    public function setEntityId($entityId = '')
+    {
+        $this->entityId = $entityId;
         
         return $this;
     }

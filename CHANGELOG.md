@@ -18,6 +18,7 @@
     * Simply Connect Tag URL was added into the plugin whitelist xml.
     * Added new patch to modify some of Nuvei Statuses states.
     * On Credit memo, do not send temp status Nuvei Pending.
+    * Fixed the headless flow.
 ```
 
 # 3.1.9
