@@ -1,5 +1,5 @@
 <script>
-    var nuveiData               = <?= $block->getPaymentPlans(); ?>;
+    var nuveiData               = JSON.parse('<?= $block->escapeJs($block->getPaymentPlans()); ?>');
     var nuveiPaymentPlans       = nuveiData.plans;
     var nuveiDropdownPlanVal    = 1;
     
