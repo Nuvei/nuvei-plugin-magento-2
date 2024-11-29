@@ -538,10 +538,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $params['userTokenId'] = $params['billingAddress']['email'];
         }
         
-        // auto_close_popup
-        if (1 == $this->config->getConfigValue('auto_close_popup')
-            && 'redirect' != $this->config->getConfigValue('apm_window_type', 'checkout')
-        ) {
+        if ('redirect' != $this->config->getConfigValue('apm_window_type', 'checkout')) {
             $params['urlDetails']['successUrl'] = $params['urlDetails']['pendingUrl']
                                                 = $params['urlDetails']['failureUrl']
                                                 = Config::NUVEI_SDK_AUTOCLOSE_URL;

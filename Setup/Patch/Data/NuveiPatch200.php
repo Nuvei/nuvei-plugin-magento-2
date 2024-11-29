@@ -306,19 +306,6 @@ class NuveiPatch200 implements DataPatchInterface
     }
     
     /**
-     * If the module version number in our database is higher than the version
-     * we specified here in our file, the patch will not execute.
-     *
-     * {@inheritdoc}
-     * 
-     * @deprecated since version 3.2.0
-     */
-    public static function getVersion()
-    {
-        return '2.0.0';
-    }
-    
-    /**
      * {@inheritdoc}
      */
     public static function getDependencies()

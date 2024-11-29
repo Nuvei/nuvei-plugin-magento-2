@@ -50,6 +50,21 @@ function nuveiShowGeneralError(msg) {
     document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
 }
 
+/**
+ * Just check if the plugin is used on the QA site.
+ * 
+ * @returns boolean
+ */
+function nuveiIsQaSite() {
+    if ('magentoautomation.sccdev-qa.com' === window.location.host
+        || 'oldmagentoautomation.gw-4u.com' === window.location.host
+    ) {
+        return true;
+    }
+    
+    return false;
+}
+
 define(
     [
         'uiComponent',
@@ -70,16 +85,9 @@ define(
         var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js";
 
         // set Tag URLs for QA sites
-        try {
-            if ('magentoautomation.sccdev-qa.com' === window.location.host
-                || 'oldmagentoautomation.gw-4u.com' === window.location.host
-            ) {
-                webSdkUrl       = 'https://devmobile.sccdev-qa.com/checkoutNext/websdk/safecharge.js';
-                simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/simplyConnect.js';
-            }
-        }
-        catch (_exception) {
-            console.log('Nuvei Error', _exception);
+        if (nuveiIsQaSite()) {
+            webSdkUrl       = 'https://devmobile.sccdev-qa.com/checkoutNext/websdk/safecharge.js';
+            simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/simplyConnect.js';
         }
         
         // load WebSDK

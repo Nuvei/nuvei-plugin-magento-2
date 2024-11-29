@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.2.1
+```
+    * Removed the plugin option to auto-close or not the APM popup.
+    * Add additional parameter to the Simply Connect on the QA site.
+```
+
 # 3.2.0
 ```
     * Nuvei Transaction will be create after the Magneto Order is saved. For those transacions as identificator will be used Order Increment ID.

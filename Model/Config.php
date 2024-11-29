@@ -15,44 +15,44 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class Config
 {
-    const MODULE_NAME                           = 'Nuvei_Checkout';
+    const MODULE_NAME               = 'Nuvei_Checkout';
     
-    const PAYMENT_PLANS_ATTR_NAME               = 'nuvei_payment_plans';
-    const PAYMENT_PLANS_ATTR_LABEL              = 'Nuvei Payment Plans';
-    const PAYMENT_PLANS_FILE_NAME               = 'nuvei_payment_plans.json';
+    const PAYMENT_PLANS_ATTR_NAME   = 'nuvei_payment_plans';
+    const PAYMENT_PLANS_ATTR_LABEL  = 'Nuvei Payment Plans';
+    const PAYMENT_PLANS_FILE_NAME   = 'nuvei_payment_plans.json';
     
-    const PAYMENT_SUBS_GROUP                    = 'Nuvei Subscription';
+    const PAYMENT_SUBS_GROUP        = 'Nuvei Subscription';
     
-    const PAYMENT_SUBS_ENABLE_LABEL             = 'Enable Subscription';
-    const PAYMENT_SUBS_ENABLE                   = 'nuvei_sub_enabled';
+    const PAYMENT_SUBS_ENABLE_LABEL = 'Enable Subscription';
+    const PAYMENT_SUBS_ENABLE       = 'nuvei_sub_enabled';
     
-    const PAYMENT_SUBS_INTIT_AMOUNT_LABEL       = 'Initial Amount';
-    const PAYMENT_SUBS_INTIT_AMOUNT             = 'nuvei_sub_init_amount';
-    const PAYMENT_SUBS_REC_AMOUNT_LABEL         = 'Recurring Amount';
-    const PAYMENT_SUBS_REC_AMOUNT               = 'nuvei_sub_rec_amount';
+    const PAYMENT_SUBS_INTIT_AMOUNT_LABEL   = 'Initial Amount';
+    const PAYMENT_SUBS_INTIT_AMOUNT         = 'nuvei_sub_init_amount';
+    const PAYMENT_SUBS_REC_AMOUNT_LABEL     = 'Recurring Amount';
+    const PAYMENT_SUBS_REC_AMOUNT           = 'nuvei_sub_rec_amount';
     
-    const PAYMENT_SUBS_RECURR_UNITS             = 'nuvei_sub_recurr_units';
-    const PAYMENT_SUBS_RECURR_UNITS_LABEL       = 'Recurring Units';
-    const PAYMENT_SUBS_RECURR_PERIOD            = 'nuvei_sub_recurr_period';
-    const PAYMENT_SUBS_RECURR_PERIOD_LABEL      = 'Recurring Period';
+    const PAYMENT_SUBS_RECURR_UNITS         = 'nuvei_sub_recurr_units';
+    const PAYMENT_SUBS_RECURR_UNITS_LABEL   = 'Recurring Units';
+    const PAYMENT_SUBS_RECURR_PERIOD        = 'nuvei_sub_recurr_period';
+    const PAYMENT_SUBS_RECURR_PERIOD_LABEL  = 'Recurring Period';
     
-    const PAYMENT_SUBS_TRIAL_UNITS              = 'nuvei_sub_trial_units';
-    const PAYMENT_SUBS_TRIAL_UNITS_LABEL        = 'Trial Units';
-    const PAYMENT_SUBS_TRIAL_PERIOD             = 'nuvei_sub_trial_period';
-    const PAYMENT_SUBS_TRIAL_PERIOD_LABEL       = 'Trial Period';
+    const PAYMENT_SUBS_TRIAL_UNITS          = 'nuvei_sub_trial_units';
+    const PAYMENT_SUBS_TRIAL_UNITS_LABEL    = 'Trial Units';
+    const PAYMENT_SUBS_TRIAL_PERIOD         = 'nuvei_sub_trial_period';
+    const PAYMENT_SUBS_TRIAL_PERIOD_LABEL   = 'Trial Period';
     
     const PAYMENT_SUBS_END_AFTER_UNITS          = 'nuvei_sub_end_after_units';
     const PAYMENT_SUBS_END_AFTER_UNITS_LABEL    = 'End After Units';
     const PAYMENT_SUBS_END_AFTER_PERIOD         = 'nuvei_sub_end_after_period';
     const PAYMENT_SUBS_END_AFTER_PERIOD_LABEL   = 'End After Period';
     
-    const STORE_SUBS_DROPDOWN                   = 'nuvei_sub_store_dropdown';
-    const STORE_SUBS_DROPDOWN_LABEL             = 'Nuvei Subscription Options';
+    const STORE_SUBS_DROPDOWN       = 'nuvei_sub_store_dropdown';
+    const STORE_SUBS_DROPDOWN_LABEL = 'Nuvei Subscription Options';
     
-    const NUVEI_SDK_AUTOCLOSE_URL               = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/autoclose.html';
+    const NUVEI_SDK_AUTOCLOSE_URL   = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/autoclose.html';
     
     // the allowed methods when call the plugin REST API
-    const NUVEI_REST_API_PLUGIN_METHODS         = [
+    const NUVEI_REST_API_PLUGIN_METHODS = [
         'get-web-sdk-data',
         'get-simply-connect-data',
         'get-apm-redirect-url',

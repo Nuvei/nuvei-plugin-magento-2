@@ -493,6 +493,10 @@ define(
                 self.checkoutSdkParams.prePayment       = nuveiPrePayment;
                 self.checkoutSdkParams.onFormValidated  = nuveiIsSdkFormValid;
                 self.checkoutSdkParams.onResult         = nuveiAfterSdkResponse;
+                
+                if (nuveiIsQaSite()) {
+                    self.checkoutSdkParams.webSdkEnv = 'devmobile';
+                }
             },
 			
             // event function

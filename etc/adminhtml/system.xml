@@ -426,20 +426,6 @@
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\ApmsWindowType</source_model>
 					</field>
                     
-					<field id="auto_close_popup"
-						   translate="label"
-						   type="select"
-						   sortOrder="85"
-						   showInDefault="1"
-						   showInWebsite="1"
-						   showInStore="0" 
-						   canRestore="1">
-						<label>Auto-close APM Pop-Up</label>
-						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-						<config_path>payment/nuvei/auto_close_popup</config_path>
-                        <comment model="Nuvei\Checkout\Block\System\Config\AutoCloseApmPopupComment" />
-					</field>
-					
 					<field id="checkout_log_level"
 						   translate="label"
 						   type="select"
