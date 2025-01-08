@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.2.2
+```
+    * Added option to turn on/off the auto Void logic in the Plugin settings > Basic Configuration > Allow Auto Void.
+    * Fixed the way we get the TransactionID from the response after an Auto-Void request.
+```
+
 # 3.2.1
 ```
     * Removed the plugin option to auto-close or not the APM popup.

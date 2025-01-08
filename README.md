@@ -1,7 +1,7 @@
 # Magento 2 Nuvei Checkout Module
 
 ## Description
-Nuvei supports major international credit and debit cards enabling you to accept payments from your global customers. 
+Nuvei supports major international credit and debit cards enabling you to accept payments from your global customers.
 
 A wide selection of region-specific payment methods can help your business grow in new markets. Other popular payment methods, from mobile payments to e-wallets, can be easily implemented on your checkout page.
 

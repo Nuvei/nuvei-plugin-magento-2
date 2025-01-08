@@ -31,6 +31,7 @@
                 <disable_notify_url>0</disable_notify_url>
 				<show_upos>1</show_upos>
                 <allow_zero_total>0</allow_zero_total>
+                <allow_auto_void>0</allow_auto_void>
                 <mask_user_details>1</mask_user_details>
 				<debug>3</debug>
                 <min_order_total/>

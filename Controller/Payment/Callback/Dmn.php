@@ -12,12 +12,15 @@ use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Payment;
+use Magento\Framework\Notification\MessageInterface;
 
 /**
  * Nuvei Checkout payment redirect controller.
  */
 class Dmn extends Action implements CsrfAwareActionInterface
 {
+    protected $inbox;
+
     private $is_partial_settle  = false;
     private $curr_trans_info    = []; // collect the info for the current transaction (action)
     private $refund_msg         = '';
@@ -112,7 +115,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
-        \Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory $paymentCollectionFactory
+        \Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory $paymentCollectionFactory,
+        \Magento\AdminNotification\Model\Inbox $inbox
     ) {
         $this->moduleConfig             = $moduleConfig;
         $this->captureCommand           = $captureCommand;
@@ -141,6 +145,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         parent::__construct($context);
         
+        $this->inbox           = $inbox;
         $this->loop_max_tries  = $this->moduleConfig->isTestModeEnabled() ? 10 : 4;
     }
     
@@ -200,8 +205,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         );
         
         // DEBUG
-        // $this->jsonOutput->setData('DMN manually stopped.');
-        // return $this->jsonOutput;
+//        $this->jsonOutput->setData('DMN manually stopped.');
+//        return $this->jsonOutput;
         // DEBUG
         
         $status = !empty($this->params['Status']) ? strtolower($this->params['Status']) : null;
@@ -1506,7 +1511,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             'create_auto_void()'
         );
         
-        // not allowed Auto-Void
+        // not allowed Auto-Void by transaction type.
         if (!in_array($dmnTrType, ['Sale', 'Auth'])
             || 'approved' != $dmnTrStatus
         ) {
@@ -1538,7 +1543,34 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 return;
             }
         }
-        // /not allowed Auto-Void
+        
+        $systemMessageTitle = __('Nuvei Payments notification.');
+        $systemMessageText1 = __('The plugin cannot find corresponding Order for Nuvei Transaction ');
+        
+        // not allowed Auto-Void from the settings.
+        if (!$this->moduleConfig->getConfigValue('allow_auto_void')) {
+            $this->inbox->add(
+                MessageInterface::SEVERITY_NOTICE, // Severity (CRITICAL, MAJOR, MINOR, NOTICE)
+                $systemMessageTitle,
+                $systemMessageText1 . $this->params['TransactionID'] . '. '
+                    . __('Please, check it in the Nuvei Control Panel! You can enable the "Auto Void" from the plugin settings.')
+            );
+            
+            $msg = "Auto Void logic - the auto void is disabled, but a system message was saved.";
+            
+            $this->readerWriter->createLog($msg);
+            $this->jsonOutput->setData($msg);
+
+            return;
+        }
+        
+        // save system message
+        $this->inbox->add(
+            MessageInterface::SEVERITY_NOTICE, // Severity (CRITICAL, MAJOR, MINOR, NOTICE)
+            $systemMessageTitle,
+            $systemMessageText1 . $this->params['TransactionID'] . '. '
+                . __('It will try to Void the transaction automatically. Please, check the transaction in the Nuvei Control Panel later!')
+        );
         
         $request = $this->requestFactory->create(AbstractRequest::PAYMENT_VOID_METHOD);
         
@@ -1554,7 +1586,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             )
             ->process();
         
-        if (!empty($resp->getTransactionId())) {
+        if (!empty($resp['transactionId'])) {
             $msg = 'The searched Order does not exists, a Void request was made for this Transacrion.';
             
             $this->jsonOutput->setHttpResponseCode(200);
@@ -1563,7 +1595,16 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        $msg = 'The searched Order does not exists, and the Void request was not successfu!';
+        $msg = 'The searched Order does not exists, and the Auto Void request was not successfu!';
+        
+        // save system message when the request fail
+        $this->inbox->add(
+            MessageInterface::SEVERITY_NOTICE, // Severity (CRITICAL, MAJOR, MINOR, NOTICE)
+            $systemMessageTitle,
+            $msg . ' ' . __('Please, check the following transaction ID in the Nuvei Control Panel: ') 
+                . $this->params['TransactionID'] . '!'
+                
+        );
         
         $this->readerWriter->createLog(null, $msg, 'CRITICAL');
         $this->jsonOutput->setData($msg);

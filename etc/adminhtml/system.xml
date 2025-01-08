@@ -250,10 +250,24 @@
                         <comment>Show Nuvei GW as payment option for Zero-Total Orders. For product with Nuvei Payment Plan this is enable by default.</comment>
 					</field>
                     
-					<field id="mask_user_details"
+                    <field id="allow_auto_void"
 						   translate="label"
 						   type="select"
 						   sortOrder="129"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0" 
+						   canRestore="1">
+						<label>Allow Auto Void</label>
+						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						<config_path>payment/nuvei/allow_auto_void</config_path>
+                        <comment>Allow plugin to initiate auto Void request in case there is Payment (transaction), but there is no Order for this transaction in the Store. This logic is based on incoming DMNs. Event the auto Void is disabled, a message will be saved in the Store Admin.</comment>
+					</field>
+                    
+					<field id="mask_user_details"
+						   translate="label"
+						   type="select"
+						   sortOrder="130"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0"
@@ -266,7 +280,7 @@
 					<field id="debug"
 						   translate="label"
 						   type="select"
-						   sortOrder="130"
+						   sortOrder="135"
 						   showInDefault="1"
 						   showInWebsite="1"
 						   showInStore="0" >
