@@ -466,7 +466,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->config->setNuveiUseCcOnly(!empty($this->subs_data) ? true : false);
         
         $quoteId            = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
-        $amount             = $this->config->getQuoteBaseTotal($quoteId);
+        $amount             = (string) number_format((float) $this->config->getQuoteBaseTotal($quoteId), 2, '.', '');
         $billing_address    = [];
         
         if (!empty($this->billingAddress)) {

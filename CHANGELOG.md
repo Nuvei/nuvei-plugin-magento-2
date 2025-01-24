@@ -5,6 +5,7 @@
 ```
     * Added option to turn on/off the auto Void logic in the Plugin settings > Basic Configuration > Allow Auto Void.
     * Fixed the way we get the TransactionID from the response after an Auto-Void request.
+    * Fix for the broken formatted amount in the updateOrder request.
 ```
 
 # 3.2.1

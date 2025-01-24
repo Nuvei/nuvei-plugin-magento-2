@@ -142,13 +142,12 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
             
             $this->config->setNuveiUseCcOnly(!empty($subs_data) ? true : false);
             
-            $amount         = (string) number_format((float) $order->getBaseGrandTotal(), 2, '.');
+            $amount         = (string) number_format((float) $order->getBaseGrandTotal(), 2, '.', '');
             $currency       = $order->getBaseCurrencyCode();
             $billingAddress = $order->getBillingAddress();
             $billingCountry = $this->countryFactory->create()
                 ->loadByCode($billingAddress->getCountryId())
                 ->getName();
-//                ->getCountryInfo($billingAddress->getCountryId())->getFullNameEnglish();
             
             $params = array_merge_recursive(
                 parent::getParams(),
@@ -158,7 +157,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                     'billingAddress'    => [
                         "firstName" => $billingAddress->getFirstname(),
                         "lastName"  => $billingAddress->getLastname(),
-//                        "address"   => str_replace(array("\n", "\r", '\\'), ' ', $billingAddress->getStreet()),
                         "address"   => str_replace(
                             array("\n", "\r", '\\'), 
                             ' ', 
@@ -167,7 +165,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                         "phone"     => $billingAddress->getTelephone(),
                         "zip"       => $billingAddress->getPostcode(),
                         "city"      => $billingAddress->getCity(),
-//                        'country'   => $billingCountry,
                         'country'   => $billingAddress->getCountryId(),
                         'email'     => $billingAddress->getEmail(),
                     ],
