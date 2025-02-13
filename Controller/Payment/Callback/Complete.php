@@ -121,7 +121,6 @@ class Complete extends Action implements CsrfAwareActionInterface
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $form_key       = $this->params['form_key'];
         $quote          = $this->cart->getQuote();
-//        $isOrderPlaced  = false;
         
         $this->readerWriter->createLog(
             [
@@ -132,7 +131,6 @@ class Complete extends Action implements CsrfAwareActionInterface
         );
 
         try {
-//            if ((int) $this->checkoutSession->getQuote()->getIsActive() === 1) {
             if ((int) $quote->getIsActive() === 1) {
                 // if the option for save the order in the Redirect is ON, skip placeOrder !!!
                 $result = $this->placeOrder();
@@ -141,7 +139,6 @@ class Complete extends Action implements CsrfAwareActionInterface
                     $this->readerWriter->createLog(
                         [
                             'message'           => $result->getMessage(),
-//                            'payment method'    => $this->checkoutSession->getQuote()->getPayment()->getMethod(),
                             'payment method'    => $quote->getPayment()->getMethod(),
                         ],
                         'Complete Callback error - place order error',
@@ -152,12 +149,6 @@ class Complete extends Action implements CsrfAwareActionInterface
                 }
                 
                 $this->order = $this->orderFactory->create()->load($result->getOrderId());
-//                $isOrderPlaced  = true;
-                
-                // check the Order status
-//                if (!empty($this->params['nuvei_session_token'])) {
-//                    $this->getPaymentStatus();
-//                }
                 
                 // save Nuvei transaction ID into the Order
                 if (!empty($this->params['nuvei_transaction_id'])) {
@@ -196,8 +187,6 @@ class Complete extends Action implements CsrfAwareActionInterface
                     
                     throw new PaymentException(__($msg));
                 }
-                
-//                $isOrderPlaced = true;
             }
             
             if (isset($this->params['Status'])
@@ -315,12 +304,5 @@ class Complete extends Action implements CsrfAwareActionInterface
         
         return null;
     }
-    
-//    private function getPaymentStatus()
-//    {
-//        $status = $this->getPaymentStatus
-//            ->setSessionToken($this->params['nuvei_session_token'])->process();
-//        
-//    }
     
 }

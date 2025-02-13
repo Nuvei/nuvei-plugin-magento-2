@@ -4,7 +4,6 @@ namespace Nuvei\Checkout\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
-//use Magento\Sales\Model\Order;
 use Magento\Framework\Exception\LocalizedException;
 
 /**

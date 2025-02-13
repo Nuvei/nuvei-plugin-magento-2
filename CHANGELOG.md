@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.2.3
+```
+    * Fixed how the plugin get the first invoice from the invoce collection.
+    * Fix in the logic who rebuild the Card based on the last Order, in case of declined transaction and order with child product/s.
+```
+
 # 3.2.2
 ```
     * Added option to turn on/off the auto Void logic in the Plugin settings > Basic Configuration > Allow Auto Void.

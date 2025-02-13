@@ -998,7 +998,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             }
             elseif ('Sale' == $this->params['transactionType']) {
                 $invCollection                          = $this->order->getInvoiceCollection();
-                $invoice                                = current($invCollection);
+//                $invoice                                = current($invCollection);
+                $invoice                                = $invCollection->getFirstItem();
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
                 
                 $this->order->setStatus(Payment::SC_CANCELED);
@@ -1017,7 +1018,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 }
             }
         } catch (\Exception $ex) {
-            $this->readerWriter->createLog($ex->getMessage(), 'processDeclinedDmn() Exception.');
+            $this->readerWriter->createLog($ex->getMessage(), 'processDeclinedDmn() Exception.', 'WARN');
             return;
         }
     }

@@ -786,6 +786,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $add_info['transactionType'] = $order_data['transactionType'];
         }
         
+		$this->readerWriter->createLog($add_info, 'setCreateOrderData() CREATE_ORDER_DATA');
+		
         // use the Order
         if (!empty($this->order)) {
             $this->order->getPayment()->setAdditionalInformation(
@@ -794,6 +796,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             )
             ->save();
             
+			$this->readerWriter->createLog('setCreateOrderData() the data was saved in the Order.');
+			
             $this->order->save();
         }
         // use the Quote
@@ -803,6 +807,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                 $add_info
             );
 
+			$this->readerWriter->createLog('setCreateOrderData() the data was saved in the Quote.');
+			
             $this->quote->save();
         }
     }

@@ -192,6 +192,12 @@ class OpenOrder extends Action
         return $result->setData($respData);
     }
     
+	/**
+	 * When the transaction is declined, rebuild the Cart by the last Order.
+	 * 
+	 * @return Response
+	 * @throws \Magento\Framework\Exception\NoSuchEntityException
+	 */
     private function onTransactionDeclined()
     {
         try {
@@ -206,91 +212,6 @@ class OpenOrder extends Action
                 throw new \Magento\Framework\Exception\NoSuchEntityException(__('Order not found.'));
             }
 
-            // create new quote
-//            $quote = $this->quoteFactory->create();
-//            $quote->setStoreId($order->getStoreId()); // Set the store from the order
-//            $quote->setCustomerId($order->getCustomerId()); // Set customer ID
-//            $quote->setCustomerEmail($order->getCustomerEmail()); // Set customer email
-//
-//            // Handle guest customers
-//            if ($order->getCustomerIsGuest()) {
-//                $quote->setCustomerIsGuest(true);
-//                $quote->setCustomerGroupId(\Magento\Customer\Api\Data\GroupInterface::NOT_LOGGED_IN_ID);
-//            }
-//
-//            $payment        = $order->getPayment();
-//            $method         = $payment->getMethod();
-//            $quotePayment   = $quote->getPayment();
-//
-//            $quotePayment->setMethod($method);
-//
-//            $orderBillingAddress    = $order->getBillingAddress();
-//            $billingAddress         = $this->addressFactory->create();
-//
-//            // Map the order's billing address data to the quote's billing address
-//            $billingAddress
-//                ->setFirstname($orderBillingAddress->getFirstname())
-//                ->setLastname($orderBillingAddress->getLastname())
-//                ->setStreet($orderBillingAddress->getStreet())
-//                ->setCity($orderBillingAddress->getCity())
-//                ->setRegion($orderBillingAddress->getRegion())
-//                ->setRegionId($orderBillingAddress->getRegionId())
-//                ->setPostcode($orderBillingAddress->getPostcode())
-//                ->setCountryId($orderBillingAddress->getCountryId())
-//                ->setTelephone($orderBillingAddress->getTelephone())
-//                ->setEmail($orderBillingAddress->getEmail());
-//
-//            $quote->setBillingAddress($billingAddress);
-//
-//            if (!$order->getIsVirtual()) {
-//                $orderShippingAddress   = $order->getShippingAddress();
-//                $shippingMethod         = $order->getShippingMethod();
-//                $shippingAddress        = $this->addressFactory->create();
-//
-//                $shippingAddress
-//                    ->setFirstname($orderShippingAddress->getFirstname())
-//                    ->setLastname($orderShippingAddress->getLastname())
-//                    ->setStreet($orderShippingAddress->getStreet())
-//                    ->setCity($orderShippingAddress->getCity())
-//                    ->setRegion($orderShippingAddress->getRegion())
-//                    ->setRegionId($orderShippingAddress->getRegionId())
-//                    ->setPostcode($orderShippingAddress->getPostcode())
-//                    ->setCountryId($orderShippingAddress->getCountryId())
-//                    ->setTelephone($orderShippingAddress->getTelephone())
-//                    ->setEmail($orderShippingAddress->getEmail())
-////                    ->setCollectShippingRates(true)
-////                    ->setShippingMethod($shippingMethod)
-//                        ;
-//
-//                $quote->setShippingAddress($shippingAddress);
-//                
-//                $quote->getShippingAddress()->setCollectShippingRates(true);
-//                $quote->collectTotals();
-//                
-//                $shippingAddress->setShippingMethod($shippingMethod);
-//                
-//                $quote->setShippingAddress($shippingAddress);
-//            }
-//
-//            // add the items
-//            foreach ($order->getAllItems() as $orderItem) {
-//                $product = $this->productRepository->getById($orderItem->getProductId());
-//
-//                // Check if the product is in stock and enabled
-//                if (!$product->getIsSalable()) {
-//                    $this->readerWriter->createLog('Product ' . $product->getSku() . ' is not available for sale.');
-//                    continue;
-//                }
-//
-//                $quoteItem = $this->quoteItemFactory->create();
-//                $quoteItem->setProduct($product);
-//                $quoteItem->setQty($orderItem->getQtyOrdered());
-//                $quote->addItem($quoteItem);
-//            }
-//
-//            $this->quoteRepository->save($quote);
-            
-            
             // create Reorder
             // Get all items from the previous order
             $orderItems = $order->getItems();
@@ -306,6 +227,13 @@ class OpenOrder extends Action
 
                 // Prepare options if the product has custom options (configurable, etc.)
                 $options = $orderItem->getProductOptions();
+				
+				// Check if it's a configurable product and has child SKU
+				if (!empty($options['simple_sku'])) {
+					// Load the correct simple (child) product by its SKU
+					$product = $this->productRepository->get($options['simple_sku']);
+				}
+				
                 $buyRequest = new \Magento\Framework\DataObject($options['info_buyRequest'] ?? []);
 
                 // Add the product to the cart
@@ -314,9 +242,6 @@ class OpenOrder extends Action
 
             // Save the cart (quote)
             $this->cart->save();
-
-            // TODO delete the order at the end?
-    //                $this->orderResourceModel->delete($order);
 
             $this->messageManager->addErrorMessage(__('Your Payment was declined. Please, try again!'));
             
