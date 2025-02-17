@@ -11,4 +11,9 @@
     <event name="sales_order_save_after">
         <observer name="nuvei_checkout_order_status_change" instance="Nuvei\Checkout\Observer\OrderStatusChange" />
     </event>
+    
+    <!-- Create backup of the Cart products in case we need to revert them in new Cart -->
+    <event name="checkout_submit_before">
+        <observer name="nuvei_backup_cart_checkout_submit_before" instance="Nuvei\Checkout\Observer\BackupCartObserver" />
+    </event>
 </config>

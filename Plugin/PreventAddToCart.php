@@ -29,8 +29,7 @@ class PreventAddToCart
 
     public function beforeAddProduct(\Magento\Checkout\Model\Cart $subject, $productInfo, $requestInfo = null)
     {
-        //try {
-            // 1. first search for SC plan in the items in the cart
+		// 1. first search for SC plan in the items in the cart
         if (!empty($this->paymentsPlans->getProductPlanData())) {
             $msg = __('You can not add this product to product with a Payment Plan.');
                 
@@ -38,13 +37,13 @@ class PreventAddToCart
             throw new \Magento\Framework\Exception\LocalizedException($msg);
         }
             
-            $payment_enabled    = false;
-            $cartItemsCount     = $subject->getQuote()->getItemsCount();
-            $error_msg_2        = __('You can not add a product with Payment Plan to another products.');
-            $error_msg_3        = __('Only Registered users can purchase Products with Plans.');
-            
-            // 2. then search for SC plan in the incoming item when there are products in the cart
-            // 2.1 when we have configurable product with option attribute
+		$payment_enabled    = false;
+		$cartItemsCount     = $subject->getQuote()->getItemsCount();
+		$error_msg_2        = __('You can not add a product with Payment Plan to another products.');
+		$error_msg_3        = __('Only Registered users can purchase Products with Plans.');
+
+		// 2. then search for SC plan in the incoming item when there are products in the cart
+		// 2.1 when we have configurable product with option attribute
         if (!empty($requestInfo['super_attribute'])) {
             // get the configurable product by its attributes
             $conProd = $this->configurableProduct

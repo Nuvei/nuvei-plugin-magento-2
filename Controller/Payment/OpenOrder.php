@@ -6,7 +6,6 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Controller\ResultFactory;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
@@ -16,9 +15,6 @@ use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
  */
 class OpenOrder extends Action
 {
-//    protected $messageManager;
-
-
     /**
      * @var ModuleConfig
      */
@@ -36,15 +32,8 @@ class OpenOrder extends Action
     
     private $readerWriter;
     private $cart;
-    private $quoteFactory;
-//    private $checkoutSession;
-    private $quoteRepository;
-//    private $cartItemFactory;
-    private $productRepository;
-    private $orderRepository;
-    private $addressFactory;
-    private $quoteItemFactory;
-    private $orderResourceModel;
+    private $checkoutSession;
+    private $productFactory;
 
     /**
      * Redirect constructor.
@@ -63,16 +52,8 @@ class OpenOrder extends Action
         RequestFactory $requestFactory,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Magento\Checkout\Model\Cart $cart,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
-//        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-//        \Magento\Quote\Api\Data\CartItemInterfaceFactory $cartItemFactory,
-        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Magento\Quote\Api\Data\AddressInterfaceFactory $addressFactory,
-        \Magento\Quote\Model\Quote\ItemFactory $quoteItemFactory,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
-//        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Magento\Checkout\Model\Session $checkoutSession,
+		\Magento\Catalog\Model\ProductFactory $productFactory
     ) {
         parent::__construct($context);
 
@@ -81,16 +62,8 @@ class OpenOrder extends Action
         $this->requestFactory       = $requestFactory;
         $this->readerWriter         = $readerWriter;
         $this->cart                 = $cart;
-        $this->quoteFactory         = $quoteFactory;
-//        $this->checkoutSession      = $checkoutSession;
-        $this->quoteRepository      = $quoteRepository;
-//        $this->cartItemFactory      = $cartItemFactory;
-        $this->productRepository    = $productRepository;
-        $this->orderRepository      = $orderRepository;
-        $this->addressFactory       = $addressFactory;
-        $this->quoteItemFactory     = $quoteItemFactory;
-        $this->orderResourceModel   = $orderResourceModel;
-//        $this->messageManager       = $messageManager;
+        $this->checkoutSession      = $checkoutSession;
+        $this->productFactory		= $productFactory;
     }
 
     /**
@@ -203,61 +176,73 @@ class OpenOrder extends Action
         try {
             $result = $this->jsonResultFactory->create()
                 ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
+			
+			$cartBackup = $this->checkoutSession->getData('backup_cart');
+			
+			$this->readerWriter->createLog($cartBackup, '$cartBackup');
 
-            # create new quote by created Order
-            // get order
-            $order = $this->orderRepository->get((int) $this->getRequest()->getParam('nuveiSavedOrderId'));
+			if (!empty($cartBackup)) {
+				foreach ($cartBackup as $productData) {
+					// Determine if we have configurable product options by checking if info_buyRequest exists
+					if (!empty($productData['options']['info_buyRequest'])) {
+						// Decode info_buyRequest (which is a JSON string)
+						$decodedBuyRequest = json_decode($productData['options']['info_buyRequest'], true);
+//						$decodedBuyRequest['selected_configurable_option']	= $productData['options']['simple_product'];
+						
+						if (!is_array($decodedBuyRequest)) {
+							continue; // Skip if invalid JSON
+						}
 
-            if (!$order->getId()) {
-                throw new \Magento\Framework\Exception\NoSuchEntityException(__('Order not found.'));
-            }
+						// Re-encode the info_buyRequest
+//						$newInfoBuyRequest = json_encode($decodedBuyRequest);
+						
+						// Build the buy request array
+						$buyRequestData = [
+//							'product'						=> $productData['product_id'],
+							'qty'							=> $productData['qty'],
+							'super_attribute'				=> $decodedBuyRequest['super_attribute'],
+//							'info_buyRequest'				=> $newInfoBuyRequest,
+//							'selected_configurable_option'	=> $productData['options']['simple_product'],
+//							'custom_unique'					=> $decodedBuyRequest['custom_unique'],
+						];
+						
+						$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
 
-            // create Reorder
-            // Get all items from the previous order
-            $orderItems = $order->getItems();
-            
-            foreach ($orderItems as $orderItem) {
-                if ($orderItem->getParentItemId()) {
-                    // Skip parent items in case of configurable or bundle products
-                    continue;
-                }
+						$parentProduct = $this->productFactory->create()
+							->setStoreId($this->moduleConfig->getStoreId())
+							->load($productData['product_id']);
 
-                // Load the product by product ID
-                $product = $this->productRepository->getById($orderItem->getProductId());
-
-                // Prepare options if the product has custom options (configurable, etc.)
-                $options = $orderItem->getProductOptions();
-				
-				// Check if it's a configurable product and has child SKU
-				if (!empty($options['simple_sku'])) {
-					// Load the correct simple (child) product by its SKU
-					$product = $this->productRepository->get($options['simple_sku']);
+						$this->cart->addProduct($parentProduct, $buyRequest->getData());
+					} else { // For simple products
+						$product = $this->productFactory->create()
+							->setStoreId($this->moduleConfig->getStoreId())
+							->load($productData['product_id']);
+						
+						$this->cart->addProduct($product, ['qty' => $productData['qty']]);
+					}
 				}
-				
-                $buyRequest = new \Magento\Framework\DataObject($options['info_buyRequest'] ?? []);
+			}
 
-                // Add the product to the cart
-                $this->cart->addProduct($product, $buyRequest);
-            }
-
-            // Save the cart (quote)
+//            // Save the cart (quote)
             $this->cart->save();
+			$this->cart->getQuote()->setTotalsCollectedFlag(false)->collectTotals()->save();
+			
+			$cartItems = $this->cart->getQuote()->getAllVisibleItems();
+			foreach ($cartItems as $item) {
+				$this->readerWriter->createLog((array) $item->getOptions(), 'check getOptions');
+			}
+
 
             $this->messageManager->addErrorMessage(__('Your Payment was declined. Please, try again!'));
             
             return $this->_redirect('checkout/cart');
-            
-            return $result->setData([
-                "success" => 1,
-                'redirectUrl' => $this->_redirect('checkout/cart')
-            ]);
         }
         catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'Exception when we try to create new Quote by Order.', 'WARN');
             
-            return $result->setData([
-                "success" => 0,
-            ]);
+			$this->messageManager->addErrorMessage(__('Unexpected error. Please, check you order and try again!'));
+			
+			return $this->_redirect('checkout/cart');
         }
     }
     

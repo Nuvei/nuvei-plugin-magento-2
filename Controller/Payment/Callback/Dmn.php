@@ -975,15 +975,43 @@ class Dmn extends Action implements CsrfAwareActionInterface
     private function processDeclinedDmn()
     {
         $this->readerWriter->createLog('processDeclinedDmn()');
-        
-        $invCollection  = $this->order->getInvoiceCollection();
-        $dmn_inv_id     = (int) $this->httpRequest->getParam('invoice_id');
+		
+		if (empty($this->order) 
+			|| !is_object($this->order) 
+			|| !method_exists($this->order, 'getInvoiceCollection')
+		) {
+			$this->readerWriter->createLog(
+				$this->order,
+				'The searched Order is not a object or getInvoiceCollection() is missing. Stop the process.'
+			);
+            return;
+		}
         
         try {
+			$invCollection  = $this->order->getInvoiceCollection();
+			$dmn_inv_id     = (int) $this->httpRequest->getParam('invoice_id');
+			
+			if (!is_array($invCollection) || 0 == $dmn_inv_id) {
+				$this->readerWriter->createLog(
+					[$dmn_inv_id, (array) $invCollection],
+					'Problem with $invCollection or $dmn_inv_id is 0.'
+				);
+				return;
+			}
+			
             if ('Settle' == $this->params['transactionType']) {
                 $this->order->setStatus(Payment::SC_AUTH);
                 
                 foreach ($invCollection as $invoice) {
+					if (!$invoice || !$invoice->getId()) {
+						$this->readerWriter->createLog(
+							(array) $invoice,
+							'Problem with $invoice.'
+						);
+						
+						break;
+					}
+					
                     if ($dmn_inv_id == $invoice->getId()) {
                         $invoice
                             ->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE)
@@ -997,9 +1025,20 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 }
             }
             elseif ('Sale' == $this->params['transactionType']) {
-                $invCollection                          = $this->order->getInvoiceCollection();
-//                $invoice                                = current($invCollection);
-                $invoice                                = $invCollection->getFirstItem();
+                $invCollection = $this->order->getInvoiceCollection();
+				
+				if (!$invCollection) {
+					$this->readerWriter->createLog('Problem with $invCollection for Sale.');
+					return;
+				}
+				
+                $invoice = $invCollection->getFirstItem();
+				
+				if (!$invoice || !$invoice->getId()) {
+					$this->readerWriter->createLog('Problem with $invoice or $invoice->getId() for Sale.');
+					return;
+				}
+				
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
                 
                 $this->order->setStatus(Payment::SC_CANCELED);

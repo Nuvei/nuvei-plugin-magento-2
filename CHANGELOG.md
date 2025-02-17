@@ -4,7 +4,8 @@
 # 3.2.3
 ```
     * Fixed how the plugin get the first invoice from the invoce collection.
-    * Fix in the logic who rebuild the Card based on the last Order, in case of declined transaction and order with child product/s.
+    * Fix in the logic who rebuild the Card based on the last Order, in case of declined transaction and order with child product/s.    
+    * Added additional checks in processDeclinedDmn() to prevent plugin throw exception is some cases.
 ```
 
 # 3.2.2
