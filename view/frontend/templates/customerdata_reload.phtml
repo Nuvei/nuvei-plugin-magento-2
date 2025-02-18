@@ -6,7 +6,8 @@
                 'Magento_Customer/js/customer-data',
                 'domReady!'
             ], function (customerData) {
-                var sections = ['cart'];
+                let sections = ['cart'];
+				
                 customerData.initStorage();
                 customerData.invalidate(sections);
                 customerData.reload(sections, true);

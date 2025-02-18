@@ -186,10 +186,10 @@ class OpenOrder extends Action
 	 */
     private function onTransactionDeclined()
     {
-        try {
-            $result = $this->jsonResultFactory->create()
+		$result = $this->jsonResultFactory->create()
                 ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
-			
+		
+        try {
 			$cartBackup = $this->checkoutSession->getData('backup_cart');
 			
 			$this->readerWriter->createLog($cartBackup, '$cartBackup');
@@ -309,14 +309,22 @@ class OpenOrder extends Action
 
             $this->messageManager->addErrorMessage(__('Your Payment was declined. Please, try again!'));
             
-            return $this->_redirect('checkout/cart');
+//            return $this->_redirect('checkout/cart');
+
+			return $result->setData([
+				"success" => true,
+			]);
         }
         catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'Exception when we try to create new Quote by Order.', 'WARN');
             
 			$this->messageManager->addErrorMessage(__('Unexpected error. Please, check you order and try again!'));
 			
-			return $this->_redirect('checkout/cart');
+//			return $this->_redirect('checkout/cart');
+			
+			return $result->setData([
+				"success" => false,
+			]);
         }
     }
     

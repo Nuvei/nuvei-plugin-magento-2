@@ -226,9 +226,52 @@ function nuveiAfterSdkResponse(resp) {
 function nuveiWhenTransDeclined() {
     console.log('nuveiWhenTransDeclined');
     
-    window.location = window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl 
-        + '?nuveiAction=transactionDeclined&nuveiSavedOrderId=' + window.nuveiSavedOrderId;
-    return;
+    const paramsStr = '?nuveiAction=transactionDeclined&nuveiSavedOrderId=' + window.nuveiSavedOrderId;
+    const xmlhttp   = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+            console.log('Request response', xmlhttp.response);
+
+            if (xmlhttp.status == 200) {
+                const resp = JSON.parse(xmlhttp.response);
+
+                if (!resp.hasOwnProperty('success') || 0 == resp.success) {
+                    window.location = '/checkout/cart';
+                    return;
+                }
+
+                // refresh the minicart
+                require([
+                    'Magento_Customer/js/customer-data',
+                    'domReady!'
+                ], function (customerData) {
+                    let sections = ['cart'];
+
+                    customerData.initStorage();
+                    customerData.invalidate(sections);
+                    customerData.reload(sections, true);
+                });
+
+                // then redirect to the cart
+                window.location = '/checkout/cart';
+                return;
+            }
+
+            if (xmlhttp.status == 400) {
+                console.log('There was an error.');
+                window.location = '/checkout/cart';
+                return;
+            }
+
+            console.log('Unexpected response code.');
+            window.location = '/checkout/cart';
+            return;
+        }
+    };
+
+    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
+    xmlhttp.send();
 }
 
 // when the SDK Pay button was clicked and the script wait for a reponse, try to prevent user leave the page.
