@@ -200,27 +200,40 @@ class OpenOrder extends Action
 					if (!empty($productData['options']['info_buyRequest'])) {
 						// Decode info_buyRequest (which is a JSON string)
 						$decodedBuyRequest = json_decode($productData['options']['info_buyRequest'], true);
-//						$decodedBuyRequest['selected_configurable_option']	= $productData['options']['simple_product'];
 						
 						if (!is_array($decodedBuyRequest)) {
 							continue; // Skip if invalid JSON
 						}
-
-						// Re-encode the info_buyRequest
-//						$newInfoBuyRequest = json_encode($decodedBuyRequest);
 						
-						// Build the buy request array
+						$bundleQuantities	= [];
+						$bundleOptions		= $decodedBuyRequest['bundle_option'] ?? [];
+						
 						$buyRequestData = [
-//							'product'						=> $productData['product_id'],
-							'qty'							=> $productData['qty'],
-							'super_attribute'				=> $decodedBuyRequest['super_attribute'],
-//							'info_buyRequest'				=> $newInfoBuyRequest,
-//							'selected_configurable_option'	=> $productData['options']['simple_product'],
-//							'custom_unique'					=> $decodedBuyRequest['custom_unique'],
+							'qty' => $productData['qty']
 						];
 						
+						// configurable products
+						if (isset($decodedBuyRequest['super_attribute'])) {
+							$buyRequestData['super_attribute'] = $decodedBuyRequest['super_attribute'];
+						}
+						
+						// bundles
+						if (isset($decodedBuyRequest['bundle_option'])) {
+							foreach ($decodedBuyRequest['bundle_option'] as $optionId => $selectionId) {
+								// Find the corresponding quantity key
+								$qtyKey							= "selection_qty_" . $selectionId;
+								$bundleQuantities[$optionId]	= isset($productData['options'][$qtyKey]) 
+									? (int) $productData['options'][$qtyKey] : 1;
+							}
+							
+							$buyRequestData['bundle_option']		= $bundleOptions;
+							$buyRequestData['bundle_option_qty']	= $bundleQuantities;
+						}
+
 						$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
 
+						$this->readerWriter->createLog($buyRequest);
+						
 						$parentProduct = $this->productFactory->create()
 							->setStoreId($this->moduleConfig->getStoreId())
 							->load($productData['product_id']);
