@@ -181,6 +181,8 @@ class ConfigProvider extends CcGenericConfigProvider
                             ]
                         ],
                         'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
+                        'fieldStyle'				=> json_decode($this->moduleConfig
+							->getConfigValue('sdk_style', 'basic'), true),
                     ],
                 ],
             ],
