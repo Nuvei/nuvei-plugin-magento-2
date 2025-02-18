@@ -193,6 +193,9 @@ class OpenOrder extends Action
 			$cartBackup = $this->checkoutSession->getData('backup_cart');
 			
 			$this->readerWriter->createLog($cartBackup, '$cartBackup');
+			
+			// [ grouped_product_id => [prduct_1_id => quantity, product_2_id => quantity] ]
+			$associatedProducts = [];
 
 			if (!empty($cartBackup)) {
 				foreach ($cartBackup as $productData) {
@@ -215,6 +218,18 @@ class OpenOrder extends Action
 						// configurable products
 						if (isset($decodedBuyRequest['super_attribute'])) {
 							$buyRequestData['super_attribute'] = $decodedBuyRequest['super_attribute'];
+							
+							$this->addProductToCart($buyRequestData, $productData['product_id']);
+							
+//							$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
+//
+//							$this->readerWriter->createLog($buyRequest);
+//
+//							$parentProduct = $this->productFactory->create()
+//								->setStoreId($this->moduleConfig->getStoreId())
+//								->load($productData['product_id']);
+//
+//							$this->cart->addProduct($parentProduct, $buyRequest->getData());
 						}
 						
 						// bundles
@@ -228,18 +243,29 @@ class OpenOrder extends Action
 							
 							$buyRequestData['bundle_option']		= $bundleOptions;
 							$buyRequestData['bundle_option_qty']	= $bundleQuantities;
+							
+							$this->addProductToCart($buyRequestData, $productData['product_id']);
+							
+//							$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
+//
+//							$this->readerWriter->createLog($buyRequest);
+//
+//							$parentProduct = $this->productFactory->create()
+//								->setStoreId($this->moduleConfig->getStoreId())
+//								->load($productData['product_id']);
+//
+//							$this->cart->addProduct($parentProduct, $buyRequest->getData());
 						}
-
-						$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
-
-						$this->readerWriter->createLog($buyRequest);
 						
-						$parentProduct = $this->productFactory->create()
-							->setStoreId($this->moduleConfig->getStoreId())
-							->load($productData['product_id']);
-
-						$this->cart->addProduct($parentProduct, $buyRequest->getData());
-					} else { // For simple products
+						// grouped products
+						if (isset($productData['options']['product_type']) 
+							&& 'grouped' == $productData['options']['product_type']
+							&& isset($decodedBuyRequest['super_product_config']['product_id'])
+						) {
+							$associatedProducts[$decodedBuyRequest['super_product_config']['product_id']][$productData['product_id']] = $productData['qty'];
+						}
+					}
+					else { // For simple products
 						$product = $this->productFactory->create()
 							->setStoreId($this->moduleConfig->getStoreId())
 							->load($productData['product_id']);
@@ -247,11 +273,33 @@ class OpenOrder extends Action
 						$this->cart->addProduct($product, ['qty' => $productData['qty']]);
 					}
 				}
+				
+				// add groups if any
+				if (!empty($associatedProducts)) {
+					foreach ($associatedProducts as $grProdId => $prods) {
+						$params = [
+							'product'		=> $grProdId,  // Grouped product ID
+							'super_group'	=> $prods,  // Child products and quantities
+							'qty'			=> 1
+						];
+						
+						$this->addProductToCart($params, $grProdId);
+						
+//						$buyRequest = new \Magento\Framework\DataObject($params);
+//
+//						$parentProduct = $this->productFactory->create()
+//							->setStoreId($this->moduleConfig->getStoreId())
+//							->load($grProdId);
+//
+//						$this->cart->addProduct($parentProduct, $buyRequest->getData());
+					}
+				}
+				
 			}
 
 //            // Save the cart (quote)
             $this->cart->save();
-			$this->cart->getQuote()->setTotalsCollectedFlag(false)->collectTotals()->save();
+//			$this->cart->getQuote()->setTotalsCollectedFlag(false)->collectTotals()->save();
 			
 			$cartItems = $this->cart->getQuote()->getAllVisibleItems();
 			foreach ($cartItems as $item) {
@@ -272,4 +320,23 @@ class OpenOrder extends Action
         }
     }
     
+	/**
+	 * Just a repeating part of code is here.
+	 * 
+	 * @param array $params
+	 * @param int $prodId
+	 */
+	private function addProductToCart($params, $prodId)
+	{
+		$buyRequest = new \Magento\Framework\DataObject($params);
+
+		$this->readerWriter->createLog($buyRequest);
+
+		$parentProduct = $this->productFactory->create()
+			->setStoreId($this->moduleConfig->getStoreId())
+			->load($prodId);
+
+		$this->cart->addProduct($parentProduct, $buyRequest->getData());
+	}
+	
 }
