@@ -8,6 +8,7 @@
     * Added additional checks in processDeclinedDmn() to prevent plugin throw exception is some cases.
     * A check for valid orderId parameter was added in nuveiPrePayment() method.
     * Prevent checkout form submit when Simply Connect input is active and hit "Enter" button.
+    * Added styling for the SKDs.
 ```
 
 # 3.2.2

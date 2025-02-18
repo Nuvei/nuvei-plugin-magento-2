@@ -241,7 +241,7 @@ class ConfigProvider extends CcGenericConfigProvider
                     'userTokenId'           => $this->moduleConfig->getQuoteBillingAddress()['email'],
                     'applePayLabel'         => $this->moduleConfig->getConfigValue('apple_pay_label', 'web_sdk'),
                     'currencyCode'          => $this->moduleConfig->getQuoteBaseCurrency(), 
-        //                    'apmWindowType'         => $this->moduleConfig->getConfigValue('apm_window_type'),
+					'style'					=> json_decode($this->moduleConfig->getConfigValue('sdk_style', 'basic'), true),
                 ],
             ],
         ];

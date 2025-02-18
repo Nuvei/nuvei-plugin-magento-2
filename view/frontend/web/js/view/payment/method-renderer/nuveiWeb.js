@@ -43,7 +43,7 @@ define(
         var isCCDateEmpty       = true;
         var isCCDateComplete    = false;
 		
-        var fieldsStyle	= {
+        let fieldsStyle	= {
             base: {
                 iconColor: "#c4f0ff",
                 color: "#000",
@@ -64,6 +64,11 @@ define(
                 color: "#ff0000"
             }
         };
+        
+        // if style come from the admin merge it to default one
+        if (window.checkoutConfig.payment[nuveiGetCode()].style) {
+            fieldsStyle = Object.assign({}, fieldsStyle, window.checkoutConfig.payment[nuveiGetCode()].style);
+        }
 		
         var elementClasses = {
             focus: 'focus',
