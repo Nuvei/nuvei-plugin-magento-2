@@ -47,20 +47,6 @@ function nuveiValidateAgreement(hideError) {
 };
 
 /**
- * Use it as last check before complete the Order.
- * 
- * @param {object} paymentDetails
- * @returns {Promise}
- */
-function nuveiPrePayment(paymentDetails) {
-	console.log('nuveiPrePayment()');
-	
-	return new Promise((resolve, reject) => {
-		nuveiUpdateOrder(resolve, reject);
-	});
-};
-
-/**
  * Checks if the SDK form is valid and set it to a global variable.
  * 
  * @param {object} params
@@ -69,68 +55,84 @@ function nuveiIsSdkFormValid(params) {
     isSimplyConnectFormValid = params.isFormValid;
 }
 
-function nuveiUpdateOrder(resolve, reject) {
-    var paramsStr   = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
-    var xmlhttp     = new XMLHttpRequest();
+/**
+ * Use it as last check before complete the Order.
+ * 
+ * @param {object} paymentDetails
+ * @returns {Promise}
+ */
+function nuveiUpdateOrder(paymentDetails) {
+    console.log('nuveiUpdateOrder');
     
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-            console.log('Request response', xmlhttp.response);
-            
-            if (xmlhttp.status == 200) {
-				var resp = JSON.parse(xmlhttp.response);
-                
-                if (!resp.hasOwnProperty('success') || 0 == resp.success) {
+    return new Promise((resolve, reject) => {
+        if (!window.nuveiSavedOrderId) {
+            alert(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg)
+            reject(new Error(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg));
+            return;
+        }
+        
+        const paramsStr = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
+        const xmlhttp   = new XMLHttpRequest();
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                console.log('Request response', xmlhttp.response);
+
+                if (xmlhttp.status == 200) {
+                    var resp = JSON.parse(xmlhttp.response);
+
+                    if (!resp.hasOwnProperty('success') || 0 == resp.success) {
+                        reject();
+
+                        if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
+                            nuveiWhenTransDeclined();
+                        }
+
+                        return;
+                    }
+
+                    nuveiWaitSdkResponse = true;
+
+                    // if we get new Session Token, update the input
+                    if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
+                        document.getElementById('nuvei_session_token').value = resp.sessionToken;
+                    }
+
+                    if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
+                        window.nuveiSuccessUrl = resp.successUrl;
+                    }
+
+                    resolve();
+                    return;
+                }
+
+                if (xmlhttp.status == 400) {
+                    console.log('There was an error.');
                     reject();
-                    
+
                     if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
                         nuveiWhenTransDeclined();
                     }
-                    
+
                     return;
                 }
-                
-                nuveiWaitSdkResponse = true;
-                
-                // if we get new Session Token, update the input
-                if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
-                    document.getElementById('nuvei_session_token').value = resp.sessionToken;
-                }
-                
-                if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
-                    window.nuveiSuccessUrl = resp.successUrl;
-                }
-                
-                resolve();
-                return;
-            }
-           
-			if (xmlhttp.status == 400) {
-                console.log('There was an error.');
+
+                console.log('Unexpected response code.');
                 reject();
-                
+
                 if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
                     nuveiWhenTransDeclined();
                 }
-                
+
                 return;
             }
-		   
-			console.log('Unexpected response code.');
-			reject();
+        };
 
-            if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-                nuveiWhenTransDeclined();
-            }
-            
-			return;
-        }
-    };
-    
-    nuveiShowLoader();
-    
-    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
-    xmlhttp.send();
+        nuveiShowLoader();
+
+        xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
+        xmlhttp.send();
+    });
 }
 
 /**
@@ -222,54 +224,11 @@ function nuveiAfterSdkResponse(resp) {
 };
 
 function nuveiWhenTransDeclined() {
-    var paramsStr   = '?nuveiAction=transactionDeclined&nuveiSavedOrderId=' + window.nuveiSavedOrderId;
+    console.log('nuveiWhenTransDeclined');
     
-    window.location = window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr;
+    window.location = window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl 
+        + '?nuveiAction=transactionDeclined&nuveiSavedOrderId=' + window.nuveiSavedOrderId;
     return;
-    
-    var xmlhttp     = new XMLHttpRequest();
-    
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-            console.log('Request response', xmlhttp.response);
-            
-            if (xmlhttp.status == 200) {
-				var resp = JSON.parse(xmlhttp.response);
-                
-                if (!resp.hasOwnProperty('success') || 0 == resp.success) {
-                    window.location.reload();
-                    nuveiHideLoader();
-                    return;
-                }
-                
-                if (resp.hasOwnProperty('redirectUrl') && '' != resp.redirectUrl) {
-                    console.log('redirect to', resp.redirectUrl);
-                    window.location = resp.redirectUrl;
-                    return;
-                }
-                
-                // a new Quote was genereated, refresh the page to call openOrder
-                window.location = window.location.origin + window.location.pathname;
-                nuveiHideLoader();
-                return;
-            }
-           
-			if (xmlhttp.status == 400) {
-                console.log('There was an error.');
-                window.location.reload();
-                nuveiHideLoader();
-                return;
-            }
-		   
-			console.log('Unexpected response code.');
-            window.location.reload();
-			nuveiHideLoader();
-			return;
-        }
-    };
-    
-    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
-    xmlhttp.send();
 }
 
 // when the SDK Pay button was clicked and the script wait for a reponse, try to prevent user leave the page.
@@ -360,8 +319,8 @@ define(
             },
 
 			getSessionToken: function() {
-                var paymentMethod   = quote.paymentMethod();
-                var shippingMethod  = quote.shippingMethod();
+                let paymentMethod   = quote.paymentMethod();
+                let shippingMethod  = quote.shippingMethod();
                 
                 self.writeLog('getSessionToken', paymentMethod);
                 
@@ -490,7 +449,7 @@ define(
                 }
 
                 self.checkoutSdkParams.payButton        = 'noButton';
-                self.checkoutSdkParams.prePayment       = nuveiPrePayment;
+                self.checkoutSdkParams.prePayment       = nuveiUpdateOrder;
                 self.checkoutSdkParams.onFormValidated  = nuveiIsSdkFormValid;
                 self.checkoutSdkParams.onResult         = nuveiAfterSdkResponse;
                 

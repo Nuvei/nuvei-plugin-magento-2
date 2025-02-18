@@ -144,11 +144,24 @@ class OpenOrder extends Action
         $result = $this->jsonResultFactory->create()
             ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
         
+		$orderId = $this->getRequest()->getParam('orderId');
+		
+		// error - order ID is not valid
+		if (!$orderId || !is_numeric($orderId)) {
+			$this->readerWriter->createLog($orderId, 'nuveiPrePayment() the passed order ID is not valid.');
+
+			return $result->setData([
+				"success"       => false,
+				'sessionToken'  => '',
+				'successUrl'    => '#',
+			]);
+		}
+		
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $quoteId    = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
         $resp       = $request
             ->setQuoteId($quoteId)
-            ->setOrderId($this->getRequest()->getParam('orderId'))
+            ->setOrderId($orderId)
             ->prePaymentCheck();
 
         $successUrl = $this->moduleConfig->getCallbackSuccessUrl($quoteId);

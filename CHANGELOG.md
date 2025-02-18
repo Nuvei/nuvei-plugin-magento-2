@@ -1,11 +1,13 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
-# 3.2.3
+# 3.3.0
 ```
     * Fixed how the plugin get the first invoice from the invoce collection.
     * Fix in the logic who rebuild the Card based on the last Order, in case of declined transaction and order with child product/s.    
     * Added additional checks in processDeclinedDmn() to prevent plugin throw exception is some cases.
+    * A check for valid orderId parameter was added in nuveiPrePayment() method.
+    * Prevent checkout form submit when Simply Connect input is active and hit "Enter" button.
 ```
 
 # 3.2.2

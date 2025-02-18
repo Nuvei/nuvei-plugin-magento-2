@@ -80,9 +80,9 @@ define(
             }
         });
         
-        var usedSdk         = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
-        var webSdkUrl       = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js';
-        var simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js";
+        const usedSdk       = window.checkoutConfig.payment['nuvei'].sdk.toString().toLowerCase();
+        let webSdkUrl       = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js';
+        let simplyConectUrl = "https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js";
 
         // set Tag URLs for QA sites
         if (nuveiIsQaSite()) {
