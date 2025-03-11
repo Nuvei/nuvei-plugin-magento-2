@@ -131,6 +131,11 @@ class ConfigProvider extends CcGenericConfigProvider
         $total              = $this->moduleConfig->getQuoteBaseTotal();
         $useDCC             = $this->moduleConfig->getConfigValue('use_dcc');
         $locale             = substr($this->locale, 0, 2);
+		$sdkStyle			= $this->moduleConfig->getConfigValue('sdk_style', 'basic');
+		
+		if (!is_string($sdkStyle)) {
+			$sdkStyle = '';
+		}
         
         if ($total == 0) {
             $useDCC = 'false';
@@ -181,8 +186,7 @@ class ConfigProvider extends CcGenericConfigProvider
                             ]
                         ],
                         'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
-                        'fieldStyle'				=> json_decode($this->moduleConfig
-							->getConfigValue('sdk_style', 'basic'), true),
+                        'fieldStyle'				=> json_decode($sdkStyle, true),
                     ],
                 ],
             ],
