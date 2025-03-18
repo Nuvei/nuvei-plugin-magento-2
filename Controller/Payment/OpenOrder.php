@@ -199,6 +199,11 @@ class OpenOrder extends Action
 
 			if (!empty($cartBackup)) {
 				foreach ($cartBackup as $productData) {
+					$this->readerWriter->createLog([
+						'product_id'		=> $productData['product_id'],
+						'simple_product'	=> $productData['options']['simple_product'] ?? '',
+					], 'backup product');
+					
 					// Determine if we have configurable product options by checking if info_buyRequest exists
 					if (!empty($productData['options']['info_buyRequest'])) {
 						// Decode info_buyRequest (which is a JSON string)
@@ -217,23 +222,16 @@ class OpenOrder extends Action
 						
 						// configurable products
 						if (isset($decodedBuyRequest['super_attribute'])) {
+							$this->readerWriter->createLog('configurable product');
+							
 							$buyRequestData['super_attribute'] = $decodedBuyRequest['super_attribute'];
 							
 							$this->addProductToCart($buyRequestData, $productData['product_id']);
-							
-//							$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
-//
-//							$this->readerWriter->createLog($buyRequest);
-//
-//							$parentProduct = $this->productFactory->create()
-//								->setStoreId($this->moduleConfig->getStoreId())
-//								->load($productData['product_id']);
-//
-//							$this->cart->addProduct($parentProduct, $buyRequest->getData());
 						}
-						
 						// bundles
-						if (isset($decodedBuyRequest['bundle_option'])) {
+						elseif (isset($decodedBuyRequest['bundle_option'])) {
+							$this->readerWriter->createLog('bundle product');
+							
 							foreach ($decodedBuyRequest['bundle_option'] as $optionId => $selectionId) {
 								// Find the corresponding quantity key
 								$qtyKey							= "selection_qty_" . $selectionId;
@@ -245,27 +243,31 @@ class OpenOrder extends Action
 							$buyRequestData['bundle_option_qty']	= $bundleQuantities;
 							
 							$this->addProductToCart($buyRequestData, $productData['product_id']);
-							
-//							$buyRequest = new \Magento\Framework\DataObject($buyRequestData);
-//
-//							$this->readerWriter->createLog($buyRequest);
-//
-//							$parentProduct = $this->productFactory->create()
-//								->setStoreId($this->moduleConfig->getStoreId())
-//								->load($productData['product_id']);
-//
-//							$this->cart->addProduct($parentProduct, $buyRequest->getData());
 						}
-						
 						// grouped products
-						if (isset($productData['options']['product_type']) 
+						elseif (isset($productData['options']['product_type']) 
 							&& 'grouped' == $productData['options']['product_type']
 							&& isset($decodedBuyRequest['super_product_config']['product_id'])
 						) {
+							$this->readerWriter->createLog('grouped product');
+							
 							$associatedProducts[$decodedBuyRequest['super_product_config']['product_id']][$productData['product_id']] = $productData['qty'];
 						}
+						// simple product
+						else {
+							$this->readerWriter->createLog('simple product');
+						
+							$product = $this->productFactory->create()
+								->setStoreId($this->moduleConfig->getStoreId())
+								->load($productData['product_id']);
+
+							$this->cart->addProduct($product, ['qty' => $productData['qty']]);
+						}
+						
 					}
-					else { // For simple products
+					else { // simple products
+						$this->readerWriter->createLog('simple product');
+						
 						$product = $this->productFactory->create()
 							->setStoreId($this->moduleConfig->getStoreId())
 							->load($productData['product_id']);
@@ -284,14 +286,6 @@ class OpenOrder extends Action
 						];
 						
 						$this->addProductToCart($params, $grProdId);
-						
-//						$buyRequest = new \Magento\Framework\DataObject($params);
-//
-//						$parentProduct = $this->productFactory->create()
-//							->setStoreId($this->moduleConfig->getStoreId())
-//							->load($grProdId);
-//
-//						$this->cart->addProduct($parentProduct, $buyRequest->getData());
 					}
 				}
 				
@@ -309,8 +303,6 @@ class OpenOrder extends Action
 
             $this->messageManager->addErrorMessage(__('Your Payment was declined. Please, try again!'));
             
-//            return $this->_redirect('checkout/cart');
-
 			return $result->setData([
 				"success" => true,
 			]);

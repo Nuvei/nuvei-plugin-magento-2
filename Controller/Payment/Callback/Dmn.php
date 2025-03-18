@@ -993,7 +993,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
 			
 			if (!is_array($invCollection) || 0 == $dmn_inv_id) {
 				$this->readerWriter->createLog(
-					[$dmn_inv_id, (array) $invCollection],
+					[
+						'$dmn_inv_id'				=> $dmn_inv_id,
+						'is $invCollection empty'	=> empty($invCollection)
+					],
 					'Problem with $invCollection or $dmn_inv_id is 0.'
 				);
 				return;
