@@ -34,6 +34,7 @@ class OpenOrder extends Action
     private $cart;
     private $checkoutSession;
     private $productFactory;
+    private $productRepository;
 
     /**
      * Redirect constructor.
@@ -53,7 +54,8 @@ class OpenOrder extends Action
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Checkout\Model\Session $checkoutSession,
-		\Magento\Catalog\Model\ProductFactory $productFactory
+		\Magento\Catalog\Model\ProductFactory $productFactory,
+		\Magento\Catalog\Api\ProductRepositoryInterface $productRepository
     ) {
         parent::__construct($context);
 
@@ -64,6 +66,7 @@ class OpenOrder extends Action
         $this->cart                 = $cart;
         $this->checkoutSession      = $checkoutSession;
         $this->productFactory		= $productFactory;
+        $this->productRepository	= $productRepository;
     }
 
     /**
@@ -278,12 +281,37 @@ class OpenOrder extends Action
 				
 				// add groups if any
 				if (!empty($associatedProducts)) {
+					$this->readerWriter->createLog($associatedProducts, '$associatedProducts');
+					
 					foreach ($associatedProducts as $grProdId => $prods) {
+						// the params of the products to recover
 						$params = [
-							'product'		=> $grProdId,  // Grouped product ID
-							'super_group'	=> $prods,  // Child products and quantities
-							'qty'			=> 1
+							'product' => $grProdId,  // Grouped product ID
 						];
+						
+						// we get the grouped product here
+						$product = $this->productRepository->getById($grProdId);
+						
+						if ($product->getTypeId() !== \Magento\GroupedProduct\Model\Product\Type\Grouped::TYPE_CODE) {
+							continue;
+						}
+						
+						// get the included by default products
+						// the idea is to pass the whole group, ths skipped products from the client have to be added with quantity zero
+						$includedProducts = $product->getTypeInstance()->getAssociatedProducts($product);
+						// iterate on them to check how much of any product we have to recover
+						foreach ($includedProducts as $includedProduct) {
+							// if the product was choosen from the user
+							if (array_key_exists($includedProduct->getId(), $prods)) {
+								$params['super_group'][$includedProduct->getId()] = $prods[$includedProduct->getId()];
+							}
+							// if the product was not choosen from the client, add it with quantity 0
+							else {
+								$params['super_group'][$includedProduct->getId()] = 0;
+							}
+						}
+						
+						$this->readerWriter->createLog($params, '$params');
 						
 						$this->addProductToCart($params, $grProdId);
 					}
@@ -291,7 +319,6 @@ class OpenOrder extends Action
 				
 			}
 
-//            // Save the cart (quote)
             $this->cart->save();
 //			$this->cart->getQuote()->setTotalsCollectedFlag(false)->collectTotals()->save();
 			
@@ -300,7 +327,6 @@ class OpenOrder extends Action
 				$this->readerWriter->createLog((array) $item->getOptions(), 'check getOptions');
 			}
 
-
             $this->messageManager->addErrorMessage(__('Your Payment was declined. Please, try again!'));
             
 			return $result->setData([
@@ -308,11 +334,15 @@ class OpenOrder extends Action
 			]);
         }
         catch (\Exception $e) {
-            $this->readerWriter->createLog($e->getMessage(), 'Exception when we try to create new Quote by Order.', 'WARN');
+            $this->readerWriter->createLog(
+				[
+					$e->getMessage(),
+//					$e->getTrace()
+				],
+				'Exception when we try to create new Quote by Order.', 'WARN'
+			);
             
 			$this->messageManager->addErrorMessage(__('Unexpected error. Please, check you order and try again!'));
-			
-//			return $this->_redirect('checkout/cart');
 			
 			return $result->setData([
 				"success" => false,
