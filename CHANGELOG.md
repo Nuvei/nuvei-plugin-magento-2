@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.3.2
+```
+    * In AbstractRequest class, getParams() method, was added additional check for some of the merchant details.
+    * In ConfigProvider class, getWebSdkConfig() method we will typecast the "sdk_style" to string.
+```
+
 # 3.3.1
 ```
     * Fix for the logic who rebuild the Card based on the last Order, in case of declined transaction.

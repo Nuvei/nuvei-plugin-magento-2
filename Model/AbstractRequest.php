@@ -11,12 +11,6 @@ use Magento\Quote\Model\Quote;
 abstract class AbstractRequest
 {
     /**
-     * Payment gateway endpoints.
-     */
-//    const LIVE_ENDPOINT = 'https://secure.safecharge.com/ppp/';
-//    const TEST_ENDPOINT = 'https://ppp-test.nuvei.com/ppp/';
-
-    /**
      * Payment gateway methods.
      */
     const PAYMENT_SETTLE_METHOD                 = 'settleTransaction';
@@ -261,6 +255,21 @@ abstract class AbstractRequest
             ]
             //            'store-request',
         ];
+		
+		// check for missing plugin configuration
+		if (empty($params['merchantId']) || empty($params['merchantSiteId'])) {
+			$this->readerWriter->createLog(
+				[
+					'merchantId'		=> $params['merchantId'],
+					'merchantSiteId'	=> $params['merchantSiteId'],
+				],
+				'Missing Gateway configuration details.'
+			);
+			
+			throw new PaymentException(
+				__('Missing Gateway configuration details. Please, contact with site adminstrator!')
+			);
+		}
 
         return $params;
     }
@@ -394,9 +403,25 @@ abstract class AbstractRequest
                 $concat .= $params[$checksumKey];
             }
         }
+		
+		// check for missing plugin configuration
+		if (empty($this->config->getMerchantSecretKey()) 
+			|| empty($this->config->getConfigValue('hash'))
+		) {
+			$this->readerWriter->createLog(
+				[
+					'secret key'	=> $this->config->getMerchantSecretKey(),
+					'hash'			=> $this->config->getConfigValue('hash'),
+				],
+				'Missing Gateway configuration details.'
+			);
+			
+			throw new PaymentException(
+				__('Missing Gateway configuration details. Please, contact with site adminstrator!')
+			);
+		}
 
         $concat .= $this->config->getMerchantSecretKey();
-        //        $concat = utf8_encode($concat);
         $concat = $concat;
         
         $params['checksum'] = hash($this->config->getConfigValue('hash'), $concat);
@@ -430,7 +455,6 @@ abstract class AbstractRequest
      */
     protected function sendRequest($continue_process = false, $accept_error_status = false)
     {
-//        $endpoint   = $this->getEndpoint();
         $endpoint   = $this->config->getRequestEndpoint($this->getRequestMethod());
         $headers    = $this->getHeaders();
         $params     = $this->prepareParams();
