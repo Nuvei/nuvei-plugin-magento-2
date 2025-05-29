@@ -131,7 +131,7 @@ class ConfigProvider extends CcGenericConfigProvider
         $total              = $this->moduleConfig->getQuoteBaseTotal();
         $useDCC             = $this->moduleConfig->getConfigValue('use_dcc');
         $locale             = substr($this->locale, 0, 2);
-		$sdkStyle			= $this->moduleConfig->getConfigValue('sdk_style', 'basic');
+		$sdkStyle			= (string) $this->moduleConfig->getConfigValue('sdk_style', 'basic');
 		
 		if (!is_string($sdkStyle)) {
 			$sdkStyle = '';
@@ -216,9 +216,10 @@ class ConfigProvider extends CcGenericConfigProvider
     {
         $this->readerWriter->createLog('getWebSdkConfig()');
         
-        $userTokenId            = '';
-        $payment_plan_data      = $this->paymentsPlans->getProductPlanData();
-        $isPaymentPlan    = !empty($payment_plan_data) ? true : false;
+        $userTokenId        = '';
+        $payment_plan_data  = $this->paymentsPlans->getProductPlanData();
+        $isPaymentPlan      = !empty($payment_plan_data) ? true : false;
+        $sdkStyle			= (string) $this->moduleConfig->getConfigValue('sdk_style', 'basic');
         
         $config = [
             'payment' => [
@@ -245,7 +246,7 @@ class ConfigProvider extends CcGenericConfigProvider
                     'userTokenId'           => $this->moduleConfig->getQuoteBillingAddress()['email'],
                     'applePayLabel'         => $this->moduleConfig->getConfigValue('apple_pay_label', 'web_sdk'),
                     'currencyCode'          => $this->moduleConfig->getQuoteBaseCurrency(), 
-					'style'					=> json_decode((string) $this->moduleConfig->getConfigValue('sdk_style', 'basic'), true),
+					'style'					=> json_decode($sdkStyle, true),
                 ],
             ],
         ];
