@@ -107,7 +107,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->httpRequest      = $httpRequest;
         $this->serializer       = $serializer;
         $this->quoteRepository  = $quoteRepository;
-//        $this->dataObjectFactory    = $dataObjectFactory;
         $this->cartManagement   = $cartManagement;
         $this->orderRepo        = $orderRepo;
         $this->onepageCheckout  = $onepageCheckout;
@@ -136,28 +135,16 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         if (!empty($this->quoteId)) {
             $this->quote = $this->quoteFactory->create()->load($this->quoteId);
         }
-        if (!empty($this->entityId)) { // the call from the REST API
-            $this->quote    = $this->quoteRepository->get($this->entityId);
+        else {
+            // the call from the REST API has entityId
+            $this->quote = !empty($this->entityId) 
+                ? $this->quoteRepository->get($this->entityId) : $this->cart->getQuote();
+            
             $this->quoteId  = $this->quote->getId();
         }
-        else {
-            $this->quote = $this->cart->getQuote();
-        }
         
+        $this->readerWriter->createLog($this->quoteId, 'openOrder quoteId');
         
-//        $this->quote = empty($this->quoteId) ? $this->cart->getQuote() 
-//            : $this->quoteFactory->create()->load($this->quoteId);
-        
-        
-//        $ch = curl_init("https://srv-aws-magento2-4.sccdev-qa.com/rest/V1/carts/" . $this->quoteId); 
-//        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
-//        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Authorization: Bearer 8u7gw1nvuioiboxy7qjqueri5frnfwnj"));
-//        $result = curl_exec($ch);
-//        $result = json_decode($result, 1);
-//        $this->readerWriter->createLog($result, 'openOrder');
-        
-//        $this->items = $this->quote->getItems();
         $this->items = $this->quote->getAllVisibleItems();
         
         // check if each item is in stock
@@ -187,20 +174,23 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $callUpdateOrder    = false;
         $order_total        = (float) $this->config->getQuoteBaseTotal($this->quoteId);
         
+        $this->readerWriter->createLog('start the checks for $callUpdateOrder, by default it is false.');
+        
         // check for prevouse OpenOrder data
         if (!empty($order_data)) {
+            $this->readerWriter->createLog('!empty($order_data), call updateOrder!');
             $callUpdateOrder = true;
         }
         
         // check for newly added product with rebilling
         if (empty($order_data['userTokenId']) && !empty($this->subs_data)) {
-            $this->readerWriter->createLog('$order_data[userTokenId] is empty, call openOrder');
+            $this->readerWriter->createLog('$order_data[userTokenId] is empty, do not call updateOrder');
             $callUpdateOrder = false;
         }
         
         // if by some reason missing transactionType
         if (empty($order_data['transactionType'])) {
-            $this->readerWriter->createLog('$order_data[transactionType] is empty, call openOrder');
+            $this->readerWriter->createLog('$order_data[transactionType] is empty, do not call updateOrder');
             $callUpdateOrder = false;
         }
         
@@ -209,7 +199,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             && (empty($order_data['transactionType'])
             || 'Auth' != $order_data['transactionType']        )
         ) {
-            $this->readerWriter->createLog('$order_total is and transactionType is Auth, call openOrder');
+            $this->readerWriter->createLog('$order_total is 0 and transactionType is Auth, do not call updateOrder');
             $callUpdateOrder = false;
         }
         
@@ -218,24 +208,49 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             && 'Auth' == $order_data['transactionType']
             && $order_data['transactionType'] != $this->config->getConfigValue('payment_action')
         ) {
+            $this->readerWriter->createLog(
+                [
+                    '$order_total'                  => $order_total,
+                    'order data transactionType'    => $order_data['transactionType'] ?? '',
+                    'setting payment_action'        => $this->config->getConfigValue('payment_action'),
+                ],
+                'transactionType problem, do not call updateOrder.'
+            );
+            
             $callUpdateOrder = false;
         }
         
         // in this case pass again the endpoints
+        $apmWindowType = $this->config->getConfigValue('apm_window_type', 'checkout');
+        
         if (empty($order_data['apmWindowType'])
-            || $this->config->getConfigValue('apm_window_type') != $order_data['apmWindowType']
+            || $apmWindowType != $order_data['apmWindowType']
         ) {
+            $this->readerWriter->createLog(
+                [
+                    'order data apmWindowType'  => $order_data['apmWindowType'] ?? '',
+                    'setting apm_window_type'   => $apmWindowType,
+                ],
+                'apmWindowType problem, do not call updateOrder.'
+            );
+            
             $callUpdateOrder = false;
         }
         // /will we call updateOrder?
         
+        $this->readerWriter->createLog($callUpdateOrder, 'call updateOrder final decision');
+        
+        // here we create updateOrder request
         if ($callUpdateOrder) {
             $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
 
-            $req_resp = $update_order_request
+            $allParams = $update_order_request
                 ->setOrderData($order_data)
                 ->setQuoteId($this->quoteId)
                 ->process();
+            
+            $req_resp               = $allParams['respParams'];
+            $this->requestParams    = $allParams['requestParams'];
         }
         // /will we call updateOrder?
         
@@ -251,13 +266,12 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         // save the session token in the Quote
         $this->setCreateOrderData($req_resp, $items_base_data, $order_data);
         
-        
         $add_info = [
             'sessionToken'      => $req_resp['sessionToken'],
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
             'itemsBaseInfoHash' => hash('md5', $this->serializer->serialize($items_base_data)),
-            'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
+            'apmWindowType'     => $apmWindowType,
             'totalAmount'       => $order_total,
             'userDataHash'      => hash('md5', $this->serializer->serialize([
                 'shippingAddress'   => $this->requestParams['shippingAddress'],
@@ -418,13 +432,13 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         // update order to pass the final data
         $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
 
-        $req_resp = $update_order_request
+        $allParams = $update_order_request
             ->setOrderData($order_data)
-//            ->setOrderId($orderId)
             ->setOrderId($this->orderId)
             ->process();
         
-//        $this->successUrl = $this->config->getCallbackSuccessUrl($this->quote->getId());
+        $req_resp               = $allParams['respParams'];
+        $this->requestParams    = $allParams['requestParams'];
         
         // if UpdateOrder fails - refresh the page
         if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
@@ -763,7 +777,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
             'itemsBaseInfoHash' => hash('md5', $this->serializer->serialize($items_base_data)),
-            'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
+            'apmWindowType'     => $this->config->getConfigValue('apm_window_type', 'checkout'),
             'totalAmount'       => $order_total,
             'userDataHash'      => hash('md5', $this->serializer->serialize([
                 'shippingAddress'   => isset($this->requestParams['shippingAddress']) 

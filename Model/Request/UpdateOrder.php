@@ -19,6 +19,7 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
 
     private $quoteId        = '';
     private $orderId        = '';
+    private $requestParams  = [];
     private $cart;
     private $paymentsPlans;
     private $orderRepo;
@@ -103,7 +104,11 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
     {
         $req_resp = $this->sendRequest(true, true);
         
-        return $req_resp;
+        // in the caller class - OpenOrder we needd also the requestParams
+        return [
+            'requestParams' => $this->requestParams,
+            'respParams'    => $req_resp
+        ];
     }
     
     /**
@@ -124,7 +129,9 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
      */
     protected function getParams()
     {
-        $subs_data = [];
+        $subs_data  = [];
+        $params     = [];
+        $currency   = '';
         
         // We can collect the details from the Order or from the Quote
         // Case 1 - when we have Order
@@ -282,6 +289,8 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                 . $params['timeStamp'] 
                 . $this->config->getMerchantSecretKey()
         );
+        
+        $this->requestParams = $params;
         
         return $params;
     }
