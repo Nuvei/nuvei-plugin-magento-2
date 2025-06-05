@@ -8,40 +8,47 @@ define(
     [
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-        'Magento_Paypal/js/action/set-payment-method',
+//        'Magento_Paypal/js/action/set-payment-method',
         'ko',
         'Magento_Checkout/js/model/quote',
-        'mage/translate'//,
+        'mage/translate',
+        'Magento_Checkout/js/action/place-order',
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Checkout/js/model/error-processor'
     ],
     function(
         $,
         Component,
-        setPaymentMethodAction,
+//        setPaymentMethodAction,
         ko,
         quote,
-        mage
+        mage,
+        placeOrderAction, 
+        additionalValidators,
+        errorProcessor
     ) {
         'use strict';
 
-        var self = null;
+        var self        = null;
+        let successUrl  = '';
         
         // for the WebSDK
-        var sfc                 = null;
-        var cardNumber          = null;
-        var cardExpiry          = null;
-        var cardCvc             = null;
-        var lastCvcHolder       = ''; // the id of the last used CVC container
-        var scFields            = null;
-        var scData              = {};
+        let sfc                 = null;
+        let cardNumber          = null;
+        let cardExpiry          = null;
+        let cardCvc             = null;
+        let lastCvcHolder       = ''; // the id of the last used CVC container
+        let scFields            = null;
+        let scData              = {};
 
-        var isCCNumEmpty        = true;
-        var isCCNumComplete     = false;
+        let isCCNumEmpty        = true;
+        let isCCNumComplete     = false;
 
-        var isCVVEmpty          = true;
-        var isCVVComplete       = false;
+        let isCVVEmpty          = true;
+        let isCVVComplete       = false;
 
-        var isCCDateEmpty       = true;
-        var isCCDateComplete    = false;
+        let isCCDateEmpty       = true;
+        let isCCDateComplete    = false;
 		
         let fieldsStyle	= {
             base: {
@@ -70,13 +77,13 @@ define(
             fieldsStyle = Object.assign({}, fieldsStyle, window.checkoutConfig.payment[nuveiGetCode()].style);
         }
 		
-        var elementClasses = {
+        let elementClasses = {
             focus: 'focus',
             empty: 'empty',
             invalid: 'invalid'
         };
 		
-        var checkoutConfig      = window.checkoutConfig,
+        let checkoutConfig      = window.checkoutConfig,
             agreementsConfig	= checkoutConfig ? checkoutConfig.checkoutAgreements : {},
             agreementsInputPath = '.payment-method._active div.checkout-agreements input';
 		
@@ -276,7 +283,7 @@ define(
                 // CC
                 if(self.chosenApmMethod() == 'cc_card') {
                     self.typeOfChosenPayMethod('cc_card');
-                    console.log(self.typeOfChosenPayMethod());
+                    console.log('ChosenApmMethod', self.typeOfChosenPayMethod());
 
                     $('body').find('#nuvei_save_upo_cont').show();
 
@@ -298,7 +305,7 @@ define(
                 // APM
                 if(isNaN(self.chosenApmMethod()) && self.chosenApmMethod() != 'ppp_ApplePay') {
                     self.typeOfChosenPayMethod('apm');
-                    console.log('show checkbox', self.typeOfChosenPayMethod());
+                    console.log('ChosenApmMethod', self.typeOfChosenPayMethod());
 
                     $('body').find('#nuvei_save_upo_cont').show();
                     return;
@@ -318,7 +325,7 @@ define(
                     self.typeOfChosenPayMethod('upo_apm');
                 }
 
-                console.log(self.typeOfChosenPayMethod());
+                console.log('ChosenApmMethod', self.typeOfChosenPayMethod());
             },
 
             // use it into the template
@@ -490,7 +497,7 @@ define(
                     self.validateOrderData();
                 })
                 .done(function(resp) {
-                    console.log(resp);
+                    console.log('placeOrder', resp);
 
                     if(resp.hasOwnProperty('sessionToken')
                         && '' != resp.sessionToken
@@ -502,6 +509,8 @@ define(
                         scFields    = sfc.fields({
                             locale: checkoutConfig.payment[nuveiGetCode()].locale
                         });
+                        
+                        self.successUrl = resp.successUrl;
                     }
 
                     self.validateOrderData();
@@ -585,7 +594,6 @@ define(
                     payParams.paymentOption		= cardNumber;
                     payParams.cardHolderName	= document.getElementById('nuvei_cc_owner').value;
                     payParams.savePm            = self.savePm();
-                        
 					
                     self.writeLog('payParams', payParams);
                     
@@ -698,9 +706,10 @@ define(
                     && typeof resp.transactionId != 'undefined'
                 ) {
                     self.transactionId = resp.transactionId;
-                    self.continueWithOrder(resp.transactionId);
+                    self.continueWithOrder();
                     return;
                 }
+                
                 // decline
                 if(resp.result == 'DECLINED') {
                     // reload after click on alert button
@@ -731,48 +740,38 @@ define(
                 }
             },
 			
-            continueWithOrder: function(transactionId) {
-                console.log('continueWithOrder()', self.typeOfChosenPayMethod());
-
-                // stop the proccess
-                if(!self.validate()) {
-                    console.log('validation error, stop the proccess');
-                    
-                    nuveiHideLoader();
-                    return false;
-                }
+            continueWithOrder: function() {
+                console.log('continueWithOrder()');
 
                 // continue with the order
                 self.isPlaceOrderActionAllowed(false);
                 self.selectPaymentMethod();
                 
+                console.log(self.typeOfChosenPayMethod());
+                
                 // APMs and UPO APMs payments
                 if (self.typeOfChosenPayMethod() === 'apm'
                     || self.typeOfChosenPayMethod() === 'upo_apm'
                 ) {
-                    console.log('continueWithOrder()', self.typeOfChosenPayMethod());
-
-                    var postData = {
+                    let postData = {
                         chosen_apm_method: self.chosenApmMethod(),
                         apm_method_fields: {}
                     };
                     
                     console.log('postData', postData)
-
+                    
                     // for APMs only
                     if(self.typeOfChosenPayMethod() === 'apm') {
                         $('.fields-' + self.chosenApmMethod() + ' input').each(function(){
-                            var _slef = $(this);
+                            let _slef = $(this);
                             postData.apm_method_fields[_slef.attr('name')] = _slef.val();
                         });
 
                         postData.save_payment_method = self.savePm();
                     }
 
-//                    self.selectPaymentMethod();
-                    		
-                    setPaymentMethodAction(self.messageContainer)
-                        .done(function() {
+//                    setPaymentMethodAction(self.messageContainer)
+//                        .done(function() {
                             nuveiShowLoader();
                     
                             var errorMsg = $.mage.__('Unexpected error. Please try another payment option.');
@@ -785,7 +784,7 @@ define(
                                 cache: false
                             })
                             .done(function(res) {
-                                // success
+                                // success - we redirect to the APM page
                                 if (res
                                     && res.hasOwnProperty('error')
                                     && res.error == 0
@@ -816,26 +815,56 @@ define(
                                     return;
                                 }
                             });
-                        }.bind(self)
-                    );
+//                        }.bind(self)
+//                    );
 
                     nuveiHideLoader();
                     return;
                 }
 
-                setPaymentMethodAction(self.messageContainer)
-                    .done(function() {
-                        window.location = window.checkoutConfig.payment[nuveiGetCode()].successUrl;
-                        return;
-                    }.bind(self));
+//                setPaymentMethodAction(self.messageContainer)
+//                    .done(function() {
+//                        window.location = window.checkoutConfig.payment[nuveiGetCode()].successUrl;
+//                        window.location = self.successUrl;
+//                        return;
 
-                return true;
+//                        console.log('submit the form');
+//                        const checkoutForm = jQuery('#nuvei_default_pay_btn').closest('form');
+//
+////                        checkoutForm.attr('action', res.redirectUrl);
+////                        checkoutForm.attr('action', window.checkoutConfig.payment[nuveiGetCode()].successUrl);
+////                        checkoutForm.attr('method', 'POST');
+//                        checkoutForm.submit();
+//                        return;
+//                    }.bind(self));
+
+//                return true;
+
+                placeOrderAction(this.getData(), this.messageContainer)
+                    .done(function (orderId) {
+                        console.log(orderId);
+
+                        // In case the response is not numeric.
+                        if (isNaN(orderId)) {
+                            self.messageContainer.addErrorMessage({
+                                message: $.mage.__('There was an issue placing the order. Please try again.')
+                            });
+
+                            return false;
+                        }
+
+                        window.location = window.checkoutConfig.payment[nuveiGetCode()].successUrl;
+                        return true;
+                    })
+                    .fail(function (response) {
+                        // Display the error message when order placement fails
+                        errorProcessor.process(response, self.messageContainer);
+                    });
+                    
+                return false;
             },
             
             showGeneralError: function(msg) {
-//                jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
-//                jQuery('#nuvei_general_error').show();
-//                document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
                 nuveiShowGeneralError();
             },
 			
@@ -852,7 +881,6 @@ define(
                 scData.merchantSiteId       = window.checkoutConfig.payment[nuveiGetCode()].merchantSiteId;
                 scData.merchantId           = window.checkoutConfig.payment[nuveiGetCode()].merchantId;
                 scData.sourceApplication    = window.checkoutConfig.payment[nuveiGetCode()].sourceApplication;
-//                scData.apmWindowType        = window.checkoutConfig.payment[nuveiGetCode()].apmWindowType;
 				
                 if(window.checkoutConfig.payment[nuveiGetCode()].isTestMode == true) {
                     scData.env = 'int';
@@ -1019,15 +1047,15 @@ define(
             },
 			
             /**
-              * Validate checkout agreements
+              * Validate Checkout agreements.
              *
              * @returns {Boolean}
             */
             validate: function (hideError) {
-                console.log('validate()');
+                console.log('validate()', hideError);
 
                 var isValid = true;
-
+                
                 if (!agreementsConfig.isEnabled || $(agreementsInputPath).length === 0) {
                    return true;
                 }
@@ -1044,9 +1072,13 @@ define(
                    }
                 });
 
+                console.log('isValid', isValid)
                 return isValid;
             },
-		   
+            
+            /**
+             * Clean the card fields.
+             */
             scCleanCard: function () {
                 console.log('scCleanCard()');
 
@@ -1081,7 +1113,7 @@ define(
             scTotalsChange: function() {
                 console.log(quote.totals(), 'scTotalsChange()');
 
-                var currentTotal = parseFloat(quote.totals().base_grand_total).toFixed(2);
+                const currentTotal = parseFloat(quote.totals().base_grand_total).toFixed(2);
 
                 if(currentTotal == self.scOrderTotal) {
                     console.log('scTotalsChange() - the total is same. Stop here.');
@@ -1102,8 +1134,6 @@ define(
                     && self.scPaymentMethod != quote.paymentMethod._latestValue.method
                 ) {
                     console.log('new paymentMethod is', quote.paymentMethod._latestValue.method);
-
-//                    self.scUpdateQuotePM();
 
                     self.scPaymentMethod = quote.paymentMethod._latestValue.method;
 
