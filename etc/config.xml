@@ -46,6 +46,8 @@
 				<auto_expand_pms>1</auto_expand_pms>
 				<checkout_log_level>0</checkout_log_level>
 				<allow_guests_subscr>0</allow_guests_subscr>
+				<gpay_button_color>black</gpay_button_color>
+				<gpay_button_type>buy</gpay_button_type>
 				
 				<!-- No listed settings -->
                 <save_order_before_success>0</save_order_before_success>

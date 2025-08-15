@@ -1,8 +1,9 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
-# 3.3.2
+# 3.4.0
 ```
+    * Added few additional settings for Google Pay in Simply Connect.
     * In AbstractRequest class, getParams() method, was added additional check for some of the merchant details.
     * In ConfigProvider class, will typecast the "sdk_style" to string.
     * Fixed the problem in OpenOrder class, where the apmWindowType value was wrong. This prevented call of updateOrder.

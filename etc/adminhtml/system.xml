@@ -475,6 +475,41 @@
 						<label>Checkout Translations</label>
 						<comment model="Nuvei\Checkout\Block\System\Config\CheckoutTranslateComment" />
 					</field>
+					
+                    <field id="gpay_merchant_id"
+						   translate="label"
+						   type="text"
+						   sortOrder="110"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0">
+						<label>Google Merchant ID</label>
+						<comment model="Nuvei\Checkout\Block\System\Config\GoogleMerchantIdComment" />
+					</field>
+                    
+                    <field id="gpay_button_color"
+						   translate="label"
+						   type="select"
+						   sortOrder="120"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0">
+						<label>Google Button Color</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\GoogleButtonColor</source_model>
+                        <config_path>payment/nuvei/gpay_button_color</config_path>
+					</field>
+                    
+                    <field id="gpay_button_type"
+						   translate="label"
+						   type="select"
+						   sortOrder="130"
+						   showInDefault="1"
+						   showInWebsite="1"
+						   showInStore="0">
+						<label>Google Button Type</label>
+						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\GoogleButtonType</source_model>
+                        <config_path>payment/nuvei/gpay_button_type</config_path>
+					</field>
 				</group>
 					
                 <group id="help_tools"

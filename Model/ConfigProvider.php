@@ -141,6 +141,20 @@ class ConfigProvider extends CcGenericConfigProvider
             $useDCC = 'false';
         }
         
+        $googlePaySettings = [
+            'locale' => $locale
+        ];
+        
+        if (!empty($gMerchantId = trim((string) $this->moduleConfig->getConfigValue('gpay_merchant_id')))) {
+            $googlePaySettings['merchantId'] = $gMerchantId;
+        }
+        if (!empty($gButtonColor = $this->moduleConfig->getConfigValue('gpay_button_color'))) {
+            $googlePaySettings['buttonColor'] = $gButtonColor;
+        }
+        if (!empty($gButtonType = $this->moduleConfig->getConfigValue('gpay_button_type'))) {
+            $googlePaySettings['buttonType'] = $gButtonType;
+        }
+        
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
@@ -181,9 +195,10 @@ class ConfigProvider extends CcGenericConfigProvider
                         'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
                         'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
                         'apmConfig'                 => [
-                            'googlePay' => [
-                                'locale' => $locale
-                            ]
+                            'googlePay' => $googlePaySettings,
+                            'applePay'  => array(
+                                'locale'    => $locale,
+                            ),
                         ],
                         'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
                         'fieldStyle'				=> json_decode($sdkStyle, true),
