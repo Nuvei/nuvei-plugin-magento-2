@@ -1,5 +1,7 @@
 <?php
+
 namespace Nuvei\Checkout\Api;
+
 interface GetCheckoutDataInterface
 {
     /**

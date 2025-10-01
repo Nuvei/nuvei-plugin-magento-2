@@ -69,9 +69,10 @@ class ConfigProvider extends CcGenericConfigProvider
     /**
      * Return config array.
      *
+     * @param string $requiredConfig    The name of the used SDK. We will pass this parameter when call this method from another class.
      * @return array
      */
-    public function getConfig()
+    public function getConfig($requiredConfig = '')
     {
         if (!$this->moduleConfig->getConfigValue('active')) {
             $this->readerWriter->createLog('Mudule is not active');
@@ -90,33 +91,45 @@ class ConfigProvider extends CcGenericConfigProvider
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
         
-        $used_sdk = $this->moduleConfig->getUsedSdk();
+        $usedSdk            = $this->moduleConfig->getUsedSdk();
+        $returnSdkBlockOnly = false;
+                
+        if (!empty($requiredConfig)) {
+            $usedSdk            = $requiredConfig;
+            $returnSdkBlockOnly = true;
+        }
         
-        switch ($used_sdk) {
-        case 'checkout':
-            $config = $this->getCheckoutSdkConfig();
-            break;
-            
-        case 'web':
-            $config = $this->getWebSdkConfig();
-            break;
-            
-        default:
-            $config = [];
+        switch ($usedSdk) {
+            case 'checkout':
+                $config = $this->getCheckoutSdkConfig($returnSdkBlockOnly);
+                break;
+
+            case 'web':
+                $config = $this->getWebSdkConfig($returnSdkBlockOnly);
+                break;
+
+            default:
+                $config = [];
         }
         
         // will be concatenated into a JS
-        $config['payment'][Payment::METHOD_CODE]['sdk']         = ucfirst($used_sdk);
-        $config['payment'][Payment::METHOD_CODE]['isTestMode']  = $this->moduleConfig->isTestModeEnabled();
-        $config['payment'][Payment::METHOD_CODE]['countryId']   = $this->moduleConfig->getQuoteCountryCode();
-        $config['payment'][Payment::METHOD_CODE]['loadingImg']  = $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif");
+        if (!$returnSdkBlockOnly) {
+            $config['payment'][Payment::METHOD_CODE]['sdk']         = ucfirst($usedSdk);
+            $config['payment'][Payment::METHOD_CODE]['isTestMode']  = $this->moduleConfig->isTestModeEnabled();
+            $config['payment'][Payment::METHOD_CODE]['countryId']   = $this->moduleConfig->getQuoteCountryCode();
+            $config['payment'][Payment::METHOD_CODE]['loadingImg']  = $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif");
+        }
         
-        $this->readerWriter->createLog([$used_sdk, $config], 'get front end config');
+        $this->readerWriter->createLog([$usedSdk, $config], 'get front end config');
         
         return $config;
     }
     
-    private function getCheckoutSdkConfig()
+    /**
+     * @param bool $returnSdkBlockOnly  If it is true return only the part for the SDK - $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']. We will pass true only when need the configuration from the headless implementation.
+     * @return array
+     */
+    private function getCheckoutSdkConfig($returnSdkBlockOnly)
     {
         $this->readerWriter->createLog('getCheckoutSdkConfig()');
         
@@ -224,10 +237,19 @@ class ConfigProvider extends CcGenericConfigProvider
                 = $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['email'];
         }
         
+        
+        if ($returnSdkBlockOnly) {
+            return $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams'];
+        }
+        
         return $config;
     }
     
-    private function getWebSdkConfig()
+    /**
+     * @param bool $returnSdkBlockOnly  If it is true return only the part for the SDK - $config['payment'][Payment::METHOD_CODE]. We will pass true only when need the configuration from the headless implementation.
+     * @return array
+     */
+    private function getWebSdkConfig($returnSdkBlockOnly)
     {
         $this->readerWriter->createLog('getWebSdkConfig()');
         
@@ -265,6 +287,10 @@ class ConfigProvider extends CcGenericConfigProvider
                 ],
             ],
         ];
+        
+        if ($returnSdkBlockOnly) {
+            return $config['payment'][Payment::METHOD_CODE];
+        }
         
         return $config;
     }

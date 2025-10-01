@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.5.0
+```
+    * Use single method to collect parameters for Simply Connect and WebSDK - ConfigProvider class.
+    * Implement public REST API endpoint - ai-paylink.
+```
+
 # 3.4.0
 ```
     * Added few additional settings for Google Pay in Simply Connect.

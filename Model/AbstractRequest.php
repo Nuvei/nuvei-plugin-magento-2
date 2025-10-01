@@ -29,6 +29,7 @@ abstract class AbstractRequest
     const GET_SESSION_TOKEN                     = 'getSessionToken';
     const DELETE_UPOS_METHOD                    = 'deleteUPO';
     const GET_PAYMENT_STATUS                    = 'getPaymentStatus';
+    const GET_PAYMENT_LINK                      = 'getPaymentPageUrl';
 
     protected $readerWriter;
     protected $config;
