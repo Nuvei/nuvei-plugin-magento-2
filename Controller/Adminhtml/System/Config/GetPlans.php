@@ -37,11 +37,9 @@ class GetPlans extends \Magento\Backend\App\Action
         if (!$this->moduleConfig->getConfigValue('active')) {
             $this->readerWriter->createLog('Nuvei payments module is not active at the moment!');
            
-            return $result->setData(
-                [
+            return $result->setData([
                 'error_message' => __('Nuvei payments module is not active at the moment!')
-                ]
-            );
+            ]);
         }
         
         $request = $this->requestFactory->create(AbstractRequest::GET_MERCHANT_PAYMENT_PLANS_METHOD);

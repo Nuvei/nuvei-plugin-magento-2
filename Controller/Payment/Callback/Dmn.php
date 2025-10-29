@@ -241,8 +241,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
          * Try to create the Order.
          * With this call if there are no errors we set:
          *
-          * $this->order
-        * $this->orderPayment
+         * $this->order
+         * $this->orderPayment
          */
         if (!$this->getOrCreateOrder()) {
             return $this->jsonOutput;
@@ -304,8 +304,10 @@ class Dmn extends Action implements CsrfAwareActionInterface
         // /Subscription transaction DMN
         
         // For Auth and Settle check the internal Nuvei Order ID
+        // we do not apply this rule for payByLink Orders, because of the redirection
         if (isset($this->params['transactionType'])
             && in_array($this->params['transactionType'], ['Auth', 'Sale'])
+            && 'payByLink' != $this->params['customField4']
         ) {
             $createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
             
@@ -1928,6 +1930,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 else {
                     $this->readerWriter->createLog('order identificator - quoteId');
                     $this->quoteId = current(explode('_', $this->params["clientUniqueId"]));
+                }
+            }
+            
+            // The case with the payByLink - Cashier
+            if (!empty($this->params["merchant_unique_id"])) {
+                if (strpos($this->params["merchant_unique_id"], '_') === false) {
+                    $this->readerWriter->createLog('order identificator - orderIncrementId');
+                    $this->orderIncrementId = $this->params["merchant_unique_id"];
+                }
+                else {
+                    $this->readerWriter->createLog('order identificator - quoteId');
+                    $this->quoteId = current(explode('_', $this->params["merchant_unique_id"]));
                 }
             }
             

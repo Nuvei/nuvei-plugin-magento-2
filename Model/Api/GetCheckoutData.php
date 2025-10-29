@@ -14,7 +14,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
     private $readerWriter;
     private $requestFactory;
     private $moduleConfig;
-//    private $jsonResultFactory;
     private $scopeConfig;
     private $apiRequest;
     private $paymentsPlans;
@@ -23,7 +22,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
     public function __construct(
         Config $moduleConfig,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-//        \Magento\Framework\Controller\Result\JsonFactory $jsonResultFactory,
         \Magento\Framework\Webapi\Rest\Request $apiRequest,
         \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
@@ -33,7 +31,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $this->readerWriter         = $readerWriter;
         $this->moduleConfig         = $moduleConfig;
         $this->requestFactory       = $requestFactory;
-//        $this->jsonResultFactory    = $jsonResultFactory;
         $this->scopeConfig          = $scopeConfig;
         $this->apiRequest           = $apiRequest;
         $this->paymentsPlans        = $paymentsPlans;

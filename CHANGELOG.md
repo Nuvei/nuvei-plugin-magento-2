@@ -4,7 +4,7 @@
 # 3.5.0
 ```
     * Use single method to collect parameters for Simply Connect and WebSDK - ConfigProvider class.
-    * Implement public REST API endpoint - ai-paylink.
+    * Implement public REST API endpoint - ai-paylink. By shipping and billing addresses, and list of SKUs and quantities, the plugin will generate a Payment Link.
 ```
 
 # 3.4.0

@@ -1,0 +1,185 @@
+{
+	"openapi" : "3.0.1",
+	"info" : {
+		"title" : "Nuvei PayByLink API",
+		"description" : "API for generating secure payment links for Magento 2 carts using Nuvei integration.",
+		"version" : "1.0.0",
+		"contact" : {
+			"email" : "support@nuvei.com"
+		}
+	},
+	"servers" : [{
+			"url" : "https://<YOUR_DOMAIN>/rest/V1"
+		}
+	],
+	"paths" : {
+		"/nuvei/ai-paylink/generate" : {
+			"post" : {
+				"summary" : "Generate a payment link for the provided items and addresses.",
+				"operationId" : "generatePaylink",
+				"requestBody" : {
+					"required" : true,
+					"content" : {
+						"application/json" : {
+							"schema" : {
+								"$ref" : "#/components/schemas/PaylinkRequest"
+							},
+							"example" : {
+								"billing_address" : {
+									"firstname" : "Jack",
+									"lastname" : "O'Neill",
+									"street" : "1020 Stargate Command",
+									"city" : "Colorado Springs",
+									"postcode" : "80902",
+									"telephone" : "555-1234",
+									"region" : "Colorado",
+									"state" : "CO",
+									"country" : "US",
+									"email" : "jack.oneill@usaf.mil"
+								},
+								"shipping_address" : {
+									"firstname" : "Jack",
+									"lastname" : "O'Neill",
+									"street" : "1020 Stargate Command",
+									"city" : "Colorado Springs",
+									"postcode" : "80902",
+									"telephone" : "555-1234",
+									"region" : "Colorado",
+									"country" : "US"
+								},
+								"items" : [{
+										"sku" : "24-WB05",
+										"quantity" : 1
+									}
+								]
+							}
+						}
+					}
+				},
+				"responses" : {
+					"200" : {
+						"description" : "Paylink generated successfully.",
+						"content" : {
+							"application/json" : {
+								"schema" : {
+									"$ref" : "#/components/schemas/PaylinkResponse"
+								},
+								"example" : {
+									"status" : "success",
+									"paylink_url" : "https://<YOUR_DOMAIN>/index.php/nuvei_checkout/paybylink/redirect/quote/ujqLzDiBxRzsFq6R0YFIUNh7SLd9ssic/"
+								}
+							}
+						}
+					},
+					"400" : {
+						"description" : "Invalid request."
+					},
+					"500" : {
+						"description" : "Server error."
+					}
+				}
+			}
+		}
+	},
+	"components" : {
+		"schemas" : {
+			"PaylinkRequest" : {
+				"type" : "object",
+				"properties" : {
+					"billing_address" : {
+						"$ref" : "#/components/schemas/Address"
+					},
+					"shipping_address" : {
+						"$ref" : "#/components/schemas/Address"
+					},
+					"items" : {
+						"type" : "array",
+						"items" : {
+							"$ref" : "#/components/schemas/Item"
+						}
+					}
+				},
+				"required" : [
+					"billing_address",
+					"items"
+				]
+			},
+			"Address" : {
+				"type" : "object",
+				"properties" : {
+					"firstname" : {
+						"type" : "string"
+					},
+					"lastname" : {
+						"type" : "string"
+					},
+					"street" : {
+						"type" : "string"
+					},
+					"city" : {
+						"type" : "string"
+					},
+					"postcode" : {
+						"type" : "string"
+					},
+					"telephone" : {
+						"type" : "string"
+					},
+					"region" : {
+						"type" : "string"
+					},
+					"state" : {
+						"type" : "string"
+					},
+					"country" : {
+						"type" : "string"
+					},
+					"email" : {
+						"type" : "string"
+					}
+				},
+				"required" : [
+					"firstname",
+					"lastname",
+					"street",
+					"city",
+					"postcode",
+					"telephone",
+					"country",
+					"email"
+				]
+			},
+			"Item" : {
+				"type" : "object",
+				"properties" : {
+					"sku" : {
+						"type" : "string"
+					},
+					"quantity" : {
+						"type" : "integer",
+						"minimum" : 1
+					}
+				},
+				"required" : [
+					"sku",
+					"quantity"
+				]
+			},
+			"PaylinkResponse" : {
+				"type" : "object",
+				"properties" : {
+					"status" : {
+						"type" : "string"
+					},
+					"paylink_url" : {
+						"type" : "string"
+					}
+				},
+				"required" : [
+					"status",
+					"paylink_url"
+				]
+			}
+		}
+	}
+}

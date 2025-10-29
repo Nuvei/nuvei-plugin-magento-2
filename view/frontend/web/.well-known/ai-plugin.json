@@ -1,0 +1,60 @@
+{
+	"schema_version" : "v1",
+	"name_for_human" : "Nuvei AI Paylink Generator",
+	"name_for_model" : "nuvei_ai_paylink",
+	"description_for_human" : "Generate secure payment links for Magento 2 carts using plugin's API.",
+	"description_for_model" : "Provides an endpoint to generate payment links for specified items and addresses in a Magento 2 store using Nuvei integration.",
+	"auth" : {
+		"type" : "none"
+	},
+	"api" : {
+		"type" : "openapi",
+		"url" : "<YOUR_DOMAIN>/rest/V1/nuvei/ai-paylink/generate",
+		"has_user_authentication" : false
+	},
+    "logo_url": "<link-to-your-store-logo>",
+    "legal_info_url": "<link-to-your-terms-page>",
+	"contact_email" : "support@nuvei.com",
+    "capabilities": {
+        "create_quote": true,
+        "place_order": true
+    },
+	"endpoints" : [{
+			"path" : "/rest/V1/nuvei/ai-paylink/generate",
+			"method" : "POST",
+			"description" : "Generate a payment link for the provided items and addresses.",
+			"request_example" : {
+				"billing_address" : {
+					"firstname" : "Jack",
+					"lastname" : "O'Neill",
+					"street" : "1020 Stargate Command",
+					"city" : "Colorado Springs",
+					"postcode" : "80902",
+					"telephone" : "555-1234",
+					"region" : "Colorado",
+					"state" : "CO",
+					"country" : "US",
+					"email" : "jack.oneill@usaf.mil"
+				},
+				"shipping_address" : {
+					"firstname" : "Jack",
+					"lastname" : "O'Neill",
+					"street" : "1020 Stargate Command",
+					"city" : "Colorado Springs",
+					"postcode" : "80902",
+					"telephone" : "555-1234",
+					"region" : "Colorado",
+					"country" : "US"
+				},
+				"items" : [{
+						"sku" : "24-WB05",
+						"quantity" : 1
+					}
+				]
+			},
+			"response_example" : {
+				"status": "success",
+                "paylink_url": "<YOUR_DOMAIN>/index.php/nuvei_checkout/paybylink/redirect/quote/ujqLzDiBxRzsFq6R0YFIUNh7SLd9ssic/"			}
+		}
+	]
+}
