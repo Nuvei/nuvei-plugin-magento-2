@@ -8,11 +8,6 @@ use Nuvei\Checkout\Model\AbstractRequest;
 class DeleteUpo extends Action
 {
     /**
-     * @var RedirectUrlBuilder
-     */
-    //    private $redirectUrlBuilder;
-
-    /**
      * @var ModuleConfig
      */
     private $moduleConfig;
@@ -33,7 +28,6 @@ class DeleteUpo extends Action
      * Redirect constructor.
      *
      * @param Context            $context
-     * @param RedirectUrlBuilder $redirectUrlBuilder
      * @param ModuleConfig       $moduleConfig
      * @param JsonFactory        $jsonResultFactory
      * @param RequestFactory     $requestFactory
@@ -41,7 +35,6 @@ class DeleteUpo extends Action
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        //        \Nuvei\Checkout\Model\Redirect\Url $redirectUrlBuilder,
         \Nuvei\Checkout\Model\Config $moduleConfig,
         \Magento\Framework\Controller\Result\JsonFactory $jsonResultFactory,
         \Nuvei\Checkout\Model\Request\Factory $requestFactory,

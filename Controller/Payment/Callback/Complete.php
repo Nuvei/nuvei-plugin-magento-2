@@ -63,7 +63,6 @@ class Complete extends Action implements CsrfAwareActionInterface
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-//        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\DataObjectFactory $dataObjectFactory,
         \Magento\Quote\Api\CartManagementInterface $cartManagement,
         \Magento\Checkout\Model\Cart $cart,
@@ -73,8 +72,6 @@ class Complete extends Action implements CsrfAwareActionInterface
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Nuvei\Checkout\Model\Config $moduleConfig,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter
-//        \Nuvei\Checkout\Model\Request\Payment\GetStatus $getPaymentStatus,
-//        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
     ) {
         parent::__construct($context);
 

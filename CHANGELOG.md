@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.5.1
+```
+    * Fix for the Deprecation Warning about the nullable parameters in the constructor methods.
+    * Removed some old commented line of code.
+```
+
 # 3.5.0
 ```
     * Use single method to collect parameters for Simply Connect and WebSDK - ConfigProvider class.

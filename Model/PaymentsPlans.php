@@ -19,7 +19,6 @@ class PaymentsPlans
     private $productObj;
     private $quote;
     private $quoteId;
-//    private $quoteFactory;
     private $cartRepo;
     private $checkoutSession;
     private $order;
@@ -30,7 +29,6 @@ class PaymentsPlans
         \Magento\ConfigurableProduct\Model\Product\Type\Configurable $configurable,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Magento\Catalog\Model\Product $productObj,
-//        \Magento\Quote\Model\QuoteFactory $quoteFactory,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepo,
         \Magento\Checkout\Model\Session $checkoutSession
     ) {
@@ -39,7 +37,6 @@ class PaymentsPlans
         $this->configurable         = $configurable;
         $this->eavAttribute         = $eavAttribute;
         $this->productObj           = $productObj;
-//        $this->quoteFactory         = $quoteFactory;
         $this->cartRepo             = $cartRepo;
         $this->checkoutSession      = $checkoutSession;
     }
@@ -52,7 +49,6 @@ class PaymentsPlans
      *
      * @return array $return_arr
      */
-//    public function getProductPlanData($product_id = 0, array $params = [])
     public function getProductPlanData()
     {
         // Get from Quote.

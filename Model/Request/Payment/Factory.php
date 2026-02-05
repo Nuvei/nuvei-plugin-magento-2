@@ -37,10 +37,8 @@ class Factory
      */
     public function __construct(
         ObjectManagerInterface $objectManager
-        //        ,\Nuvei\Checkout\Model\Config $config
     ) {
         $this->objectManager = $objectManager;
-        //        $this->config           = $config;
     }
 
     /**

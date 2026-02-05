@@ -141,8 +141,8 @@ class Payment implements MethodInterface
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         ManagerInterface $eventManager,
         PaymentDataObjectFactory $paymentDataObjectFactory,
-        CommandManagerInterface $commandExecutor = null,
-        CommandPoolInterface $commandPool = null
+        ?CommandManagerInterface $commandExecutor = null,
+        ?CommandPoolInterface $commandPool = null
     ) {
         $this->paymentRequestFactory    = $paymentRequestFactory;
         $this->orderResourceModel       = $orderResourceModel;
