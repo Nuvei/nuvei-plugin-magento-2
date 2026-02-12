@@ -1,0 +1,19 @@
+<?php
+    /** @var \Nuvei\Checkout\Model\ConfigProvider $viewModel */
+    /** @var \Hyva\Theme\ViewModel\Csp $hyvaCsp */
+
+    if (!isset($hyvaCsp)) {
+        $hyvaCsp = $viewModels->get(\Hyva\Theme\ViewModel\Csp::class);
+    }
+?>
+
+<script src="https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js" 
+        id="nuvei-simply-connect-script"
+        async 
+        defer></script>
+<script src="<?= $block->getViewFileUrl('Nuvei_Checkout::js/hyva_checkout/nuvei.js') ?>"></script>
+
+<?php 
+    // give Nonce to all scripts aboive
+    $hyvaCsp->registerInlineScript();
+?>

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- the container for Nuvei checkout -->
+        <referenceBlock name="checkout.payment.methods">
+            <block name="checkout.payment.method.nuvei_card"
+                   as="nuvei"
+                   template="Nuvei_Checkout::hyva_checkout/payment/nuvei_card.phtml">
+            </block>
+        </referenceBlock>
+        
+        <!-- the place to load Simply Connect SDK -->
+        <referenceContainer name="hyva.checkout.api-v1.after">
+            <block name="hyva.checkout.payment.method.js.api.v1.nuvei_app"
+                   template="Nuvei_Checkout::hyva_checkout/payment/js/api/v1/nuvei_app.phtml">
+            </block>
+        </referenceContainer>
+    </body>
+</page>

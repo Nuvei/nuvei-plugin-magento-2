@@ -528,7 +528,6 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'merchantDetails'    => [
                 'customField1' => $amount,
                 'customField2' => isset($this->subs_data) ? json_encode($this->subs_data) : '',
-                //'customField3' => $this->config->getReservedOrderId($quoteId),
                 // customField4 will be set in AbstractRequest class
                 'customField5' => $currency,
             ],

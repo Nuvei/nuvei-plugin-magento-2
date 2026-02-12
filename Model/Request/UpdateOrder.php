@@ -184,7 +184,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                     'merchantDetails'   => [
                         'customField1'  => $amount,
                         'customField2'  => json_encode($subs_data),
-                        //'customField3'  => $this->config->getReservedOrderId($quoteId),
                         // customField4 will be set in AbstractRequest class
                         'customField5' => $currency,
                     ],
@@ -258,7 +257,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
                     'merchantDetails'   => [
                         'customField1'  => $amount,
                         'customField2'  => json_encode($subs_data),
-                        //'customField3'  => $this->config->getReservedOrderId($quoteId),
                         // customField4 will be set in AbstractRequest class
                         'customField5' => $currency,
                     ],
