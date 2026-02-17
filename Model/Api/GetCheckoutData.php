@@ -51,9 +51,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
             $this->apiRequest->getBodyParams()
         ]);
         
-        //        $result = $this->jsonResultFactory->create()
-        //            ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
-        
         // check for errors
         if (!$this->moduleConfig->getConfigValue('active')) {
             $msg = 'Mudule is not active.';
@@ -278,33 +275,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'countryId'             => $this->moduleConfig->getQuoteCountryCode($quoteId),
             'isPaymentPlan'         => $isPaymentPlan,
             'nuveiCheckoutParams'   => $this->configProvider->getConfig(),
-//            [
-//                'env'                       => $isTestMode ? 'test' : 'prod',
-//                'merchantId'                => $this->moduleConfig->getMerchantId(),
-//                'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
-//                'country'                   => $billingAddress['country'],
-//                'currency'                  => $this->moduleConfig->getQuoteBaseCurrency($quoteId),
-//                'amount'                    => $this->moduleConfig->getQuoteBaseTotal($quoteId),
-//                'renderTo'                  => '#nuvei_checkout',
-//                'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
-//                'strict'                    => false,
-//                'savePM'                    => $save_pm,
-//                'showUserPaymentOptions'    => ($isUserLogged && $this->moduleConfig->canShowUpos()) ? true : false,
-//                'alwaysCollectCvv'          => true,
-//                'fullName'                  => trim((string) $billingAddress['firstName'] . ' ' 
-//                    . (string) $billingAddress['lastName']),
-//                'email'                     => $billingAddress['email'],
-//                'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
-//                'showResponseMessage'       => false, // shows/hide the response popups
-//                'locale'                    => substr($locale, 0, 2),
-//                'autoOpenPM'                => (bool) $this->moduleConfig->getConfigValue('auto_expand_pms'),
-//                'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
-//                'maskCvv'                   => true,
-//                'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
-//                'blockCards'                => $blocked_cards,
-//                'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
-//                'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
-//            ],
         ];
         
 //        if ($isPaymentPlan) {
@@ -404,7 +374,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $ooResp     = $request
             ->setIsUserLogged($isUserLogged)
-//            ->setQuoteId($quoteId)
             ->setEntityId($quoteId) // this ID is actualy the Entity ID
             ->setCallerSdk($callerSdk)
             ->process();

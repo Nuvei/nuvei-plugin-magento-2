@@ -173,7 +173,6 @@ class OpenOrder extends Action
             "success"       => (int) !$resp->error,
             'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
             'successUrl'    => $successUrl,
-//            'orderId'       => isset($resp->orderId) ? $resp->orderId : 0,
         ];
         
         $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');

@@ -10,7 +10,7 @@
             </block>
         </referenceBlock>
         
-        <!-- the place to load Simply Connect SDK -->
+        <!-- The place to load Simply Connect SDK. This place is loaded once per page. -->
         <referenceContainer name="hyva.checkout.api-v1.after">
             <block name="hyva.checkout.payment.method.js.api.v1.nuvei_app"
                    template="Nuvei_Checkout::hyva_checkout/payment/js/api/v1/nuvei_app.phtml">

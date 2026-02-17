@@ -373,52 +373,9 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->error    = 1;
         $this->quote    = empty($this->quoteId) 
             ? $this->cart->getQuote() : $this->quoteFactory->create()->load($this->quoteId);
-//        
-//        $order_data = $this->quote->getPayment()
-//            ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
-//        
-//        if (!is_array($order_data) || empty($order_data)) {
-//            $this->readerWriter->createLog('$order_data is not valid, we need to refresh page and start with new openOrder request.');
-//            
-//            return $this;
-//        }
         
-        // debug log
-//        $billingAddress = $this->quote->getBillingAddress();
-//        
-//        $this->readerWriter->createLog([
-//            
-//        ]);
-        
-//        if (!$billingAddress 
-//            || !$billingAddress->getFirstName() 
-//            || !$billingAddress->getLastName() 
-//            || !$billingAddress->getStreet() 
-//            || !$billingAddress->getCity() 
-//            || !$billingAddress->getPostcode()
-//            || !$billingAddress->getTelephone()
-//            || !$billingAddress->getCountryId()
-//        ) {
-//            $this->readerWriter->createLog((array) $billingAddress, 'billing address is missing');
-//            
-//            throw new \Magento\Framework\Exception\LocalizedException(__('Billing address is incomplete.'));
-//        }
-        
-//        $this->onepageCheckout->getCheckoutMethod();
-        // create Order from the Quote
-//        $orderId = $this->cartManagement->placeOrder($this->quote->getId());
-        
-        // Error when place the Order
-//        if (!$orderId || !is_numeric($orderId)) {
-//            $this->readerWriter->createLog($this->quote->getId(), 'Error when try to create Order from Quote.', 'WARN');
-//            
-//            return $this;
-//        }
-        
-        $this->order = $this->orderRepo->get($this->orderId);
-//        $this->orderId  = $orderId;
-//        
-        $order_data = $this->order->getPayment()
+        $this->order    = $this->orderRepo->get($this->orderId);
+        $order_data     = $this->order->getPayment()
             ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
         $this->readerWriter->createLog([$this->orderId, $order_data], 'prePaymentCheck');

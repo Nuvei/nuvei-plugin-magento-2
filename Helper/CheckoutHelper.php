@@ -38,10 +38,10 @@ class CheckoutHelper extends AbstractHelper
     }
 
     /**
-     * @param bool $returnSdkBlockOnly  If it is true return only the part for the SDK - $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']. We will pass true only when need the configuration from the headless implementation.
+     * @param bool $returnSdkBlockOnly We will pass true only when need the configuration from the headless implementation.In this case it will return only the part for the SDK - $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']. 
      * @return array
      */
-    public function getCheckoutSdkConfig($returnSdkBlockOnly)
+    public function getCheckoutSdkConfig($returnSdkBlockOnly = false)
     {
         $this->readerWriter->createLog('getCheckoutSdkConfig()');
         
@@ -118,6 +118,7 @@ class CheckoutHelper extends AbstractHelper
                         'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
                         'showResponseMessage'       => false, // shows/hide the response popups
                         'locale'                    => $locale,
+                        'webMasterId'               => $this->moduleConfig->getSourcePlatformField(),
                         'autoOpenPM'                => (bool) $this->moduleConfig->getConfigValue('auto_expand_pms'),
                         'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
                         'maskCvv'                   => true,

@@ -1,3 +1,35 @@
-<div id="nuvei_simply_connect">
-    Loading...
+<?php
+
+/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+/** @var \Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel $viewModel */
+
+// Hyva's way to get your ViewModel without XML
+$viewModel      = $viewModels->require(\Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel::class);
+$configJson     = $viewModel->getJsonConfig();
+$translations   = [
+    'UnexpectedError'       => __('Unexpected error, please try again later!')->render(),
+    'InsufficientFunds'     => __('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.')->render(),
+    'TransactionDeclined'   => __('Your transaction was declined.')->render(),
+];
+
+?>
+
+<div x-ignore>
+<!--<div x-data="nuveiPaymentMethod()">-->
+    <script type="application/json" id="nuvei-simply-params"><?= /* @noEscape */ $configJson ?></script>
+    <script type="application/json" id="nuvei-checkout-translations"><?= /* @noEscape */ json_encode($translations) ?></script>
+
+    <div id="nuvei_checkout" x-ignore>
+        Loading...
+    </div>
+    
+<!--    <template x-if="errorMessage">
+        <div class="message error" x-text="errorMessage"></div>
+    </template>-->
 </div>
+
+<script>
+    (() => {
+        console.log('nuvei card');
+    })();
+</script>
