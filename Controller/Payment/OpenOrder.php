@@ -2,12 +2,18 @@
 
 namespace Nuvei\Checkout\Controller\Payment;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\ProductFactory;
+use Magento\Checkout\Model\Cart;
+use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Webapi\Response;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
+use Nuvei\Checkout\Model\ReaderWriter;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
 
 /**
@@ -39,23 +45,26 @@ class OpenOrder extends Action
     /**
      * Redirect constructor.
      *
-     * @param Context        $context
-     * @param ModuleConfig   $moduleConfig
-     * @param JsonFactory    $jsonResultFactory
-     * @param RequestFactory $requestFactory
-     * @param ReaderWriter   $readerWriter
-     * @param Cart           $cart
+     * @param Context                       $context
+     * @param ModuleConfig                  $moduleConfig
+     * @param JsonFactory                   $jsonResultFactory
+     * @param RequestFactory                $requestFactory
+     * @param ReaderWriter                  $readerWriter
+     * @param Cart                          $cart
+     * @param Session                       $checkoutSession
+     * @param RequestFactory                $productFactory
+     * @param ProductRepositoryInterface    $productRepository
      */
     public function __construct(
         Context $context,
         ModuleConfig $moduleConfig,
         JsonFactory $jsonResultFactory,
         RequestFactory $requestFactory,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Magento\Checkout\Model\Cart $cart,
-        \Magento\Checkout\Model\Session $checkoutSession,
-		\Magento\Catalog\Model\ProductFactory $productFactory,
-		\Magento\Catalog\Api\ProductRepositoryInterface $productRepository
+        ReaderWriter $readerWriter,
+        Cart $cart,
+        Session $checkoutSession,
+		RequestFactory $productFactory,
+		ProductRepositoryInterface $productRepository,
     ) {
         parent::__construct($context);
 
@@ -77,7 +86,7 @@ class OpenOrder extends Action
         $this->readerWriter->createLog($this->getRequest()->getParams(), 'openOrder Controller');
         
         $result = $this->jsonResultFactory->create()
-            ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
+            ->setHttpResponseCode(Response::HTTP_OK);
         
         // if plugin is not active
         if (!$this->moduleConfig->getConfigValue('active')) {
@@ -98,6 +107,9 @@ class OpenOrder extends Action
             // Pre-Payment check
             if ($this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment') {
                 return $this->nuveiPrePayment();
+            }
+            if ($this->getRequest()->getParam('nuveiAction') == 'hyvaPrePayment') {
+                return $this->hyvaPrePayment();
             }
             
             if ($this->getRequest()->getParam('nuveiAction') == 'transactionDeclined') {
@@ -145,7 +157,7 @@ class OpenOrder extends Action
     private function nuveiPrePayment()
     {
         $result = $this->jsonResultFactory->create()
-            ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
+            ->setHttpResponseCode(Response::HTTP_OK);
         
 		$orderId = $this->getRequest()->getParam('orderId');
 		
@@ -180,6 +192,27 @@ class OpenOrder extends Action
         return $result->setData($respData);
     }
     
+    /**
+     * The difference here is, we have only Quote at this moment, there is no orderId nor reservedOrderId.
+     */
+    private function hyvaPrePayment()
+    {
+        $result = $this->jsonResultFactory->create()
+            ->setHttpResponseCode(Response::HTTP_OK);
+        
+        $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
+        $resp       = $request->hyvaPrePaymentCheck();
+
+        $respData = [
+            "success"       => (int) !$resp->error,
+            'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
+        ];
+        
+        $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');
+
+        return $result->setData($respData);
+    }
+    
 	/**
 	 * When the transaction is declined, rebuild the Cart by the last Order.
 	 * 
@@ -189,7 +222,7 @@ class OpenOrder extends Action
     private function onTransactionDeclined()
     {
 		$result = $this->jsonResultFactory->create()
-                ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
+            ->setHttpResponseCode(Response::HTTP_OK);
 		
         try {
 			$cartBackup = $this->checkoutSession->getData('backup_cart');

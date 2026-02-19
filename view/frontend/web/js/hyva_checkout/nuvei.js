@@ -1,5 +1,7 @@
 //const NUVEI_HYVA_JS = true;
 
+
+
 let nuveiIsSimplyFormValid    = false;
 let nuveiResolvePaymentPromise;
 let nuveiPlaceOrder;
@@ -14,7 +16,9 @@ let nuveiCheckoutTranslations;
 function nuveiAfterSdkResponse(resp) {
     console.log('nuveiAfterSdkResponse()', resp);
    
-    let errorMsg = nuveiCheckoutTranslations.UnexpectedError;
+    let allParams = JSON.parse(
+        document.getElementById('nuvei-simply-params').textContent
+    );
    
     // on Approved or Pending
     if (resp.result == 'APPROVED' || resp.result == 'PENDING') {
@@ -45,7 +49,7 @@ function nuveiAfterSdkResponse(resp) {
         || !resp.hasOwnProperty('result')
         || !resp.hasOwnProperty('transactionId')
     ) {
-        let errorMsg = nuveiCheckoutTranslations.UnexpectedError;
+        let errorMsg = allParams.unexpectedErrorMsg;
 
         if (resp.hasOwnProperty('error') && '' != resp.error) {
             errorMsg = resp.error;
@@ -98,13 +102,19 @@ function nuveiUpdateOrder(paymentDetails) {
     console.log('nuveiUpdateOrder');
 
     return new Promise((resolve, reject) => {
-        if (!window.nuveiSavedOrderId) {
-            alert(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg)
-            reject(new Error(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg));
-            return;
-        }
+//        if (!window.nuveiSavedOrderId) {
+//            alert(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg)
+//            reject(new Error(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg));
+//            return;
+//        }
+        
+        let allParams = JSON.parse(
+            document.getElementById('nuvei-simply-params').textContent
+        );
 
-        const paramsStr = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
+        // we don't have any order key at this moment
+//        const paramsStr = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
+        const paramsStr = '?nuveiAction=hyvaPrePaymen';
         const xmlhttp   = new XMLHttpRequest();
 
         xmlhttp.onreadystatechange = function() {
@@ -117,8 +127,9 @@ function nuveiUpdateOrder(paymentDetails) {
                     if (!resp.hasOwnProperty('success') || 0 == resp.success) {
                         reject();
 
-                        if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-                            nuveiWhenTransDeclined();
+                        // TODO - test if we need to rebuild the Order form the quote in Hyva
+                        if (!alert(allParams.unexpectedErrorMsg)) {
+//                            nuveiWhenTransDeclined();
                         }
 
                         return;
@@ -128,11 +139,13 @@ function nuveiUpdateOrder(paymentDetails) {
 
                     // if we get new Session Token, update the input
                     if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
-                        document.getElementById('nuvei_session_token').value = resp.sessionToken;
+                        // TODO - do we need to pass the session token at all?
+                        console.log('there is new session token', resp.sessionToken)
+//                        document.getElementById('nuvei_session_token').value = resp.sessionToken;
                     }
 
                     if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
-                        window.nuveiSuccessUrl = resp.successUrl;
+//                        window.nuveiSuccessUrl = resp.successUrl;
                     }
 
                     resolve();
@@ -140,30 +153,32 @@ function nuveiUpdateOrder(paymentDetails) {
                 }
 
                 if (xmlhttp.status == 400) {
-                    console.log('There was an error.');
+                    console.error('There was an error.');
                     reject();
 
-                    if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-                        nuveiWhenTransDeclined();
+                    // TODO - test if we need to rebuild the Order form the quote in Hyva
+                    if (!alert(allParams.unexpectedErrorMsg)) {
+//                        nuveiWhenTransDeclined();
                     }
 
                     return;
                 }
 
-                console.log('Unexpected response code.');
+                console.error('Unexpected response code.');
                 reject();
 
-                if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-                    nuveiWhenTransDeclined();
+                // TODO - test if we need to rebuild the Order form the quote in Hyva
+                if (!alert(allParams.unexpectedErrorMsg)) {
+//                    nuveiWhenTransDeclined();
                 }
 
                 return;
             }
         };
 
-        nuveiShowLoader();
+//        nuveiShowLoader();
 
-        xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
+        xmlhttp.open("GET", allParams.getUpdateOrderUrl + paramsStr, true);
         xmlhttp.send();
     });
 }
@@ -206,7 +221,7 @@ function nuveiUpdateOrder(paymentDetails) {
         console.log('... and nuvei is selected', simplyParams);
 
         simplyParams.payButton        = 'noButton';
-//        simplyParams.prePayment       = nuveiUpdateOrder;
+        simplyParams.prePayment       = nuveiUpdateOrder;
         simplyParams.onFormValidated  = nuveiIsSdkFormValid;
         simplyParams.onResult         = nuveiAfterSdkResponse;
 
@@ -273,5 +288,52 @@ function nuveiUpdateOrder(paymentDetails) {
             }
         }
     });
+
+
+    // TODO listent for total and address changes
+    document.addEventListener('magewire:load', () => {
+        console.log('magewire:load');
+        
+        Magewire.hook('message.processed', (message, component) => {
+//            console.log('magewire:load component', component);
+            
+//            if (component.name.includes('checkout')) {
+////                console.log('checkout updated', component);
+//            }
+            
+            // id - price-summary.total-segments
+//            if (component.name.includes('total')) {
+            if ('price-summary.total-segments' === component.name) {
+                console.log('total updated', component);
+            }
+            
+            // id - checkout.billing-details
+//            if (component.name.includes('billing')) {
+            if ('checkout.billing-details' === component.name) {
+                console.log('billing updated', component);
+            }
+            
+//            if (component.fingerprint.name === 'checkout.totals') {
+//                console.log('checkout totals updated');
+//            } 
+//            
+//            if (component.fingerprint.name === 'price-summary.total-segments') {
+//                console.log('price-summary.total-segments updated');
+//                
+//                const root = component.el;
+//                const grandTotalEl = root.querySelector('.grand_total .value');
+//                
+//                if (!grandTotalEl) return;
+//
+//                const grandTotal = grandTotalEl.textContent.trim();
+//                console.log('Grand Total:', grandTotal);
+//            } 
+        });
+        
+        
+        
+    });
+
+
 
 })();

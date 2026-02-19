@@ -62,6 +62,7 @@ class CheckoutHelper extends AbstractHelper
         $useDCC             = $this->moduleConfig->getConfigValue('use_dcc');
         $locale             = substr($locale, 0, 2);
 		$sdkStyle			= (string) $this->moduleConfig->getConfigValue('sdk_style', 'basic');
+        $checkoutSession    = $this->moduleConfig->getCheckoutSession();
 
 		if (!is_string($sdkStyle)) {
 			$sdkStyle = '';
@@ -92,6 +93,7 @@ class CheckoutHelper extends AbstractHelper
                     'checkoutFormAction'	=> $this->moduleConfig->getCallbackSuccessUrl(),
                     'getUpdateOrderUrl'     => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
                     'isPaymentPlan'         => $isPaymentPlan,
+                    'reservedOrderId'       => $checkoutSession->getQuote()->getReservedOrderId(),
                     'unexpectedErrorMsg'    => __('Unexpected error. Please try again later!'),
                     'missingOrderIdMsg'		=> __('Order ID is missing. Please, submit the Order using "Place Order" button!'),
 

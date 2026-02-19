@@ -7,7 +7,7 @@
 $viewModel      = $viewModels->require(\Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel::class);
 $configJson     = $viewModel->getJsonConfig();
 $translations   = [
-    'UnexpectedError'       => __('Unexpected error, please try again later!')->render(),
+//    'UnexpectedError'       => __('Unexpected error, please try again later!')->render(),
     'InsufficientFunds'     => __('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.')->render(),
     'TransactionDeclined'   => __('Your transaction was declined.')->render(),
 ];
@@ -27,9 +27,3 @@ $translations   = [
         <div class="message error" x-text="errorMessage"></div>
     </template>-->
 </div>
-
-<script>
-    (() => {
-        console.log('nuvei card');
-    })();
-</script>

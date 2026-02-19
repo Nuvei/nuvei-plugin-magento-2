@@ -412,6 +412,51 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     }
     
     /**
+     * Method similar to prePaymentCheck, 
+     * but in case with Hyva we still don't have any Order id and need to use the Quote.
+     */
+    public function hyvaPrePaymentCheck()
+    {
+        $this->readerWriter->createLog('hyvaPrePaymentCheck');
+        
+        $this->error    = 1;
+        $this->quote    = $this->cart->getQuote();
+        $order_data     = $this->quote->getPayment()->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
+        
+        $this->readerWriter->createLog($order_data, 'hyvaPrePaymentCheck order data');
+        
+        // error
+        if (!is_array($order_data) || empty($order_data)) {
+            $this->readerWriter->createLog('$order_data is not valid, we need to refresh page and start with new openOrder request.');
+            
+            return $this;
+        }
+        
+        // update order to pass the final data
+        $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
+
+        $allParams = $update_order_request
+            ->setQuoteId($this->quote->getId())
+            ->process();
+        
+        $req_resp               = $allParams['respParams'];
+        $this->requestParams    = $allParams['requestParams'];
+        
+        // if UpdateOrder fails - refresh the page
+        if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
+            return $this;
+        }
+        
+        $this->items = $this->order->getItems();
+        
+        $this->setCreateOrderData($req_resp, $this->isProductAvailable(), $order_data);
+        
+        $this->error = 0;
+        
+        return $this;
+    }
+    
+    /**
      * {@inheritdoc}
      *
      * @return string

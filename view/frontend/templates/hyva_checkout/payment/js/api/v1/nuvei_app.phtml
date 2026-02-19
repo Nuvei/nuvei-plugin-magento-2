@@ -7,13 +7,15 @@
     }
 ?>
 
-<script src="https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js" 
+<script src="https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js"
         id="nuvei-simply-connect-script"
-        async 
+        nonce="<?= $hyvaCsp->getNonce() ?>"
+        async
         defer></script>
+
 <script src="<?= $block->getViewFileUrl('Nuvei_Checkout::js/hyva_checkout/nuvei.js') ?>"></script>
 
-<?php 
+<?php
     // give Nonce to all scripts aboive
     $hyvaCsp->registerInlineScript();
 ?>
