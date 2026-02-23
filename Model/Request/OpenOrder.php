@@ -453,6 +453,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $this->error = 0;
         
+        $this->readerWriter->createLog($allParams['respParams'], 'hyvaPrePaymentCheck');
+        
         return $this;
     }
     

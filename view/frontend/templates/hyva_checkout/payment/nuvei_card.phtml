@@ -6,21 +6,23 @@
 // Hyva's way to get your ViewModel without XML
 $viewModel      = $viewModels->require(\Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel::class);
 $configJson     = $viewModel->getJsonConfig();
-$translations   = [
-//    'UnexpectedError'       => __('Unexpected error, please try again later!')->render(),
-    'InsufficientFunds'     => __('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.')->render(),
-    'TransactionDeclined'   => __('Your transaction was declined.')->render(),
-];
 
 ?>
 
-<div x-ignore>
-<!--<div x-data="nuveiPaymentMethod()">-->
-    <script type="application/json" id="nuvei-simply-params"><?= /* @noEscape */ $configJson ?></script>
-    <script type="application/json" id="nuvei-checkout-translations"><?= /* @noEscape */ json_encode($translations) ?></script>
-
-    <div id="nuvei_checkout" x-ignore>
+<div>
+    <div id="nuvei_checkout" 
+         x-ignore
+         x-data 
+         data-config='<?= $escaper->escapeHtmlAttr($configJson) ?>'>
         Loading...
+    </div>
+    
+    <div class="nuvei-loading-mask" 
+         data-role="loader" 
+         style="display: none; z-index: 9999; bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; background: rgba(255,255,255,0.5);">
+        <div class="loader">
+            <img alt="Loading..." src="#" style="bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; z-index: 100; max-width: 100%; height: auto; border: 0;" />
+        </div>
     </div>
     
 <!--    <template x-if="errorMessage">

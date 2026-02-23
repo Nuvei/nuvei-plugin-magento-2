@@ -15,6 +15,7 @@ use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
 use Nuvei\Checkout\Model\ReaderWriter;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
+use Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel;
 
 /**
  * Nuvei Checkout OpenOrder controller.
@@ -41,6 +42,7 @@ class OpenOrder extends Action
     private $checkoutSession;
     private $productFactory;
     private $productRepository;
+    private $hyvaViewModel;
 
     /**
      * Redirect constructor.
@@ -54,6 +56,7 @@ class OpenOrder extends Action
      * @param Session                       $checkoutSession
      * @param RequestFactory                $productFactory
      * @param ProductRepositoryInterface    $productRepository
+     * @param HyvaCheckoutViewModel         $hyvaViewModel
      */
     public function __construct(
         Context $context,
@@ -65,6 +68,7 @@ class OpenOrder extends Action
         Session $checkoutSession,
 		RequestFactory $productFactory,
 		ProductRepositoryInterface $productRepository,
+		HyvaCheckoutViewModel $hyvaViewModel
     ) {
         parent::__construct($context);
 
@@ -76,6 +80,7 @@ class OpenOrder extends Action
         $this->checkoutSession      = $checkoutSession;
         $this->productFactory		= $productFactory;
         $this->productRepository	= $productRepository;
+        $this->hyvaViewModel        = $hyvaViewModel;
     }
 
     /**
@@ -106,13 +111,16 @@ class OpenOrder extends Action
         if ('checkout' == $this->moduleConfig->getUsedSdk()) {
             // Pre-Payment check
             if ($this->getRequest()->getParam('nuveiAction') == 'nuveiPrePayment') {
+                $this->readerWriter->createLog('call nuveiPrePayment');
                 return $this->nuveiPrePayment();
             }
             if ($this->getRequest()->getParam('nuveiAction') == 'hyvaPrePayment') {
+                $this->readerWriter->createLog('call hyvaPrePayment');
                 return $this->hyvaPrePayment();
             }
             
             if ($this->getRequest()->getParam('nuveiAction') == 'transactionDeclined') {
+                $this->readerWriter->createLog('call onTransactionDeclined');
                 return $this->onTransactionDeclined();
             }
         }
@@ -197,19 +205,25 @@ class OpenOrder extends Action
      */
     private function hyvaPrePayment()
     {
+        $this->readerWriter->createLog('OpenOrder Controller hyvaPrePayment');
+        
         $result = $this->jsonResultFactory->create()
             ->setHttpResponseCode(Response::HTTP_OK);
+//        
+//        $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
+//        $resp       = $request->hyvaPrePaymentCheck();
+//
+//        $respData = [
+//            "success"       => (int) !$resp->error,
+//            'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
+//        ];
+//        
+//        $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');
+//
+        $respData = $this->hyvaViewModel->getFormattedData();
         
-        $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
-        $resp       = $request->hyvaPrePaymentCheck();
-
-        $respData = [
-            "success"       => (int) !$resp->error,
-            'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
-        ];
+        $this->readerWriter->createLog($respData, 'OpenOrder Controller hyvaPrePayment');
         
-        $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');
-
         return $result->setData($respData);
     }
     

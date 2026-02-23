@@ -6,11 +6,14 @@
             <values>
                 <value id="devdocs-base" type="host"></value>
                 <value id="magento" type="host">https://magento.com</value>
-                <value id="gpay-script" type="host">https://play.google.com</value>
+                <value id="safecharge-checkout-sdk" type="host">https://cdn.safecharge.com</value>
+                <value id="safecharge-checkout-sdk-tag" type="host">https://devmobile.sccdev-qa.com</value>
+                <value id="safecharge-int-checkout-sdk" type="host">https://cdn-int.safecharge.com</value>
+                <value id="gpay-script" type="host">https://pay.google.com</value>
             </values>
         </policy>
         
-         <policy id="connect-src">
+        <policy id="connect-src">
             <values>
                 <value id="devdocs" type="host"></value>
                 <value id="safecharge-sdkmon" type="host">https://sdkmon.safecharge.com</value>
@@ -24,7 +27,7 @@
             </values>
         </policy>
         
-         <policy id="img-src">
+        <policy id="img-src">
             <values>
             	<value id="safecharge-int-checkout-sdk-img" type="host">https://cdn-int.safecharge.com</value>
                 <value id="safecharge-checkout-sdk-img" type="host">https://cdn.safecharge.com</value>

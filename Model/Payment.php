@@ -854,7 +854,7 @@ class Payment implements MethodInterface
      *
      * @inheritdoc
      */
-    public function isAvailable(CartInterface $quote = null)
+    public function isAvailable(?CartInterface $quote = null)
     {
         if (!$this->isActive($quote ? $quote->getStoreId() : null)) {
             return false;
@@ -964,11 +964,10 @@ class Payment implements MethodInterface
         }
 
         /**
-* 
-         *
- * @var InfoInterface|null $payment 
-*/
+         * @var InfoInterface|null $payment 
+         */
         $payment = null;
+        
         if (isset($arguments['payment']) && $arguments['payment'] instanceof InfoInterface) {
             $payment = $arguments['payment'];
             $arguments['payment'] = $this->paymentDataObjectFactory->create($arguments['payment']);

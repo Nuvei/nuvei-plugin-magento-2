@@ -1,3 +1,4 @@
 *.bak.*
 *.ffs_db
 nbproject
+etc/frontend/csp_whitelist.xml

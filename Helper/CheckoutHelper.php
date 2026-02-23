@@ -5,6 +5,7 @@ namespace Nuvei\Checkout\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Asset\Repository as AssetRepository;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Model\PaymentsPlans;
@@ -21,18 +22,21 @@ class CheckoutHelper extends AbstractHelper
     private $nuveiPaymentPlans;
     private $readerWriter;
     private $urlBuilder;
+    private $assetRepo;
 
     public function __construct(
         Context $context,
         ModuleConfig $moduleConfig,
         PaymentsPlans $nuveiPaymentPlans,
         ReaderWriter $readerWriter,
-        UrlInterface $urlBuilder
+        UrlInterface $urlBuilder,
+        AssetRepository $assetRepo
     ) {
         $this->moduleConfig         = $moduleConfig;
         $this->nuveiPaymentPlans    = $nuveiPaymentPlans;
         $this->readerWriter         = $readerWriter;
         $this->urlBuilder           = $urlBuilder;
+        $this->assetRepo            = $assetRepo;
 
         parent::__construct($context);
     }
@@ -63,6 +67,14 @@ class CheckoutHelper extends AbstractHelper
         $locale             = substr($locale, 0, 2);
 		$sdkStyle			= (string) $this->moduleConfig->getConfigValue('sdk_style', 'basic');
         $checkoutSession    = $this->moduleConfig->getCheckoutSession();
+        $usedSdk            = $this->moduleConfig->getUsedSdk();
+        $returnSdkBlockOnly = false;
+        $config             = [];
+                
+        if (!empty($requiredConfig)) {
+            $usedSdk            = $requiredConfig;
+            $returnSdkBlockOnly = true;
+        }
 
 		if (!is_string($sdkStyle)) {
 			$sdkStyle = '';
@@ -95,7 +107,9 @@ class CheckoutHelper extends AbstractHelper
                     'isPaymentPlan'         => $isPaymentPlan,
                     'reservedOrderId'       => $checkoutSession->getQuote()->getReservedOrderId(),
                     'unexpectedErrorMsg'    => __('Unexpected error. Please try again later!'),
-                    'missingOrderIdMsg'		=> __('Order ID is missing. Please, submit the Order using "Place Order" button!'),
+                    'missingOrderIdMsg'		=> __('Order ID is missing. Please, submit the Order using Place Order button!'),
+                    'InsufficientFunds'     => __('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.'),
+                    'TransactionDeclined'   => __('Your transaction was declined.'),
 
                     // we will set some of the parameters in the JS file
                     'nuveiCheckoutParams' => [
@@ -156,7 +170,11 @@ class CheckoutHelper extends AbstractHelper
             $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['userTokenId']
                 = $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['email'];
         }
-
+        
+        $config['payment'][Payment::METHOD_CODE]['sdk']         = ucfirst($usedSdk);
+        $config['payment'][Payment::METHOD_CODE]['isTestMode']  = $this->moduleConfig->isTestModeEnabled();
+        $config['payment'][Payment::METHOD_CODE]['countryId']   = $this->moduleConfig->getQuoteCountryCode();
+        $config['payment'][Payment::METHOD_CODE]['loadingImg']  = $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif");
 
         if ($returnSdkBlockOnly) {
             return $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams'];
