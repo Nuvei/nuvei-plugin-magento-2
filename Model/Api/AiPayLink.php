@@ -119,19 +119,19 @@ class AiPayLink implements AiPayLinkInterface
             http_response_code(200);
             header('Content-Type: application/json');
 
-            exit(json_encode([
+            return [
                 "status"        => "success",
                 "paylink_url"   => $payLinkData['payLink'],
-            ]));
+            ];
         }
 
         // error
         http_response_code($payLinkData['responseCode']);
 
-        exit(json_encode([
+        return [
             "status"    => "error",
             "message"   => $payLinkData['message'],
-        ]));
+        ];
     }
 
     private function createQuote()
