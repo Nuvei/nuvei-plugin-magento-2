@@ -1317,7 +1317,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if ('Settle' == $this->params['transactionType'] && empty($payment_subs_data)) {
             $this->readerWriter->createLog(
                 $payment_subs_data,
-                'Missing rebilling data into Order Payment. Stop the proccess.'
+                'Missing rebilling data into Order Payment. Stop the proccess.',
+                'DEBUG'
             );
             return;
         }
@@ -1332,14 +1333,78 @@ class Dmn extends Action implements CsrfAwareActionInterface
             $subsc_data = $payment_subs_data;
         }
         
-        // create subscriptions for each of the Products
-        $request = $this->requestFactory->create(AbstractRequest::CREATE_SUBSCRIPTION_METHOD);
+        $subsc_data['userPaymentOptionId']  = $this->params['userPaymentOptionId'];
+        $subsc_data['userTokenId']          = $this->params['email'];
+        $subsc_data['currency']             = $this->params['currency'];
+        $isDcc                              = false;
         
-        $subsc_data['userPaymentOptionId'] = $this->params['userPaymentOptionId'];
-        $subsc_data['userTokenId']         = $this->params['email'];
-        $subsc_data['currency']            = $this->params['currency'];
-            
         try {
+            // check if DCC is used
+            if (!empty($this->params['customField5'])
+                && $this->params['currency'] != $this->params['customField5']
+            ) {
+                $this->readerWriter->createLog('Rebilling with DCC. Get new session token.');
+                
+                $tokenRequest   = $this->requestFactory->create(AbstractRequest::GET_SESSION_TOKEN);
+                $tokenResponse  = $tokenRequest->process();
+                
+                // error
+                if (empty($tokenResponse['sessionToken'])) {
+                    $msg = __("<b>Error</b> when try to get a sessionToken for curreny rates. ");
+
+                    if (!empty($resp['reason'])) {
+                        $msg .= '<br/>' . __('Reason: ') . $resp['reason'];
+                    }
+                    
+                    $this->readerWriter->createLog($tokenResponse, 'sessionToken is empty.', 'DEBUG');
+                    
+                    $this->order->addStatusHistoryComment($msg, $this->sc_transaction_type);
+                    $this->orderResourceModel->save($this->order);
+                    
+                    return;
+                }
+                
+                $this->readerWriter->createLog('Rebilling with DCC. Get the rates.');
+                
+                $mcpRequest = $this->requestFactory->create(AbstractRequest::GET_MCP_RATES);
+                $mcpResp    = $mcpRequest
+                    ->setSessionToken($tokenResponse['sessionToken'])
+                    ->setFromCurrency($this->params['customField5'])
+                    ->setToCurrency([ $this->params['currency'] ])
+                    ->setPaymentMethods([ $this->params['payment_method'] ])
+                    ->process();
+                
+                // error
+                if (empty($mcpResp)) {
+                    $msg = __("<b>Error</b> the currency rates are missing. ");
+
+                    if (!empty($resp['reason'])) {
+                        $msg .= '<br/>' . __('Reason: ') . $resp['reason'];
+                    }
+                    
+                    $this->readerWriter->createLog($tokenResponse, 'There are no rates.', 'DEBUG');
+                    
+                    $this->order->addStatusHistoryComment($msg, $this->sc_transaction_type);
+                    $this->orderResourceModel->save($this->order);
+                    
+                    return;
+                }
+                
+                // the results can be a list of object, but as we pass a single method, 
+                // the results are in the first elements
+                $result = bcmul(
+                    $subsc_data['recurringAmount'], 
+                    $mcpResp['rates'][0]['ratesByCurrencies'][0]['rate'],
+                    4 // internal precision
+                );
+                
+                $subsc_data['recurringAmount']  = number_format((float) $result, 2, '.', '');
+                $isDcc                          = true;
+            }
+            
+            // create subscriptions for each of the Products
+            $request = $this->requestFactory->create(AbstractRequest::CREATE_SUBSCRIPTION_METHOD);
+            
             $resp = $request
                 ->setOrderId($orderIncrementId)
                 ->setData($subsc_data)
@@ -1347,11 +1412,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
             // add note to the Order - Success
             if ('success' == strtolower($resp['status'])) {
-                $msg =  __(
-                    "<b>Subscription</b> was created. Subscription ID "
-                    . $resp['subscriptionId']
-                ). '. '
-                    . __('Recurring amount: ') . $this->params['currency'] . ' '
+                $msg =  __("<b>Subscription</b> was created. Subscription ID ")
+                    . $resp['subscriptionId'] . '. ';
+                
+                // add more details about the DCC
+                if ($isDcc) {
+                    $msg .= '<br/>' . __("DCC was used, so the recurring amount corresponds to the initial Order currency.") . '<br/>';
+                }
+                
+                $msg .= __('Recurring amount: ') . $this->params['currency'] . ' '
                     . $subsc_data['recurringAmount'];
             }
             // Error, Decline

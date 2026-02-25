@@ -155,7 +155,6 @@ class PaymentApm extends AbstractRequest implements RequestInterface
      */
     protected function getParams()
     {
-//        $quoteId        = empty($this->quoteId) ? $this->checkoutSession->getQuoteId() : $this->quoteId;
         $quoteId        = empty($this->quoteId) ? $this->config->getQuoteId() : $this->quoteId;
         $quote          = $this->quoteFactory->create()->load($quoteId);
         $quotePayment   = $quote->getPayment();
@@ -163,8 +162,8 @@ class PaymentApm extends AbstractRequest implements RequestInterface
         
         $this->readerWriter->createLog(
             [
-            'quote id' => $this->quoteId,
-            '$order_data' => $order_data,
+                'quote id'      => $this->quoteId,
+                '$order_data'   => $order_data,
             ]
         );
         
@@ -173,7 +172,12 @@ class PaymentApm extends AbstractRequest implements RequestInterface
             
             $this->readerWriter->createLog($order_data, $msg);
             
-            throw new \Exception(__($msg));
+            return [
+                'status'    => 'error',
+                'message'   => __($msg),
+            ];
+            
+//            throw new \Exception(__($msg));
         }
         
         $billingAddress = $this->config->getQuoteBillingAddress($this->quoteId);

@@ -32,6 +32,7 @@ class Factory
         AbstractRequest::GET_SESSION_TOKEN                  => \Nuvei\Checkout\Model\Request\GetSessionToken::class,
         AbstractRequest::DELETE_UPOS_METHOD                 => \Nuvei\Checkout\Model\Request\DeleteUPO::class,
         AbstractRequest::PAYMENT_VOID_METHOD                => \Nuvei\Checkout\Model\Request\Payment\Cancel::class,
+        AbstractRequest::GET_MCP_RATES                      => \Nuvei\Checkout\Model\Request\GetMcpRates::class,
     ];
 
     /**

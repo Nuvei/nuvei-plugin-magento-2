@@ -145,11 +145,20 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $this->readerWriter->createLog($this->quoteId, 'openOrder quoteId');
         
+        // error
+        if (empty($this->quote)) {
+            $this->error    = 1;
+            $this->reason   = __('The Quote is missing');
+            
+            return $this;
+        }
+        
         $this->items = $this->quote->getAllVisibleItems();
         
         // check if each item is in stock
         $items_base_data = $this->isProductAvailable();
-        // after the above call
+        
+        // error after the above call
         if (1 == $this->error) {
             return $this;
         }
@@ -707,7 +716,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $this->reason       = __($msg);
 
             $this->readerWriter->createLog(
-                ['quote' => (array) $this->quote], 
+//                ['quote' => (array) $this->quote], 
                 $msg
             );
             

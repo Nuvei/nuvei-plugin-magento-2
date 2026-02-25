@@ -3,8 +3,9 @@
 
 # 3.5.1
 ```
-    * Fix for the Deprecation Warning about the nullable parameters in the constructor methods.
+    * Fix for the Deprecation Warning about the nullable parameters in the constructors and the methods.
     * Removed some old commented line of code.
+    * Fix for the recurring amount when DCC is used for the initial transaction.
 ```
 
 # 3.5.0

@@ -16,37 +16,6 @@ var nuveiWaitSdkResponse = false;
 var isSimplyConnectFormValid = false;
 
 /**
- * Validate checkout agreements.
- *
- * @returns {Boolean}
- */
-function nuveiValidateAgreement(hideError) {
-	console.log('nuveiValidateAgreement()');
-
-	var nuveiAgreementsInputPath	= '.payment-method._active div.checkout-agreements input';
-	var isValid						= true;
-
-    // we can check also  window.checkoutConfig.checkoutAgreements.isEnabled
-
-	if (!nuveiAgreementsConfig.isEnabled
-		|| jQuery(nuveiAgreementsInputPath).length === 0
-	) {
-	   return isValid;
-	}
-
-	jQuery(nuveiAgreementsInputPath).each(function (index, element) {
-	   if (!jQuery.validator.validateSingleElement(element, {
-		   errorElement: 'div',
-		   hideError: hideError || false
-	   })) {
-		   isValid = false;
-	   }
-	});
-
-	return isValid;
-};
-
-/**
  * Checks if the SDK form is valid and set it to a global variable.
  * 
  * @param {object} params
@@ -357,10 +326,6 @@ define(
                 return self;
             },
 
-            getCode: function() {
-                return nuveiGetCode();
-            },
-
 			getSessionToken: function() {
                 let paymentMethod   = quote.paymentMethod();
                 let shippingMethod  = quote.shippingMethod();
@@ -402,7 +367,7 @@ define(
                 }
                 
                 // Cart with mixed products
-                if(window.checkoutConfig.payment[self.getCode()].isPaymentPlan
+                if(window.checkoutConfig.payment[nuveiGetCode()].isPaymentPlan
                     && quote.getItems().length > 1
                 ) {
                     nuveiShowGeneralError(jQuery.mage.__('You can not combine a Product with Nuvei Payment with another product. To continue, please remove some of the Product in your Cart!'));
@@ -632,7 +597,7 @@ define(
 			 * @returns void
 			 */
 			writeLog: function(_text, _param = null, _mode = 'log') {
-				if(window.checkoutConfig.payment[self.getCode()].isTestMode !== true) {
+				if(window.checkoutConfig.payment[nuveiGetCode()].isTestMode !== true) {
 					return;
 				}
 				
