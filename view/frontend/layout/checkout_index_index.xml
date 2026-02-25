@@ -27,8 +27,8 @@
                                           xsi:type="array">
                                         <item name="billing-step"
                                               xsi:type="array">
-                                            <item name="component"
-                                                  xsi:type="string">uiComponent</item>
+<!--                                            <item name="component"
+                                                  xsi:type="string">uiComponent</item>-->
                                             <item name="children"
                                                   xsi:type="array">
                                                 <item name="payment"
@@ -47,8 +47,8 @@
                                                                           xsi:type="array">
                                                                         <item name="nuvei"
                                                                               xsi:type="array">
-                                                                            <item name="isBillingAddressRequired"
-                                                                                  xsi:type="boolean">true</item>
+<!--                                                                            <item name="isBillingAddressRequired"
+                                                                                  xsi:type="boolean">true</item>-->
                                                                         </item>
                                                                     </item>
                                                                 </item>

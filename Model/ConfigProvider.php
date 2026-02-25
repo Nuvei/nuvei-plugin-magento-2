@@ -106,7 +106,6 @@ class ConfigProvider extends CcGenericConfigProvider
         
         switch ($usedSdk) {
             case 'checkout':
-//                $config = $this->getCheckoutSdkConfig($returnSdkBlockOnly);
                 $config = $this->checkoutHelper->getCheckoutSdkConfig($returnSdkBlockOnly);
                 break;
 
@@ -131,6 +130,8 @@ class ConfigProvider extends CcGenericConfigProvider
     /**
      * @param bool $returnSdkBlockOnly  If it is true return only the part for the SDK - $config['payment'][Payment::METHOD_CODE]. We will pass true only when need the configuration from the headless implementation.
      * @return array
+     * 
+     * @deprecated sice 3.6.0
      */
     private function getWebSdkConfig($returnSdkBlockOnly)
     {

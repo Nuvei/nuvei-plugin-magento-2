@@ -325,6 +325,10 @@ define(
             context: function() {
                 return self;
             },
+            
+            getCode: function() {
+                return nuveiGetCode();
+            },
 
 			getSessionToken: function() {
                 let paymentMethod   = quote.paymentMethod();

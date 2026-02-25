@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.6.0
+```
+    * Added support to Hyva Checkout.
+    * Removed the webSDK as payment integration.
+```
+
 # 3.5.1
 ```
     * Fix for the Deprecation Warning about the nullable parameters in the constructors and the methods.

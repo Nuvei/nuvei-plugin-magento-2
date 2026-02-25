@@ -168,7 +168,7 @@
 						<config_path>payment/nuvei/sandbox_merchant_secret_key</config_path>
 					</field>
 					
-					<field id="sdk"
+<!--					<field id="sdk"
 						   translate="label"
 						   type="select"
 						   sortOrder="120"
@@ -180,7 +180,7 @@
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\Sdk</source_model>
 						<config_path>payment/nuvei/sdk</config_path>
                         <comment>You can choose between Simply Connect (recommended) and Web SDK.</comment>
-					</field>
+					</field>-->
                     
                     <field id="save_upos"
 						   translate="label"

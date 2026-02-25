@@ -101,6 +101,7 @@ class CheckoutHelper extends AbstractHelper
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
+                    'isActive'              => $this->moduleConfig->getConfigValue('active'),
                     'cartUrl'               => $this->urlBuilder->getUrl('checkout/cart/'),
                     'checkoutFormAction'	=> $this->moduleConfig->getCallbackSuccessUrl(),
                     'getUpdateOrderUrl'     => $this->urlBuilder->getUrl('nuvei_checkout/payment/OpenOrder'),
