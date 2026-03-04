@@ -5,15 +5,47 @@
  * @package  Nuvei_Checkout
  */
 
-var nuveiAgreementsConfig = window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
-/**
- * Set it true when prePayment check is resolved, and set it false in the nuveiAfterSdkResponse().
- * 
- * @type Boolean
- */
-var nuveiWaitSdkResponse = false;
+// Set it true when prePayment check is resolved, and set it false in the nuveiAfterSdkResponse().
+var nuveiWaitSdkResponse        = false;
+var isSimplyConnectFormValid    = false;
 
-var isSimplyConnectFormValid = false;
+/**
+ * Common function to show error messages.
+ * 
+ * @param string msg
+ * @returns void
+ */
+function nuveiShowGeneralError(msg) {
+    jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
+    jQuery('#nuvei_general_error').show();
+    document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
+}
+
+function nuveiShowLoader() {
+    console.log('nuveiShowLoader');
+    
+    if (jQuery('body').find('.loading-mask').length > 0) {
+        jQuery('body').trigger('processStart');
+        return;
+    }
+    
+    if (jQuery('.nuvei-loading-mask')) {
+        jQuery('.nuvei-loading-mask').css('display', 'block');
+    }
+}
+
+function nuveiHideLoader() {
+    console.log('nuveiHideLoader');
+    
+    if (jQuery('body').find('.loading-mask').length > 0) {
+        jQuery('body').trigger('processStop');
+        return;
+    }
+    
+    if (jQuery('.nuvei-loading-mask')) {
+        jQuery('.nuvei-loading-mask').css('display', 'none');
+    }
+}
 
 /**
  * Checks if the SDK form is valid and set it to a global variable.
@@ -276,15 +308,12 @@ define(
     ) {
         'use strict';
 
-		if(0 == window.checkoutConfig.payment[nuveiGetCode()].isActive) {
-			return;
-		}
-
         var self = null;
         
         return Component.extend({
             defaults: {
                 template: 'Nuvei_Checkout/payment/nuveiCheckout',
+                isBillingAddressRequired: true,
                 chosenApmMethod: '',
                 countryId: ''
             },
@@ -575,6 +604,7 @@ define(
                                 return false;
                             }
                             
+                            // the entity_id
                             window.nuveiSavedOrderId = orderId;
                             
                             checkout.submitPayment();
@@ -587,6 +617,27 @@ define(
 
                     return true;
                 }
+                else {
+					// allow KO to render validation messages
+					setTimeout(function () {
+
+						var errorElement = document.querySelector(
+							'.mage-error, ._error, .message-error'
+						);
+
+						if (errorElement) {
+							errorElement.scrollIntoView({
+								behavior: 'smooth',
+								block: 'center'
+							});
+
+							if (typeof errorElement.focus === 'function') {
+								errorElement.focus();
+							}
+						}
+
+					}, 100);
+				}
 
                 return false;
             },

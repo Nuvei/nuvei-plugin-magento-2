@@ -40,31 +40,48 @@ class HyvaCheckoutViewModel implements ArgumentInterface
 
     /**
      * This method will be called from our template
+     * 
+     * @param bool $isPrePayment
      */
-    public function getFormattedData()
+    public function getFormattedData($isPrePayment = false)
     {
-        // 1. get basic checkout params
-        $checkoutParams = $this->helper->getCheckoutSdkConfig();
+        $this->logger->createLog($isPrePayment, 'getFormattedData, isPrePayment');
         
-        // error - nuveiCheckoutParams are missing
-        if (!isset($checkoutParams['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams'])) {
-            $this->logger->createLog($checkoutParams, 'Missing nuveiCheckoutParams.', 'WARN');
-            
-            return [
-                'message' => __('Unexpected error.'),
-            ];
+        // for the prePayment we no need the Checkout params
+        if (!$isPrePayment) {
+            // get basic checkout params
+            $checkoutParams = $this->helper->getCheckoutSdkConfig();
+
+            // error - nuveiCheckoutParams are missing
+            if (!isset($checkoutParams['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams'])) {
+                $this->logger->createLog($checkoutParams, 'Missing nuveiCheckoutParams.', 'WARN');
+
+                return [
+                    'message' => __('Unexpected error.'),
+                ];
+            }
         }
         
-        // 2. we need and session token
+        // we need to update the order/quorte and get again the session token
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
-        $ooResp     = $request
+        $ooObj      = $request
             ->setIsUserLogged($this->config->isUserLogged())
-            ->setEntityId($this->config->getQuoteId()) // this ID is actualy the Entity ID
-            ->setCallerSdk('simplyConnect')
-            ->process();
+            ->setQuoteId($this->config->getQuoteId())
+            ->setCallerSdk('simplyConnect');
+        
+        $ooResp = $isPrePayment ? $ooObj->hyvaPrePaymentCheck() : $ooObj->process();
         
         // some error
         if (empty($ooResp->sessionToken)) {
+            $this->logger->createLog(
+                [
+                    'reason'    => $ooResp->reason ?? '',
+                    'error'     => $ooResp->error ?? '',
+                ], 
+                'Missing sessionToken.', 
+                'WARN'
+            );
+            
             if (isset($ooResp->error, $ooResp->reason) && 1 == $ooResp->error) {
                 return [
                     'message' => $ooResp->reason,

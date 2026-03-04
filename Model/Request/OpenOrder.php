@@ -2,13 +2,24 @@
 
 namespace Nuvei\Checkout\Model\Request;
 
+use Magento\CatalogInventory\Model\StockState;
+use Magento\Checkout\Model\Cart;
+use Magento\Checkout\Model\Type\Onepage;
+use Magento\Framework\App\RequestInterface as HttpRequest;
 use Magento\Framework\Exception\PaymentException;
+use Magento\Framework\Serialize\Serializer\Serialize;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\QuoteFactory;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Nuvei\Checkout\Model\Request\Factory as RequestFactory;
 use Nuvei\Checkout\Model\Payment;
 use Nuvei\Checkout\Lib\Http\Client\Curl;
 use Nuvei\Checkout\Model\AbstractRequest;
 use Nuvei\Checkout\Model\AbstractResponse;
 use Nuvei\Checkout\Model\Config;
+use Nuvei\Checkout\Model\PaymentsPlans;
+use Nuvei\Checkout\Model\ReaderWriter;
 use Nuvei\Checkout\Model\RequestInterface;
 use Nuvei\Checkout\Model\Response\Factory as ResponseFactory;
 
@@ -73,24 +84,30 @@ class OpenOrder extends AbstractRequest implements RequestInterface
      * @param ReaderWriter              $readerWriter
      * @param PaymentsPlans             $paymentsPlans
      * @param StockState                $stockState
+     * @param QuoteFactory              $quoteFactory
+     * @param HttpRequest               $httpRequest
+     * @param Serialize                 $serializer
      * @param CartRepositoryInterface   $quoteRepository
+     * @param CartManagementInterface   $cartManagement
+     * @param OrderRepositoryInterface  $orderRepo
+     * @param Onepage $onepageCheckout
      */
     public function __construct(
         Config $config,
         Curl $curl,
         ResponseFactory $responseFactory,
         RequestFactory $requestFactory,
-        \Magento\Checkout\Model\Cart $cart,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Nuvei\Checkout\Model\PaymentsPlans $paymentsPlans,
-        \Magento\CatalogInventory\Model\StockState $stockState,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
-        \Magento\Framework\App\RequestInterface $httpRequest,
-        \Magento\Framework\Serialize\Serializer\Serialize $serializer,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\Quote\Api\CartManagementInterface $cartManagement,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
-        \Magento\Checkout\Model\Type\Onepage $onepageCheckout
+        Cart $cart,
+        ReaderWriter $readerWriter,
+        PaymentsPlans $paymentsPlans,
+        StockState $stockState,
+        QuoteFactory $quoteFactory,
+        HttpRequest $httpRequest,
+        Serialize $serializer,
+        CartRepositoryInterface $quoteRepository,
+        CartManagementInterface $cartManagement,
+        OrderRepositoryInterface $orderRepo,
+        Onepage $onepageCheckout
     ) {
         parent::__construct(
             $config,
@@ -132,6 +149,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     {
         $this->readerWriter->createLog('openOrder');
         
+        // get the Quote
         if (!empty($this->quoteId)) {
             $this->quote = $this->quoteFactory->create()->load($this->quoteId);
         }
@@ -149,6 +167,14 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         if (empty($this->quote)) {
             $this->error    = 1;
             $this->reason   = __('The Quote is missing');
+            
+            return $this;
+        }
+        
+        // error
+        if (!$this->quote->getItemsCount()) {
+            $this->error    = 1;
+            $this->reason   = __('The Quote is empty - there are no items.');
             
             return $this;
         }
@@ -334,12 +360,12 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         return $this;
     }
     
-    public function setOrderId($orderId)
-    {
-        $this->orderId = $orderId;
-        
-        return $this;
-    }
+//    public function setOrderId($orderId)
+//    {
+//        $this->orderId = $orderId;
+//        
+//        return $this;
+//    }
     
     /**
      * This is about the REST user.
@@ -383,11 +409,19 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->quote    = empty($this->quoteId) 
             ? $this->cart->getQuote() : $this->quoteFactory->create()->load($this->quoteId);
         
-        $this->order    = $this->orderRepo->get($this->orderId);
-        $order_data     = $this->order->getPayment()
+        $this->order = $this->orderRepo->get($this->entityId);
+        
+        // error
+        if (empty($this->order)) {
+            $this->readerWriter->createLog('The Order is empty.');
+            
+            return $this;
+        }
+        
+        $order_data = $this->order->getPayment()
             ->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
         
-        $this->readerWriter->createLog([$this->orderId, $order_data], 'prePaymentCheck');
+        $this->readerWriter->createLog([$this->entityId, $order_data], 'prePaymentCheck');
         
         if (!is_array($order_data) || empty($order_data)) {
             $this->readerWriter->createLog('$order_data is not valid, we need to refresh page and start with new openOrder request.');
@@ -400,7 +434,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
 
         $allParams = $update_order_request
             ->setOrderData($order_data)
-            ->setOrderId($this->orderId)
+            ->setEntityId($this->entityId)
             ->process();
         
         $req_resp               = $allParams['respParams'];
@@ -426,7 +460,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
      */
     public function hyvaPrePaymentCheck()
     {
-        $this->readerWriter->createLog('hyvaPrePaymentCheck');
+        $this->readerWriter->createLog('OpenOrder model - hyvaPrePaymentCheck');
         
         $this->error    = 1;
         $this->quote    = $this->cart->getQuote();
@@ -445,6 +479,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $update_order_request = $this->requestFactory->create(AbstractRequest::UPDATE_ORDER_METHOD);
 
         $allParams = $update_order_request
+            ->setOrderData($order_data)
             ->setQuoteId($this->quote->getId())
             ->process();
         
@@ -452,15 +487,21 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $this->requestParams    = $allParams['requestParams'];
         
         // if UpdateOrder fails - refresh the page
-        if (empty($req_resp['status']) || 'success' != strtolower($req_resp['status'])) {
+        if (empty($req_resp['status']) 
+            || 'success' != strtolower($req_resp['status'])
+            || empty($req_resp['sessionToken'])
+        ) {
+            $this->reason = $req_resp['reason'] ?? __('Missing sessionToken or status is not success.');
+            
             return $this;
         }
         
-        $this->items = $this->order->getItems();
+        $this->items = $this->quote->getAllVisibleItems();
         
         $this->setCreateOrderData($req_resp, $this->isProductAvailable(), $order_data);
         
-        $this->error = 0;
+        $this->error        = 0;
+        $this->sessionToken = $req_resp['sessionToken'];
         
         $this->readerWriter->createLog($allParams['respParams'], 'hyvaPrePaymentCheck');
         
@@ -522,7 +563,8 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         
         $currency   = $this->config->getQuoteBaseCurrency($quoteId);
         $params     = [
-            'clientUniqueId'    => $quoteId . '_' . time(),
+//            'clientUniqueId'    => $quoteId . '_' . time(),
+            'clientUniqueId'    => $quoteId,
             'currency'          => $currency,
             'amount'            => $amount,
             'deviceDetails'     => $this->config->getDeviceDetails(),
@@ -543,6 +585,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
                 'customField2' => isset($this->subs_data) ? json_encode($this->subs_data) : '',
                 // customField4 will be set in AbstractRequest class
                 'customField5' => $currency,
+                'customField6' => 'quoteId',
             ],
         ];
         
@@ -700,7 +743,15 @@ class OpenOrder extends AbstractRequest implements RequestInterface
     }
     
     /**
-     * @return array
+     * Checks stock availability for all visible items in the quote/order.
+     * 
+     * $this->items is set via getAllVisibleItems(), which returns only parent-level
+     * items. For configurable products the parent item holds the qty, but stock
+     * must be verified against the simple child product ID. getChildren() on a
+     * quote item returns the linked child row (if any); for simple products it is
+     * empty, so we fall back to the item's own product ID.
+     * 
+     * @return array $items_base_data - basic info about every item in the cart.
      */
     private function isProductAvailable()
     {
@@ -709,66 +760,49 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         $items_base_data = [];
         
         if (empty($this->items)) {
-            $msg = 'Error! There are no items.';
+            $msg = 'isProductAvailable() - there are no items to check.';
             
-            $this->error        = 1;
-            $this->outOfStock   = 0;
-            $this->reason       = __($msg);
-
-            $this->readerWriter->createLog(
-//                ['quote' => (array) $this->quote], 
-                $msg
-            );
+            $this->readerWriter->createLog($msg);
             
             return $items_base_data;
         }
         
         foreach ($this->items as $item) {
-            $childItems         = $item->getChildren();
-            $stockItemToCheck   = [];
-
-            if (is_array($childItems)) {
-                foreach ($childItems as $childItem) {
-                    $stockItemToCheck[] = $childItem->getProduct()->getId();
-                }
-            } else {
-                $stockItemToCheck[] = $item->getProduct()->getId();
-            }
-
             $items_base_data[] = [
                 'id'    => $item->getId(),
                 'name'  => $item->getName(),
                 'qty'   => $item->getQty(),
                 'price' => $item->getPrice(),
             ];
-            
-            if (!is_array($stockItemToCheck) || empty($stockItemToCheck)) {
-                continue;
-            }
 
-            foreach ($stockItemToCheck as $productId) {
-                $available = $this->stockState->checkQty($productId, $item->getQty());
+            // For configurable products the child item carries the real product ID.
+            // getChildren() returns the child quote item row; for simple products
+            // it returns an empty array, so we fall back to the parent product ID.
+            $children   = $item->getChildren();
+            $productId  = !empty($children) 
+                ? reset($children)->getProduct()->getId() 
+                : $item->getProduct()->getId();
 
-                if (!$available) {
-                    $this->error        = 1;
-                    $this->outOfStock   = 1;
-                    $this->reason       = __('Error! Some of the products are out of stock.');
+            $available = $this->stockState->checkQty($productId, $item->getQty());
 
-                    $this->readerWriter->createLog(
-                        [
-                            '$productId'        => $productId,
-                            '$items_base_data'  => $items_base_data,
-                        ],
-                        'A product is not availavle.'
-                    );
+            if (!$available) {
+                $this->error        = 1;
+                $this->outOfStock   = 1;
+                $this->reason       = __('Error! Some of the products are out of stock.');
 
-                    //                        return $this;
-                    return $items_base_data;
-                }
+                $this->readerWriter->createLog(
+                    [
+                        'productId'         => $productId,
+                        'items_base_data'   => $items_base_data,
+                    ],
+                    'isProductAvailable() - a product is not available.'
+                );
+
+                return $items_base_data;
             }
         }
         
-        $this->readerWriter->createLog($items_base_data, '$items_base_data');
+        $this->readerWriter->createLog($items_base_data, 'isProductAvailable() - items_base_data');
         
         return $items_base_data;
     }

@@ -1,19 +1,15 @@
-<?php
 
-/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
-/** @var \Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel $viewModel */
+<!-- 
+    x-ignore disable Alpine to mess with our container 
+    wire:ignore disable our container to be reloaded/whipped on events like total change, so we can manually reload smply connect.
+-->
+<div wire:ignore x-ignore>
 
-// Hyva's way to get your ViewModel without XML
-$viewModel      = $viewModels->require(\Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel::class);
-$configJson     = $viewModel->getJsonConfig();
-
-?>
-
-<div>
     <div id="nuvei_checkout" 
-         x-ignore
          x-data 
-         data-config='<?= $escaper->escapeHtmlAttr($configJson) ?>'>
+         class="border-2 rounded-md active bg-primary bg-opacity-10 border-primary p-4"
+         style="margin-top: 8px;"
+    >
         Loading...
     </div>
     
@@ -24,8 +20,4 @@ $configJson     = $viewModel->getJsonConfig();
             <img alt="Loading..." src="#" style="bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; z-index: 100; max-width: 100%; height: auto; border: 0;" />
         </div>
     </div>
-    
-<!--    <template x-if="errorMessage">
-        <div class="message error" x-text="errorMessage"></div>
-    </template>-->
 </div>

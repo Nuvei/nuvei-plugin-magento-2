@@ -1,0 +1,12 @@
+<?php
+
+/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+/** @var \Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel $viewModel */
+
+// Hyva's way to get your ViewModel without XML
+$viewModel      = $viewModels->require(\Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel::class);
+$configJson     = $viewModel->getJsonConfig();
+
+?>
+
+<div id="nuvei_data" x-ignore data-config='<?= $escaper->escapeHtmlAttr($configJson) ?>'></div>

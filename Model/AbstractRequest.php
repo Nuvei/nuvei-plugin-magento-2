@@ -4,6 +4,10 @@ namespace Nuvei\Checkout\Model;
 
 use Magento\Framework\Exception\PaymentException;
 use Magento\Quote\Model\Quote;
+use Nuvei\Checkout\Lib\Http\Client\Curl;
+use Nuvei\Checkout\Model\Config;
+use Nuvei\Checkout\Model\ReaderWriter;
+use Nuvei\Checkout\Model\Response\Factory;
 
 /**
  * Nuvei Checkout abstract request model.
@@ -166,10 +170,10 @@ abstract class AbstractRequest
      * @param ReaderWriter $readerWriter
      */
     public function __construct(
-        \Nuvei\Checkout\Model\Config $config,
-        \Nuvei\Checkout\Lib\Http\Client\Curl $curl,
-        \Nuvei\Checkout\Model\Response\Factory $responseFactory,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter
+        Config $config,
+        Curl $curl,
+        Factory $responseFactory,
+        ReaderWriter $readerWriter
     ) {
         $this->config           = $config;
         $this->curl             = $curl;
@@ -254,7 +258,6 @@ abstract class AbstractRequest
             'customData'        => [
                 'sender'    => 'store',
             ]
-            //            'store-request',
         ];
 		
 		// check for missing plugin configuration

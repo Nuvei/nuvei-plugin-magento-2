@@ -846,6 +846,10 @@ class Payment implements MethodInterface
      */
     public function isAvailable(?CartInterface $quote = null)
     {
+        if (!$quote) {
+            return false;
+        }
+        
         if (!$this->isActive($quote ? $quote->getStoreId() : null)) {
             return false;
         }

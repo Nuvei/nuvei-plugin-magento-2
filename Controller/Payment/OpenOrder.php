@@ -167,11 +167,12 @@ class OpenOrder extends Action
         $result = $this->jsonResultFactory->create()
             ->setHttpResponseCode(Response::HTTP_OK);
         
-		$orderId = $this->getRequest()->getParam('orderId');
+        // we get entity_id here
+		$entityId = $this->getRequest()->getParam('orderId');
 		
 		// error - order ID is not valid
-		if (!$orderId || !is_numeric($orderId)) {
-			$this->readerWriter->createLog($orderId, 'nuveiPrePayment() the passed order ID is not valid.');
+		if (!$entityId || !is_numeric($entityId)) {
+			$this->readerWriter->createLog($entityId, 'nuveiPrePayment() the passed Entity ID is not valid.');
 
 			return $result->setData([
 				"success"       => false,
@@ -184,7 +185,7 @@ class OpenOrder extends Action
         $quoteId    = $this->getRequest()->getParam('quoteId'); // it comes form REST call as parameter
         $resp       = $request
             ->setQuoteId($quoteId)
-            ->setOrderId($orderId)
+            ->setEntityId($entityId)
             ->prePaymentCheck();
 
         $successUrl = $this->moduleConfig->getCallbackSuccessUrl($quoteId);
@@ -209,18 +210,8 @@ class OpenOrder extends Action
         
         $result = $this->jsonResultFactory->create()
             ->setHttpResponseCode(Response::HTTP_OK);
-//        
-//        $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
-//        $resp       = $request->hyvaPrePaymentCheck();
-//
-//        $respData = [
-//            "success"       => (int) !$resp->error,
-//            'sessionToken'  => isset($resp->sessionToken) ? $resp->sessionToken : '',
-//        ];
-//        
-//        $this->readerWriter->createLog($respData, 'nuveiPrePayment() response data');
-//
-        $respData = $this->hyvaViewModel->getFormattedData();
+        
+        $respData = $this->hyvaViewModel->getFormattedData((bool) $this->getRequest()->getParam('isPrepayment'));
         
         $this->readerWriter->createLog($respData, 'OpenOrder Controller hyvaPrePayment');
         

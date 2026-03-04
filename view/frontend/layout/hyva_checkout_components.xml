@@ -2,8 +2,15 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <!-- the container for Nuvei checkout -->
         <referenceBlock name="checkout.payment.methods">
+            <block name="checkout.payment.method.nuvei_data"
+                   as="nuvei"
+                   template="Nuvei_Checkout::hyva_checkout/payment/nuvei_data.phtml">
+            </block>
+        </referenceBlock>
+        
+        <!-- the container for Nuvei checkout -->
+        <referenceBlock name="checkout.payment.methods.after">
             <block name="checkout.payment.method.nuvei_card"
                    as="nuvei"
                    template="Nuvei_Checkout::hyva_checkout/payment/nuvei_card.phtml">
