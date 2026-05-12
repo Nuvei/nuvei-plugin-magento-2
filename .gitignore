@@ -1,3 +1,4 @@
 *.bak.*
 *.ffs_db
 nbproject
+.github
