@@ -1,26 +1,19 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
-# 3.5.1
+# 3.4.0
 ```
     * Fix for the Deprecation Warning about the nullable parameters in the constructors and the methods.
     * Removed some old commented line of code.
     * Fix for the recurring amount when DCC is used for the initial transaction.
-```
-
-# 3.5.0
-```
     * Use single method to collect parameters for Simply Connect and WebSDK - ConfigProvider class.
     * Implement public REST API endpoint - ai-paylink. By shipping and billing addresses, and list of SKUs and quantities, the plugin will generate a Payment Link.
-```
-
-# 3.4.0
-```
     * Added few additional settings for Google Pay in Simply Connect.
     * In AbstractRequest class, getParams() method, was added additional check for some of the merchant details.
     * In ConfigProvider class, will typecast the "sdk_style" to string.
     * Fixed the problem in OpenOrder class, where the apmWindowType value was wrong. This prevented call of updateOrder.
     * Fixed the WebSDK flow.
+	* Fixed the wrong Cart link in case of multiple Store Views, when the language code is in the URL.
 ```
 
 # 3.3.1

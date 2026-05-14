@@ -589,11 +589,26 @@ class Config
     }
 
     /**
+     * @param int|null $storeId Optional store ID.
      * @return string
      */
-    public function getBackUrl()
+    public function getBackUrl($storeId = null)
     {
-        return $this->urlBuilder->getUrl('checkout/cart');
+        if (null === $storeId) {
+            $quote = $this->cart->getQuote();
+
+            if ($quote && $quote->getStoreId()) {
+                $storeId = (int) $quote->getStoreId();
+            }
+        }
+
+        $urlParams = ['_scope_to_url' => true];
+
+        if (null !== $storeId) {
+            $urlParams['_scope'] = (int) $storeId;
+        }
+
+        return $this->urlBuilder->getUrl('checkout/cart', $urlParams);
     }
     
     public function canPerformCommand($commandCode)

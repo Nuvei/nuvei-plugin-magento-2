@@ -301,7 +301,9 @@ class Redirect extends Action
                 
                 $this->readerWriter->createLog($incrementId, 'The Order was canceled. We will show the message to the client.');
 
-                $resultRedirect->setUrl($this->moduleConfig->getBackUrl());
+                $resultRedirect->setUrl(
+                    $this->moduleConfig->getBackUrl((int) $this->quote->getStoreId())
+                );
 
                 return $resultRedirect;
             }
@@ -326,7 +328,9 @@ class Redirect extends Action
             'Your payment link is invalid or expired. Please return to the store and create a new order.'
         ));
         
-        $resultRedirect->setUrl($this->moduleConfig->getBackUrl());
+        $resultRedirect->setUrl(
+            $this->moduleConfig->getBackUrl((int) $this->quote->getStoreId())
+        );
 
         return $resultRedirect;
     }
