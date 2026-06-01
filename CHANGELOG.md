@@ -16,6 +16,7 @@
 	* Fixed the wrong Cart link in case of multiple Store Views, when the language code is in the URL.
 	* ApplePay was enabled on all possible browsers.
 	* Force ApplePay and Gpay to be in the APMs gallery.
+	* Use SimplyConnect integrated Pay button, when a wallet is selected.
 ```
 
 # 3.3.1

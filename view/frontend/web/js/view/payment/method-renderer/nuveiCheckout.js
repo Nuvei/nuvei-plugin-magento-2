@@ -5,15 +5,13 @@
  * @package  Nuvei_Checkout
  */
 
-var nuveiAgreementsConfig = window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
-/**
- * Set it true when prePayment check is resolved, and set it false in the nuveiAfterSdkResponse().
- * 
- * @type Boolean
- */
-var nuveiWaitSdkResponse = false;
+const nuveiWallets = ['ppp_ApplePay', 'ppp_GooglePay', 'ppp_Paze', 'apmgw_Venmo', 'apmgw_VenmoPP'];
 
-var isSimplyConnectFormValid = false;
+var nuveiAgreementsConfig		= window.checkoutConfig ? window.checkoutConfig.checkoutAgreements : {};
+// Set it true when prePayment check is resolved, and set it false in the nuveiAfterSdkResponse().
+var nuveiWaitSdkResponse		= false;
+var nuveiIsSimplyFormValid		= false;
+var nuveiSelectedPaymentMethod	= '';
 
 /**
  * Checks if the SDK form is valid and set it to a global variable.
@@ -21,7 +19,7 @@ var isSimplyConnectFormValid = false;
  * @param {object} params
  */
 function nuveiIsSdkFormValid(params) {
-    isSimplyConnectFormValid = params.isFormValid;
+    nuveiIsSimplyFormValid = params.isFormValid;
 }
 
 /**
@@ -30,53 +28,44 @@ function nuveiIsSdkFormValid(params) {
  * @param {object} paymentDetails
  * @returns {Promise}
  */
-function nuveiUpdateOrder(paymentDetails) {
-    console.log('nuveiUpdateOrder');
+function nuveiPrePayment(paymentDetails) {
+    console.log('nuveiPrePayment');
     
     return new Promise((resolve, reject) => {
+        // For wallets the SDK button is used directly — Magento order creation was
+        // never triggered by the default Place Order button, so we do it here first.
+        if (nuveiWallets.indexOf(nuveiSelectedPaymentMethod) >= 0 && !window.nuveiSavedOrderId) {
+            window.nuveiCreateMagentoOrder()
+                .then(function(orderId) {
+                    window.nuveiSavedOrderId = orderId;
+                    nuveiUpdateOrderRequest(resolve, reject);
+                })
+                .catch(reject);
+            return;
+        }
+
         if (!window.nuveiSavedOrderId) {
             alert(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg)
             reject(new Error(window.checkoutConfig.payment[nuveiGetCode()].missingOrderIdMsg));
             return;
         }
-        
-        const paramsStr = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
-        const xmlhttp   = new XMLHttpRequest();
 
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-                console.log('Request response', xmlhttp.response);
+        nuveiUpdateOrderRequest(resolve, reject);
+    });
+}
 
-                if (xmlhttp.status == 200) {
-                    var resp = JSON.parse(xmlhttp.response);
+function nuveiUpdateOrderRequest(resolve, reject) {
+    const paramsStr = '?nuveiAction=nuveiPrePayment&orderId=' + window.nuveiSavedOrderId;
+    const xmlhttp   = new XMLHttpRequest();
 
-                    if (!resp.hasOwnProperty('success') || 0 == resp.success) {
-                        reject();
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+            console.log('Request response', xmlhttp.response);
 
-                        if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
-                            nuveiWhenTransDeclined();
-                        }
+            if (xmlhttp.status == 200) {
+                var resp = JSON.parse(xmlhttp.response);
 
-                        return;
-                    }
-
-                    nuveiWaitSdkResponse = true;
-
-                    // if we get new Session Token, update the input
-                    if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
-                        document.getElementById('nuvei_session_token').value = resp.sessionToken;
-                    }
-
-                    if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
-                        window.nuveiSuccessUrl = resp.successUrl;
-                    }
-
-                    resolve();
-                    return;
-                }
-
-                if (xmlhttp.status == 400) {
-                    console.log('There was an error.');
+                if (!resp.hasOwnProperty('success') || 0 == resp.success) {
                     reject();
 
                     if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
@@ -86,7 +75,23 @@ function nuveiUpdateOrder(paymentDetails) {
                     return;
                 }
 
-                console.log('Unexpected response code.');
+                nuveiWaitSdkResponse = true;
+
+                // if we get new Session Token, update the input
+                if (resp.hasOwnProperty('sessionToken') && '' != resp.sessionToken) {
+                    document.getElementById('nuvei_session_token').value = resp.sessionToken;
+                }
+
+                if (resp.hasOwnProperty('successUrl') && '' != resp.successUrl) {
+                    window.nuveiSuccessUrl = resp.successUrl;
+                }
+
+                resolve();
+                return;
+            }
+
+            if (xmlhttp.status == 400) {
+                console.log('There was an error.');
                 reject();
 
                 if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
@@ -95,13 +100,22 @@ function nuveiUpdateOrder(paymentDetails) {
 
                 return;
             }
-        };
 
-        nuveiShowLoader();
+            console.log('Unexpected response code.');
+            reject();
 
-        xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
-        xmlhttp.send();
-    });
+            if (!alert(window.checkoutConfig.payment[nuveiGetCode()].unexpectedErrorMsg)) {
+                nuveiWhenTransDeclined();
+            }
+
+            return;
+        }
+    };
+
+    nuveiShowLoader();
+
+    xmlhttp.open("GET", window.checkoutConfig.payment[nuveiGetCode()].getUpdateOrderUrl + paramsStr, true);
+    xmlhttp.send();
 }
 
 /**
@@ -246,6 +260,23 @@ function nuveiWhenTransDeclined() {
     xmlhttp.send();
 }
 
+function nuveiPmChange(params) {
+    console.log(params.paymentMethodName);
+    
+    nuveiSelectedPaymentMethod = params.paymentMethodName;
+
+    if (nuveiWallets.indexOf(nuveiSelectedPaymentMethod) >= 0) {
+        nuveiIsSimplyFormValid = true;
+        
+        jQuery('#nuvei_default_pay_btn').hide();
+    }
+    else {
+        nuveiIsSimplyFormValid = false;
+        
+        jQuery('#nuvei_default_pay_btn').show();
+    }
+}
+
 // when the SDK Pay button was clicked and the script wait for a reponse, try to prevent user leave the page.
 window.addEventListener('beforeunload', function(e) {
     if (nuveiWaitSdkResponse) {
@@ -321,6 +352,36 @@ define(
 				catch(_error) {
 					console.error(_error);
 				}
+
+                // Expose order creation so it can be called both from the default
+                // Place Order button and programmatically (e.g. wallet prePayment).
+                window.nuveiCreateMagentoOrder = function() {
+					console.log('nuveiCreateMagentoOrder');
+					
+                    return new Promise(function(resolve, reject) {
+                        if (!self.validate() || !additionalValidators.validate()) {
+                            reject(new Error('Validation failed'));
+                            return;
+                        }
+
+                        placeOrderAction(self.getData(), self.messageContainer)
+                            .done(function(orderId) {
+                                if (isNaN(orderId)) {
+                                    self.messageContainer.addErrorMessage({
+                                        message: jQuery.mage.__('There was an issue placing the order. Please try again.')
+                                    });
+                                    reject(new Error('Invalid order ID'));
+                                    return;
+                                }
+
+                                resolve(orderId);
+                            })
+                            .fail(function(response) {
+                                errorProcessor.process(response, self.messageContainer);
+                                reject(new Error('Order placement failed'));
+                            });
+                    });
+                };
                 
                 return self;
             },
@@ -463,11 +524,12 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2).toString();
                 }
 
-                self.checkoutSdkParams.payButton			= 'noButton';
-                self.checkoutSdkParams.prePayment			= nuveiUpdateOrder;
-                self.checkoutSdkParams.onFormValidated		= nuveiIsSdkFormValid;
-                self.checkoutSdkParams.onResult				= nuveiAfterSdkResponse;
-                self.checkoutSdkParams.crossBrowserApplePay	= true;
+                self.checkoutSdkParams.payButton				= 'noButton';
+                self.checkoutSdkParams.prePayment				= nuveiPrePayment;
+                self.checkoutSdkParams.onFormValidated			= nuveiIsSdkFormValid;
+                self.checkoutSdkParams.onResult					= nuveiAfterSdkResponse;
+				self.checkoutSdkParams.onSelectPaymentMethod	= nuveiPmChange;
+                self.checkoutSdkParams.crossBrowserApplePay		= true;
                 
                 if (nuveiIsQaSite()) {
                     self.checkoutSdkParams.webSdkEnv = 'devmobile';
@@ -551,48 +613,27 @@ define(
             placeOrder: function (data, event) {
                 console.log('custom placeOrder');
                 
-                if (!isSimplyConnectFormValid) {
+                if (!nuveiIsSimplyFormValid) {
                     nuveiShowGeneralError(jQuery.mage.__('Please, fill all fields of the selected payment method!'));
                     return false;
                 }
 
-                nuveiWaitSdkResponse    = true;
-                var self                = this;
+                nuveiWaitSdkResponse = true;
 
                 if (event) {
                     event.preventDefault();
                 }
 
-                // Validate before placing order
-                if (this.validate() && additionalValidators.validate()) {
-                    // Call the place order action and prevent the immediate redirect
-                    placeOrderAction(this.getData(), this.messageContainer)
-                        .done(function (orderId) {
-                            console.log(orderId);
-                            
-                            // In case the response is not numeric.
-                            if (isNaN(orderId)) {
-                                self.messageContainer.addErrorMessage({
-                                    message: jQuery.mage.__('There was an issue placing the order. Please try again.')
-                                });
-                                
-                                return false;
-                            }
-                            
-                            window.nuveiSavedOrderId = orderId;
-                            
-                            checkout.submitPayment();
-                            return true;
-                        })
-                        .fail(function (response) {
-                            // Display the error message when order placement fails
-                            errorProcessor.process(response, self.messageContainer);
-                        });
+                window.nuveiCreateMagentoOrder()
+                    .then(function(orderId) {
+                        window.nuveiSavedOrderId = orderId;
+                        checkout.submitPayment();
+                    })
+                    .catch(function() {
+                        nuveiWaitSdkResponse = false;
+                    });
 
-                    return true;
-                }
-
-                return false;
+                return true;
             },
             
 			/**
