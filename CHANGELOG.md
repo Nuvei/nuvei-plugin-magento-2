@@ -15,6 +15,7 @@
     * Fixed the WebSDK flow.
 	* Fixed the wrong Cart link in case of multiple Store Views, when the language code is in the URL.
 	* ApplePay was enabled on all possible browsers.
+	* Force ApplePay and Gpay to be in the APMs gallery.
 ```
 
 # 3.3.1

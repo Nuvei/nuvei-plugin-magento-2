@@ -155,7 +155,12 @@ class ConfigProvider extends CcGenericConfigProvider
         }
         
         $googlePaySettings = [
-            'locale' => $locale
+            'locale'            => $locale,
+            'buttonLocation'    => 'gallery',
+        ];
+        $applePaySettings = [
+            'locale'            => $locale,
+            'buttonLocation'    => 'gallery',
         ];
         
         if (!empty($gMerchantId = trim((string) $this->moduleConfig->getConfigValue('gpay_merchant_id')))) {
@@ -209,9 +214,7 @@ class ConfigProvider extends CcGenericConfigProvider
                         'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
                         'apmConfig'                 => [
                             'googlePay' => $googlePaySettings,
-                            'applePay'  => array(
-                                'locale'    => $locale,
-                            ),
+                            'applePay'  => $applePaySettings,
                         ],
                         'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
                         'fieldStyle'				=> json_decode($sdkStyle, true),
