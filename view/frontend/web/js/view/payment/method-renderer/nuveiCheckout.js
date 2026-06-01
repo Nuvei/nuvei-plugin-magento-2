@@ -463,10 +463,11 @@ define(
                         = parseFloat(quote.totals().base_grand_total).toFixed(2).toString();
                 }
 
-                self.checkoutSdkParams.payButton        = 'noButton';
-                self.checkoutSdkParams.prePayment       = nuveiUpdateOrder;
-                self.checkoutSdkParams.onFormValidated  = nuveiIsSdkFormValid;
-                self.checkoutSdkParams.onResult         = nuveiAfterSdkResponse;
+                self.checkoutSdkParams.payButton			= 'noButton';
+                self.checkoutSdkParams.prePayment			= nuveiUpdateOrder;
+                self.checkoutSdkParams.onFormValidated		= nuveiIsSdkFormValid;
+                self.checkoutSdkParams.onResult				= nuveiAfterSdkResponse;
+                self.checkoutSdkParams.crossBrowserApplePay	= true;
                 
                 if (nuveiIsQaSite()) {
                     self.checkoutSdkParams.webSdkEnv = 'devmobile';
