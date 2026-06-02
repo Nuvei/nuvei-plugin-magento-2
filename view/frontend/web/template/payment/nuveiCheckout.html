@@ -56,16 +56,16 @@
 				<div data-bind="text: $t('General error.')"></div>
 			</div>
 		</div>
+		
+		<div id="nuvei_checkout" data-bind="attr: {
+			onload: getSessionToken()
+		}"></div>
         
         <div class="checkout-agreements-block">
 			<!-- ko foreach: $parent.getRegion('before-place-order') -->
 				<!-- ko template: getTemplate() --><!-- /ko -->
 			<!--/ko-->
 		</div>
-        
-        <div id="nuvei_checkout" data-bind="attr: {
-			onload: getSessionToken()
-		}"></div>
         
         <input type="hidden" id="nuvei_session_token" name="nuvei_session_token" value="" />
         <input type="hidden" id="nuvei_transaction_id" name="nuvei_transaction_id" value="" />

@@ -278,43 +278,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'countryId'             => $this->moduleConfig->getQuoteCountryCode($quoteId),
             'isPaymentPlan'         => $isPaymentPlan,
             'nuveiCheckoutParams'   => $this->configProvider->getConfig(),
-//            [
-//                'env'                       => $isTestMode ? 'test' : 'prod',
-//                'merchantId'                => $this->moduleConfig->getMerchantId(),
-//                'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
-//                'country'                   => $billingAddress['country'],
-//                'currency'                  => $this->moduleConfig->getQuoteBaseCurrency($quoteId),
-//                'amount'                    => $this->moduleConfig->getQuoteBaseTotal($quoteId),
-//                'renderTo'                  => '#nuvei_checkout',
-//                'useDCC'                    =>  $this->moduleConfig->getConfigValue('use_dcc'),
-//                'strict'                    => false,
-//                'savePM'                    => $save_pm,
-//                'showUserPaymentOptions'    => ($isUserLogged && $this->moduleConfig->canShowUpos()) ? true : false,
-//                'alwaysCollectCvv'          => true,
-//                'fullName'                  => trim((string) $billingAddress['firstName'] . ' ' 
-//                    . (string) $billingAddress['lastName']),
-//                'email'                     => $billingAddress['email'],
-//                'payButton'                 => $this->moduleConfig->getConfigValue('pay_btn_text'),
-//                'showResponseMessage'       => false, // shows/hide the response popups
-//                'locale'                    => substr($locale, 0, 2),
-//                'autoOpenPM'                => (bool) $this->moduleConfig->getConfigValue('auto_expand_pms'),
-//                'logLevel'                  => $this->moduleConfig->getConfigValue('checkout_log_level'),
-//                'maskCvv'                   => true,
-//                'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
-//                'blockCards'                => $blocked_cards,
-//                'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
-//                'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
-//            ],
         ];
-        
-//        if ($isPaymentPlan) {
-//            $sdk_data['nuveiCheckoutParams']['pmBlacklist'] = null;
-//            $sdk_data['nuveiCheckoutParams']['pmWhitelist'] = ['cc_card'];
-//        }
-//        
-//        if (in_array($save_pm, [true, 'always'])) {
-//            $sdk_data['nuveiCheckoutParams']['userTokenId'] = $sdk_data['nuveiCheckoutParams']['email'];
-//        }
         
         return $sdk_data;
     }

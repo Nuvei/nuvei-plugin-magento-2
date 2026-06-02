@@ -17,6 +17,7 @@
 	* ApplePay was enabled on all possible browsers.
 	* Force ApplePay and Gpay to be in the APMs gallery.
 	* Use SimplyConnect integrated Pay button, when a wallet is selected.
+	* Nuvei Simply Connect block was moved before Checkout-agreements-block.
 ```
 
 # 3.3.1
