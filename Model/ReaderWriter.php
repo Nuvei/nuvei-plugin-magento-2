@@ -69,15 +69,15 @@ class ReaderWriter
             $d = 'Data is Empty.';
         }
         elseif (is_array($data) || is_object($data)) {
+            // clean possible objects inside array
+            $data = json_decode(json_encode($data), true);
+            
             if ((int) $this->config->getConfigValue('mask_user_details') == 1
                 && !empty($data)
             ) {
-                // clean possible objects inside array
-                $data = json_decode(json_encode($data), true);
-                
-                if (is_array($data)) {
+                //if (is_array($data)) {
                     array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
-                }
+                //}
             }
             
             // do not log accounts if on prod

@@ -17,6 +17,7 @@ class PaymentsPlans
     private $configurable;
     private $eavAttribute;
     private $productObj;
+    private $productFactory;
     private $quote;
     private $quoteId;
     private $cartRepo;
@@ -29,6 +30,7 @@ class PaymentsPlans
         \Magento\ConfigurableProduct\Model\Product\Type\Configurable $configurable,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Magento\Catalog\Model\Product $productObj,
+        \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepo,
         \Magento\Checkout\Model\Session $checkoutSession
     ) {
@@ -37,6 +39,7 @@ class PaymentsPlans
         $this->configurable         = $configurable;
         $this->eavAttribute         = $eavAttribute;
         $this->productObj           = $productObj;
+        $this->productFactory       = $productFactory;
         $this->cartRepo             = $cartRepo;
         $this->checkoutSession      = $checkoutSession;
     }
@@ -51,6 +54,8 @@ class PaymentsPlans
      */
     public function getProductPlanData()
     {
+        $this->readerWriter->createLog('getProductPlanData');
+        
         // Get from Quote.
         if (!is_object($this->order)) {
             return $this->getProductPlanDataFromQuote();
@@ -461,6 +466,8 @@ class PaymentsPlans
      */
     private function buildPlanDetailsArray($product)
     {
+        $this->readerWriter->createLog( 'buildPlanDetailsArray()' );
+        
         $attr = $product->getCustomAttribute(Config::PAYMENT_SUBS_ENABLE);
         
         if (null === $attr) {
@@ -500,10 +507,18 @@ class PaymentsPlans
             $end_after_period_obj   = $product->getCustomAttribute(Config::PAYMENT_SUBS_END_AFTER_PERIOD);
             $end_after_period       = is_object($end_after_period_obj) ? $end_after_period_obj->getValue() : 0;
 
-            $rec_amount             = $product->getCustomAttribute(Config::PAYMENT_SUBS_REC_AMOUNT)->getValue();
+            $rec_amount_obj = $product->getCustomAttribute(Config::PAYMENT_SUBS_REC_AMOUNT);
+            $rec_amount     = is_object($rec_amount_obj)
+                ? $rec_amount_obj->getValue()
+                    : (float) $product->getData(Config::PAYMENT_SUBS_REC_AMOUNT);
 
+            $planId_obj = $product->getCustomAttribute(Config::PAYMENT_PLANS_ATTR_NAME);
+            $planId     = is_object($planId_obj)
+                ? (int) $planId_obj->getValue()
+                    : (int) $product->getData(Config::PAYMENT_PLANS_ATTR_NAME);
+            
             $return_arr = [
-                'planId'            => $product->getCustomAttribute(Config::PAYMENT_PLANS_ATTR_NAME)->getValue(),
+                'planId'            => $planId,
                 'initialAmount'     => 0,
                 'recurringAmount'   => number_format($rec_amount, 2, '.', ''),
                 'recurringPeriod'   => [strtolower($recurr_unit)    => $recurr_period],
@@ -522,6 +537,8 @@ class PaymentsPlans
     
     private function getProductPlanDataFromQuote()
     {
+        $this->readerWriter->createLog('getProductPlanDataFromQuote');
+        
         $nuveiAttrName  = 'nuvei_sub_enabled';
         $quote          = empty($this->quoteId) ? $this->checkoutSession->getQuote() 
             : $this->cartRepo->get($this->quoteId);
@@ -710,6 +727,8 @@ class PaymentsPlans
     
     private function getProductPlanDataFromOrder()
     {
+        $this->readerWriter->createLog('getProductPlanDataFromOrder');
+        
         $nuveiAttrName  = 'nuvei_sub_enabled';
         $items_data     = [];
         $plan_data      = [];
@@ -732,15 +751,38 @@ class PaymentsPlans
             }
             
             foreach ($items as $orderItem) {
-                $product    = $this->productRepository->getById($orderItem->getProductId());
-                $nuveiAttr  = $product->getCustomAttribute($nuveiAttrName);
+                // The plan attributes (nuvei_payment_plans, nuvei_sub_*) live on the
+                // child simple product, exactly as resolved in the quote path. For a
+                // configurable order item, getProductId() returns the configurable
+                // parent which does NOT carry these attributes, so resolve to the child.
+                if ('configurable' === $orderItem->getProductType()) {
+                    $children = $orderItem->getChildrenItems();
+
+                    if (empty($children)) {
+                        continue;
+                    }
+
+                    $childItem       = reset($children);
+                    $productIdToLoad = (int) $childItem->getProductId();
+                }
+                else {
+                    // Skip the child rows of a configurable; handled via the parent above.
+                    if ($orderItem->getParentItemId()) {
+                        continue;
+                    }
+
+                    $productIdToLoad = (int) $orderItem->getProductId();
+                }
+
+                $product   = $this->productFactory->create()->load($productIdToLoad);
+                $nuveiAttr = $product->getCustomAttribute($nuveiAttrName);
 
                 if (!is_object($nuveiAttr) || !$nuveiAttr->getValue()) {
                     continue;
                 }
                 
                 $plan_data = $this->buildPlanDetailsArray($product);
-                    
+                
                 if (empty($plan_data)) {
                     continue;
                 }

@@ -1134,8 +1134,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         try {
             // save Subscription info into the Payment
-            $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_STATE,    $subs_state);
-            $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_ID,       $this->params['subscriptionId']);
+            $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_STATE, $subs_state);
+            $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_ID, $this->params['subscriptionId']);
             $this->orderPayment->save();
 
             $this->orderResourceModel->save($this->order);
