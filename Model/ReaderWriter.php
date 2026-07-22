@@ -75,9 +75,7 @@ class ReaderWriter
             if ((int) $this->config->getConfigValue('mask_user_details') == 1
                 && !empty($data)
             ) {
-                //if (is_array($data)) {
-                    array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
-                //}
+                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
             }
             
             // do not log accounts if on prod
