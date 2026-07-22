@@ -581,6 +581,10 @@ class Config
      */
     public function getCallbackDmnUrl($incrementId = null, $storeId = null, $url_params = [], $quoteId = '')
     {
+        if (defined('NUVEI_CUSTOM_DMN_URL') && !empty(NUVEI_CUSTOM_DMN_URL)) {
+            return NUVEI_CUSTOM_DMN_URL;
+        }
+        
         $url = $this->getStoreManager()
             ->getStore(null === $incrementId ? $this->storeId : $storeId)
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);

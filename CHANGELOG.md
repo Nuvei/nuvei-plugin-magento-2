@@ -1,6 +1,11 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.4.1
+```
+    * Added a check for custom constant - NUVEI_CUSTOM_DMN_URL, holding in self a custom DMN URL.
+```
+
 # 3.4.0
 ```
     * Fix for the Deprecation Warning about the nullable parameters in the constructors and the methods.
