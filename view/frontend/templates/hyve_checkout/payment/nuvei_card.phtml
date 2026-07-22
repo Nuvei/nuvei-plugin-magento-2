@@ -1,0 +1,23 @@
+
+<!-- 
+    x-ignore disable Alpine to mess with our container 
+    wire:ignore disable our container to be reloaded/whipped on events like total change, so we can manually reload Simply Connect.
+-->
+<div wire:ignore x-ignore>
+
+    <div id="nuvei_checkout" 
+         x-data 
+         class="border-2 rounded-md active bg-primary bg-opacity-10 border-primary p-4"
+         style="margin-top: 8px;"
+    >
+        Loading...
+    </div>
+    
+    <div class="nuvei-loading-mask" 
+         data-role="loader" 
+         style="display: none; z-index: 9999; bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; background: rgba(255,255,255,0.5);">
+        <div class="loader">
+            <img alt="Loading..." src="#" style="bottom: 0; left: 0; margin: auto; position: fixed; right: 0; top: 0; z-index: 100; max-width: 100%; height: auto; border: 0;" />
+        </div>
+    </div>
+</div>

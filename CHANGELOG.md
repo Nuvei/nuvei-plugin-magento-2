@@ -1,6 +1,12 @@
 # Magento 2 Nuvei Checkout Module
 ---
 
+# 3.5.0
+```
+    * Added support to Hyva Checkout.
+    * Removed the webSDK as payment integration.
+```
+
 # 3.4.1
 ```
     * Added a check for custom constant - NUVEI_CUSTOM_DMN_URL, holding in self a custom DMN URL.
