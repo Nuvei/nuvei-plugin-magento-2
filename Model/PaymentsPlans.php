@@ -2,7 +2,14 @@
 
 namespace Nuvei\Checkout\Model;
 
-use \Nuvei\Checkout\Model\Config;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product;
+use Magento\Checkout\Model\Session;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Nuvei\Checkout\Model\Config;
+use Nuvei\Checkout\Model\ReaderWriter;
 
 /**
  * Helper class to provide information about eventual payment plans for products.
@@ -25,14 +32,14 @@ class PaymentsPlans
     private $order;
     
     public function __construct(
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Magento\ConfigurableProduct\Model\Product\Type\Configurable $configurable,
-        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
-        \Magento\Catalog\Model\Product $productObj,
+        ReaderWriter $readerWriter,
+        ProductRepositoryInterface $productRepository,
+        Configurable $configurable,
+        Attribute $eavAttribute,
+        Product $productObj,
         \Magento\Catalog\Model\ProductFactory $productFactory,
-        \Magento\Quote\Api\CartRepositoryInterface $cartRepo,
-        \Magento\Checkout\Model\Session $checkoutSession
+        CartRepositoryInterface $cartRepo,
+        Session $checkoutSession
     ) {
         $this->readerWriter         = $readerWriter;
         $this->productRepository    = $productRepository;

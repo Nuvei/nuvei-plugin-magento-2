@@ -277,8 +277,17 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'isTestMode'            => $isTestMode,
             'countryId'             => $this->moduleConfig->getQuoteCountryCode($quoteId),
             'isPaymentPlan'         => $isPaymentPlan,
-            'nuveiCheckoutParams'   => $this->configProvider->getConfig(),
+            'nuveiCheckoutParams'   => $this->configProvider->getConfig('checkout'),
         ];
+        
+        //        if ($isPaymentPlan) {
+//            $sdk_data['nuveiCheckoutParams']['pmBlacklist'] = null;
+//            $sdk_data['nuveiCheckoutParams']['pmWhitelist'] = ['cc_card'];
+//        }
+//        
+//        if (in_array($save_pm, [true, 'always'])) {
+//            $sdk_data['nuveiCheckoutParams']['userTokenId'] = $sdk_data['nuveiCheckoutParams']['email'];
+//        }
         
         return $sdk_data;
     }

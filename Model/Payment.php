@@ -11,7 +11,9 @@ use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Sales\Model\ResourceModel\Order;
 use Nuvei\Checkout\Model\Config as ModuleConfig;
+use Nuvei\Checkout\Model\ReaderWriter;
 use Nuvei\Checkout\Model\Request\Payment\Factory as PaymentRequestFactory;
 
 /**
@@ -137,6 +139,8 @@ class Payment implements MethodInterface
     public function __construct(
         PaymentRequestFactory $paymentRequestFactory,
         ModuleConfig $moduleConfig,
+        Order $orderResourceModel,
+        ReaderWriter $readerWriter,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
         \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         ManagerInterface $eventManager,
@@ -229,11 +233,6 @@ class Payment implements MethodInterface
      */
     public function refund(InfoInterface $payment, $amount)
     {
-//        $order  = $payment->getOrder();
-//        $status = $order->getStatus();
-        
-//        $order->setStatus(Payment::SC_PROCESSING);
-        
         /**
          * @var RequestInterface $request 
         */
@@ -246,9 +245,6 @@ class Payment implements MethodInterface
         $resp = $request->process();
         
         if(empty($resp['transactionStatus']) || 'APPROVED' != $resp['transactionStatus']) {
-            // revert old Order Status
-//            $order->setStatus($status);
-            
             if (!empty($resp['gwErrorReason'])) {
                 throw new \Magento\Framework\Exception\LocalizedException(__($resp['gwErrorReason']));
             }
@@ -292,8 +288,6 @@ class Payment implements MethodInterface
         $order  = $payment->getOrder();
         $total  = $order->getBaseGrandTotal();
         $status = $order->getStatus();
-        // set processing status
-//        $order->setStatus(self::SC_PROCESSING);
         
         $this->readerWriter->createLog(
         //            [
@@ -611,7 +605,7 @@ class Payment implements MethodInterface
     /**
      * Fetch transaction info
      *
-     * TODO ???
+     * TODO - do we use it ?
      * 
      * @param InfoInterface $payment
      * @param string        $transactionId
@@ -856,42 +850,15 @@ class Payment implements MethodInterface
      */
     public function isAvailable(?CartInterface $quote = null)
     {
+        if (!$quote) {
+            return false;
+        }
+        
         if (!$this->isActive($quote ? $quote->getStoreId() : null)) {
             return false;
         }
         
         return true;
-
-        //        $checkResult = new DataObject();
-        //        $checkResult->setData('is_available', true);
-        //        try {
-        //            $infoInstance = $this->getInfoInstance();
-        //            if ($infoInstance !== null) {
-        //                $validator = $this->getValidatorPool()->get('availability');
-        //                $result = $validator->validate(
-        //                    [
-        //                        'payment' => $this->paymentDataObjectFactory->create($infoInstance)
-        //                    ]
-        //                );
-        //
-        //                $checkResult->setData('is_available', $result->isValid());
-        //            }
-//        // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-        //        } catch (\Exception $e) {
-        //            // pass
-        //        }
-        //
-        //        // for future use in observers
-        //        $this->eventManager->dispatch(
-        //            'payment_method_is_active',
-        //            [
-        //                'result' => $checkResult,
-        //                'method_instance' => $this,
-        //                'quote' => $quote
-        //            ]
-        //        );
-        //
-        //        return $checkResult->getData('is_available');
     }
 
     /**
@@ -964,11 +931,10 @@ class Payment implements MethodInterface
         }
 
         /**
-* 
-         *
- * @var InfoInterface|null $payment 
-*/
+         * @var InfoInterface|null $payment 
+        */
         $payment = null;
+        
         if (isset($arguments['payment']) && $arguments['payment'] instanceof InfoInterface) {
             $payment = $arguments['payment'];
             $arguments['payment'] = $this->paymentDataObjectFactory->create($arguments['payment']);
