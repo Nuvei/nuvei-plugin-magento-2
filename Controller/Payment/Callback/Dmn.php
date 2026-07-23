@@ -2,17 +2,41 @@
 
 namespace Nuvei\Checkout\Controller\Payment\Callback;
 
+use Magento\AdminNotification\Model\Inbox;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\DataObjectFactory;
+use Magento\Framework\DB\Transaction as DBTransaction;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Notification\MessageInterface;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Payment\State\CaptureCommand;
 use Magento\Sales\Model\Order\Payment\Transaction;
+use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
+use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
+use Magento\Sales\Model\ResourceModel\Order as OrderResourceModel;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
+use Magento\Sales\Model\Service\InvoiceService;
 use Nuvei\Checkout\Model\AbstractRequest;
-use Nuvei\Checkout\Model\Payment;
-use Magento\Framework\Notification\MessageInterface;
+use Nuvei\Checkout\Model\Config;
+use Nuvei\Checkout\Model\Payment as NuveiPayment;
+use Nuvei\Checkout\Model\ReaderWriter;
+use Nuvei\Checkout\Model\Request\Factory as NuveiRequestFactory;
 
 /**
  * Nuvei Checkout payment redirect controller.
@@ -91,32 +115,32 @@ class Dmn extends Action implements CsrfAwareActionInterface
      * Object constructor.
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Nuvei\Checkout\Model\Config $moduleConfig,
-        \Magento\Sales\Model\Order\Payment\State\CaptureCommand $captureCommand,
-        \Magento\Framework\DataObjectFactory $dataObjectFactory,
-        \Magento\Quote\Api\CartManagementInterface $cartManagement,
-        \Magento\Framework\Controller\Result\JsonFactory $jsonResultFactory,
-        \Magento\Framework\DB\Transaction $transaction,
-        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
-        \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository,
-        \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transObj,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        Context $context,
+        Config $moduleConfig,
+        CaptureCommand $captureCommand,
+        DataObjectFactory $dataObjectFactory,
+        CartManagementInterface $cartManagement,
+        JsonFactory $jsonResultFactory,
+        DBTransaction $transaction,
+        InvoiceService $invoiceService,
+        InvoiceRepositoryInterface $invoiceRepository,
+        BuilderInterface $transObj,
+        QuoteFactory $quoteFactory,
         RequestInterface $request,
-        \Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepo,
-        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        \Nuvei\Checkout\Model\Request\Factory $requestFactory,
-        \Magento\Framework\App\Request\Http $httpRequest,
-        \Nuvei\Checkout\Model\Payment $paymentModel,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
-        \Magento\Sales\Model\Order\Payment\Transaction\Repository $transactionRepository,
-        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-        \Magento\Framework\Api\FilterBuilder $filterBuilder,
-        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
-        \Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory $paymentCollectionFactory,
-        \Magento\AdminNotification\Model\Inbox $inbox
+        ManagerInterface $eventManager,
+        OrderRepositoryInterface $orderRepo,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        OrderResourceModel $orderResourceModel,
+        NuveiRequestFactory $requestFactory,
+        Http $httpRequest,
+        NuveiPayment $paymentModel,
+        ReaderWriter $readerWriter,
+        TransactionRepository $transactionRepository,
+        CurrencyFactory $currencyFactory,
+        FilterBuilder $filterBuilder,
+        OrderCollectionFactory $orderCollectionFactory,
+        PaymentCollectionFactory $paymentCollectionFactory,
+        Inbox $inbox
     ) {
         $this->moduleConfig             = $moduleConfig;
         $this->captureCommand           = $captureCommand;
@@ -249,18 +273,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         // the saved Additional Info for the transactions
-        $ord_trans_addit_info = $this->orderPayment->getAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA);
+        $ord_trans_addit_info = $this->orderPayment->getAdditionalInformation(NuveiNuveiPayment::ORDER_TRANSACTIONS_DATA);
 
         if (empty($ord_trans_addit_info) || !is_array($ord_trans_addit_info)) {
             $ord_trans_addit_info = [];
         } else {
             $last_record    = end($ord_trans_addit_info);
 
-            $order_status   = !empty($last_record[Payment::TRANSACTION_STATUS])
-                ? $last_record[Payment::TRANSACTION_STATUS] : '';
+            $order_status   = !empty($last_record[NuveiPayment::TRANSACTION_STATUS])
+                ? $last_record[NuveiPayment::TRANSACTION_STATUS] : '';
 
-            $order_tr_type  = !empty($last_record[Payment::TRANSACTION_TYPE])
-                ? $last_record[Payment::TRANSACTION_TYPE] : '';
+            $order_tr_type  = !empty($last_record[NuveiPayment::TRANSACTION_TYPE])
+                ? $last_record[NuveiPayment::TRANSACTION_TYPE] : '';
         }
         
         // check for Subscription State DMN
@@ -309,7 +333,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && in_array($this->params['transactionType'], ['Auth', 'Sale'])
             && 'payByLink' != $this->params['customField4']
         ) {
-            $createOrderData = $this->orderPayment->getAdditionalInformation(Payment::CREATE_ORDER_DATA);
+            $createOrderData = $this->orderPayment->getAdditionalInformation(NuveiPayment::CREATE_ORDER_DATA);
             
             // Error
             if (empty($this->params['PPP_TransactionID'])
@@ -340,13 +364,13 @@ class Dmn extends Action implements CsrfAwareActionInterface
         // set additional data
         if (!empty($this->params['payment_method'])) {
             $this->orderPayment->setAdditionalInformation(
-                Payment::TRANSACTION_PAYMENT_METHOD,
+                NuveiPayment::TRANSACTION_PAYMENT_METHOD,
                 $this->params['payment_method']
             );
         }
         if (!empty($this->params['customField2'])) {
             $this->orderPayment->setAdditionalInformation(
-                Payment::SUBSCR_DATA,
+                NuveiPayment::SUBSCR_DATA,
                 json_decode($this->params['customField2'], true)
             );
         }
@@ -386,7 +410,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         // APPROVED TRANSACTION
         if (in_array($status, ['approved', 'success'])) {
-            $this->sc_transaction_type = Payment::SC_PROCESSING;
+            $this->sc_transaction_type = NuveiPayment::SC_PROCESSING;
 
             // try to recognize DMN type
             $this->processAuthDmn(); // AUTH
@@ -409,7 +433,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             if ( ($this->params['currency'] != $this->params['customField5'])
                 || ($this->params['totalAmount'] != $this->params['customField1'])
             ) {
-                $trAmountTxt .= ' (DCC ' . number_format($this->params['customField1'], 2, '.', '')
+                $trAmountTxt .= ' (DCC ' . number_format((float) $this->params['customField1'], 2, '.', '')
                     . ' ' . $this->params['customField5'] . ')';
             }
             
@@ -429,7 +453,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         // DECLINED/ERROR TRANSACTION
         if (in_array($status, ['declined', 'error'])) {
-            $this->sc_transaction_type = Payment::SC_CANCELED;
+            $this->sc_transaction_type = NuveiPayment::SC_CANCELED;
             
             $this->processDeclinedDmn();
 
@@ -484,7 +508,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return;
         }
         
-        $this->sc_transaction_type = Payment::SC_AUTH;
+        $this->sc_transaction_type = NuveiPayment::SC_AUTH;
         
         if ($this->fraudCheck()) {
             $this->sc_transaction_type = 'fraud';
@@ -563,7 +587,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         do {
             $this->loop_tries++;
             
-            if (Payment::SC_PROCESSING != $this->order->getStatus()) {
+            if (NuveiPayment::SC_PROCESSING != $this->order->getStatus()) {
                 $this->readerWriter->createLog(
                     [
                         'order status'          => $this->order->getStatus(),
@@ -577,7 +601,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 $this->getOrCreateOrder();
             }
         }
-        while(Payment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
+        while(NuveiPayment::SC_PROCESSING == $this->order->getStatus() && $this->loop_tries < $this->loop_max_tries);
         
         $this->readerWriter->createLog(
             [
@@ -588,7 +612,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
             'processSaleAndSettleDMN() - after the Order Status check.'
         );
         
-        $this->sc_transaction_type  = Payment::SC_SETTLED;
+        $this->sc_transaction_type  = NuveiPayment::SC_SETTLED;
         
         $dmn_inv_id         = $this->httpRequest->getParam('invoice_id');
         $is_cpanel_settle   = false;
@@ -768,7 +792,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter->createLog($this->order->getStatus(), 'processVoidDmn()');
         
         // wait Magento to set processing status
-        while(!in_array($this->order->getStatus(), [Payment::SC_PROCESSING, Order::STATE_PROCESSING, Order::STATE_CANCELED])
+        while(!in_array($this->order->getStatus(), [NuveiPayment::SC_PROCESSING, Order::STATE_PROCESSING, Order::STATE_CANCELED])
             && $this->loop_tries < $this->loop_max_tries
         ) {
             $this->loop_tries++;
@@ -786,7 +810,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         $this->transactionType        = Transaction::TYPE_VOID;
-        $this->sc_transaction_type    = Payment::SC_VOIDED;
+        $this->sc_transaction_type    = NuveiPayment::SC_VOIDED;
 
         // set the Canceld Invoice
         $this->curr_trans_info['invoice_id'] = $this->httpRequest->getParam('invoice_id');
@@ -851,7 +875,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         $this->readerWriter->createLog('', 'processRefundDmn', 'INFO');
         
         $this->transactionType      = Transaction::TYPE_REFUND;
-        $this->sc_transaction_type  = Payment::SC_REFUNDED;
+        $this->sc_transaction_type  = NuveiPayment::SC_REFUNDED;
         $total_amount               = (float) $this->params['totalAmount'];
         
         if ((!empty($this->params['totalAmount']) && 'cc_card' == $this->params["payment_method"])
@@ -1005,7 +1029,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 			}
 			
             if ('Settle' == $this->params['transactionType']) {
-                $this->order->setStatus(Payment::SC_AUTH);
+                $this->order->setStatus(NuveiPayment::SC_AUTH);
                 
                 foreach ($invCollection as $invoice) {
 					if (!$invoice || !$invoice->getId()) {
@@ -1046,7 +1070,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 				
                 $this->curr_trans_info['invoice_id'][]  = $invoice->getId();
                 
-                $this->order->setStatus(Payment::SC_CANCELED);
+                $this->order->setStatus(NuveiPayment::SC_CANCELED);
 
                 $invoice
                     ->setTransactionId($this->params['TransactionID'])
@@ -1104,7 +1128,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
 
                 // set additional data
                 $this->orderPayment->setAdditionalInformation(
-                    Payment::ORDER_TRANSACTIONS_DATA,
+                    NuveiPayment::ORDER_TRANSACTIONS_DATA,
                     $ord_trans_addit_info
                 );
                 break;
@@ -1134,8 +1158,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
         
         try {
             // save Subscription info into the Payment
-            $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_STATE, $subs_state);
-            $this->orderPayment->setAdditionalInformation(Payment::SUBSCR_ID, $this->params['subscriptionId']);
+            $this->orderPayment->setAdditionalInformation(NuveiPayment::SUBSCR_STATE, $subs_state);
+            $this->orderPayment->setAdditionalInformation(NuveiPayment::SUBSCR_ID, $this->params['subscriptionId']);
             $this->orderPayment->save();
 
             $this->orderResourceModel->save($this->order);
@@ -1462,6 +1486,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             [
                 'quoteId'           => $this->quoteId,
                 'orderIncrementId'  => $this->orderIncrementId,
+                'transactionId'    => $this->transactionId,
+                'nuveiTrId'        => $this->params['TransactionID'] ?? null,
             ],
             'getOrCreateOrder()'
         );
@@ -1469,6 +1495,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if (empty($this->orderIncrementId)
             && empty($this->quoteId)
             && empty($this->transactionId)
+            && empty($this->params['TransactionID'])
         ) {
             $msg = 'DMN error - missing all Order identificators (orderIncrementId, quoteId, transactionId).';
 
@@ -1478,19 +1505,15 @@ class Dmn extends Action implements CsrfAwareActionInterface
             return false;
         }
         
-        $field  = '';
-        $value  = '';
         $list   = [];
         
         try {
             if (!empty($this->quoteId)) {
-                $field = 'quote_id';
-                $value = $this->quoteId;
-                
+                $this->readerWriter->createLog($this->quoteId, 'Search by quoteId');
+
                 $searchCriteria = $this->searchCriteriaBuilder
-                    ->addFilter($field, $value, 'eq')->create();
-                
-                // orders list
+                    ->addFilter('quote_id', $this->quoteId, 'eq')->create();
+
                 $list = $this->orderRepo->getList($searchCriteria)->getItems();
 
                 if (is_array($list) && !empty($list)) {
@@ -1498,20 +1521,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 }
             }
             elseif (!empty($this->orderIncrementId)) {
-                $field = 'increment_id';
-                $value = $this->orderIncrementId;
-                
+                $this->readerWriter->createLog($this->orderIncrementId, 'Search by orderIncrementId');
+
                 $searchCriteria = $this->searchCriteriaBuilder
-                    ->addFilter($field, $value, 'eq')->create();
-                
-                // orders list
+                    ->addFilter('increment_id', $this->orderIncrementId, 'eq')->create();
+
                 $list = $this->orderRepo->getList($searchCriteria)->getItems();
 
                 if (is_array($list) && !empty($list)) {
                     $this->order = current($list);
                 }
             }
-            // This is search for secondary operation. We search by relatedTransacionId.
+            // Search by relatedTransactionId (Magento TXN_ID) for secondary operations.
             elseif (!empty($this->transactionId)) {
                 $field = TransactionInterface::TXN_ID;
                 $value = $this->transactionId;
@@ -1525,13 +1546,18 @@ class Dmn extends Action implements CsrfAwareActionInterface
                     $this->order = current($list)->getOrder();
                 }
             }
-            // When search for Auth/Sale by its Transacion ID
-            else {
-                $searchCriteria = $this->searchCriteriaBuilder
-                    ->addFilter($field, $value, 'eq')->create();
-                
+            
+            // Fallback: search by Nuvei TransactionID stored in payment additional_information.
+            // Runs when the previous lookups did not resolve the order but the DMN payload
+            // carries a Nuvei TransactionID (Auth/Sale identification).
+            if (!is_object($this->order) && !empty($this->params['TransactionID'])) {
+                $this->readerWriter->createLog(
+                    $this->params['TransactionID'],
+                    'Search by Nuvei TransactionID (fallback)'
+                );
+
                 $orderCollection = $this->searchOrderByNuveiTrId();
-                
+
                 if (!empty($orderCollection)) {
                     foreach ($orderCollection as $order) {
                         $this->order = $order;
@@ -1540,12 +1566,6 @@ class Dmn extends Action implements CsrfAwareActionInterface
                 }
             }
 
-            $this->readerWriter->createLog([
-                '$identificator value'  => $value,
-                '$identificator name'   => $field,
-            ]);
-
-            // in case the Order is not an object
             if (!is_object($this->order)) {
                 $msg = 'DMN Callback error - $this->order is not an object.';
 
@@ -1779,38 +1799,38 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
 
         $this->curr_trans_info = [
-            Payment::TRANSACTION_ID             => '',
-            Payment::TRANSACTION_AUTH_CODE      => '',
-            Payment::TRANSACTION_STATUS         => '',
-            Payment::TRANSACTION_TYPE           => '',
-            Payment::TRANSACTION_UPO_ID         => '',
-            Payment::TRANSACTION_TOTAL_AMOUN    => '',
-            Payment::IS_SUBSCR                  => '',
+            NuveiPayment::TRANSACTION_ID             => '',
+            NuveiPayment::TRANSACTION_AUTH_CODE      => '',
+            NuveiPayment::TRANSACTION_STATUS         => '',
+            NuveiPayment::TRANSACTION_TYPE           => '',
+            NuveiPayment::TRANSACTION_UPO_ID         => '',
+            NuveiPayment::TRANSACTION_TOTAL_AMOUN    => '',
+            NuveiPayment::IS_SUBSCR                  => '',
         ];
 
         // some subscription DMNs does not have TransactionID
         if (isset($this->params['TransactionID'])) {
-            $this->curr_trans_info[Payment::TRANSACTION_ID] = $this->params['TransactionID'];
+            $this->curr_trans_info[NuveiPayment::TRANSACTION_ID] = $this->params['TransactionID'];
         }
         if (isset($this->params['AuthCode'])) {
-            $this->curr_trans_info[Payment::TRANSACTION_AUTH_CODE] = $this->params['AuthCode'];
+            $this->curr_trans_info[NuveiPayment::TRANSACTION_AUTH_CODE] = $this->params['AuthCode'];
         }
         if (isset($this->params['Status'])) {
-            $this->curr_trans_info[Payment::TRANSACTION_STATUS] = $this->params['Status'];
+            $this->curr_trans_info[NuveiPayment::TRANSACTION_STATUS] = $this->params['Status'];
         }
         if (isset($this->params['transactionType'])) {
-            $this->curr_trans_info[Payment::TRANSACTION_TYPE] = $this->params['transactionType'];
+            $this->curr_trans_info[NuveiPayment::TRANSACTION_TYPE] = $this->params['transactionType'];
         }
         if (isset($this->params['userPaymentOptionId'])) {
-            $this->curr_trans_info[Payment::TRANSACTION_UPO_ID] = $this->params['userPaymentOptionId'];
+            $this->curr_trans_info[NuveiPayment::TRANSACTION_UPO_ID] = $this->params['userPaymentOptionId'];
         }
         if (isset($this->params['totalAmount'])) {
-            $this->curr_trans_info[Payment::TRANSACTION_TOTAL_AMOUN] = $this->params['totalAmount'];
+            $this->curr_trans_info[NuveiPayment::TRANSACTION_TOTAL_AMOUN] = $this->params['totalAmount'];
         }
         if (!empty($this->params['dmnType'])
             && 'subscriptionPayment' == $this->params['dmnType']
         ) {
-            $this->curr_trans_info[Payment::IS_SUBSCR] = 1;
+            $this->curr_trans_info[NuveiPayment::IS_SUBSCR] = 1;
         }
         
         return true;
@@ -1933,7 +1953,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         try {
             // set additional data
             $this->orderPayment
-                ->setAdditionalInformation(Payment::ORDER_TRANSACTIONS_DATA, $ord_trans_addit_info)
+                ->setAdditionalInformation(NuveiPayment::ORDER_TRANSACTIONS_DATA, $ord_trans_addit_info)
                 ->save();
 
             $this->orderResourceModel->save($this->order);
@@ -1963,7 +1983,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
      * 
      * $orderIncrementId, $quoteId or $transactionId
      * 
-     * @returns string|int
+     * @returns void
      */
     private function getOrderIdentificators()
     {
@@ -1974,6 +1994,8 @@ class Dmn extends Action implements CsrfAwareActionInterface
             && !empty($this->params['clientRequestId'])
             && in_array($this->params['dmnType'], ['subscriptionPayment', 'subscription'])
         ) {
+            $this->readerWriter->createLog('subsccription DMN.');
+            
             $clientRequestId_arr    = explode('_', $this->params["clientRequestId"]);
             $last_elem              = end($clientRequestId_arr);
 
@@ -1991,26 +2013,34 @@ class Dmn extends Action implements CsrfAwareActionInterface
         if (isset($this->params['transactionType'])
             && in_array($this->params['transactionType'], ['Auth', 'Sale'])
         ) {
-            if (!empty($this->params["clientUniqueId"])) {
-                if (strpos($this->params["clientUniqueId"], '_') === false) {
-                    $this->readerWriter->createLog('order identificator - orderIncrementId');
-                    $this->orderIncrementId = $this->params["clientUniqueId"];
-                }
-                else {
-                    $this->readerWriter->createLog('order identificator - quoteId');
-                    $this->quoteId = current(explode('_', $this->params["clientUniqueId"]));
-                }
+            # The logic sice v3.5.0
+            // now we will pass only Quote ID (string) or Increment ID (string but numeric)
+            if (!empty($this->params["clientUniqueId"])
+                && is_numeric($this->params["clientUniqueId"])
+                && !empty($this->params["customField6"])
+            ) {
+                $this->{$this->params["customField6"]} = $this->params["clientUniqueId"];
+                return;
             }
             
             // The case with the payByLink - Cashier
             if (!empty($this->params["merchant_unique_id"])) {
-                if (strpos($this->params["merchant_unique_id"], '_') === false) {
-                    $this->readerWriter->createLog('order identificator - orderIncrementId');
-                    $this->orderIncrementId = $this->params["merchant_unique_id"];
+                $this->readerWriter->createLog('payByLink DMN.');
+                
+                 if (is_string($this->params["clientUniqueId"])) {
+                    $this->readerWriter->createLog(
+                        $this->params["clientUniqueId"], 
+                        'order identificator - orderIncrementId'
+                    );
+                    $this->orderIncrementId = $this->params["clientUniqueId"];
                 }
+                // the Quote ID
                 else {
-                    $this->readerWriter->createLog('order identificator - quoteId');
-                    $this->quoteId = current(explode('_', $this->params["merchant_unique_id"]));
+                    $this->readerWriter->createLog(
+                        $this->params["clientUniqueId"], 
+                        'order identificator - quoteID'
+                    );
+                    $this->quoteId = $this->params["clientUniqueId"];
                 }
             }
             
@@ -2122,7 +2152,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         // Filter the payment collection by additional_information field
         $paymentCollection->addFieldToFilter(
             'additional_information',
-            ['like' => '%' . Payment::TRANSACTION_ID . '":"' . $this->params['TransactionID'] . '%']
+            ['like' => '%' . NuveiPayment::TRANSACTION_ID . '":"' . $this->params['TransactionID'] . '%']
         );
         
         // Extract order IDs from the payment collection

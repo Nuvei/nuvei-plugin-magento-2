@@ -24,7 +24,6 @@ class PaymentsPlans
     private $configurable;
     private $eavAttribute;
     private $productObj;
-//    private $productFactory;
     private $quote;
     private $quoteId;
     private $cartRepo;
@@ -37,7 +36,6 @@ class PaymentsPlans
         Configurable $configurable,
         Attribute $eavAttribute,
         Product $productObj,
-//        \Magento\Catalog\Model\ProductFactory $productFactory,
         CartRepositoryInterface $cartRepo,
         Session $checkoutSession
     ) {
@@ -46,7 +44,6 @@ class PaymentsPlans
         $this->configurable         = $configurable;
         $this->eavAttribute         = $eavAttribute;
         $this->productObj           = $productObj;
-//        $this->productFactory       = $productFactory;
         $this->cartRepo             = $cartRepo;
         $this->checkoutSession      = $checkoutSession;
     }
@@ -265,7 +262,6 @@ class PaymentsPlans
         $items_data     = [];
         $plan_data      = [];
         $return_arr     = [];
-        
         
         try {
             $itemsQty = $quote->getItemsSummaryQty();
