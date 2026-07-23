@@ -137,20 +137,20 @@ class Config
     /**
      * Object initialization.
      *
-     * @param ScopeConfigInterface     $scopeConfig     Scope config object.
-     * @param StoreManagerInterface    $storeManager    Store manager object.
-     * @param ProductMetadataInterface $productMetadata
-     * @param ModuleListInterface      $moduleList
-     * @param CheckoutSession          $checkoutSession
-     * @param UrlInterface             $urlBuilder
-     * @param FormKey                  $formKey
-     * @param DirectoryList            $directory
-     * @param Header                   $httpHeader
-     * @param RemoteAddress            $remoteIp
-     * @param Session                  $customerSession
-     * @param CookieManagerInterface   $cookie
-     * @param QuoteFactory             $quoteFactory
-     * @param Cart                     $cart
+     * @param ScopeConfigInterface      $scopeConfig     Scope config object.
+     * @param StoreManagerInterface     $storeManager    Store manager object.
+     * @param ProductMetadataInterface  $productMetadata
+     * @param ModuleListInterface       $moduleList
+     * @param CheckoutSession           $checkoutSession
+     * @param UrlInterface              $urlBuilder
+     * @param FormKey                   $formKey
+     * @param DirectoryList             $directory
+     * @param Header                    $httpHeader
+     * @param RemoteAddress             $remoteIp
+     * @param Session                   $customerSession
+     * @param CookieManagerInterface    $cookie
+     * @param QuoteFactory              $quoteFactory
+     * @param Cart                      $cart
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -627,27 +627,6 @@ class Config
     }
     
     /**
-     * @param  int $quoteId Optional.
-     * @return string
-     * 
-     * @deprecated since version 3.1.9
-     */
-    public function getReservedOrderId($quoteId = '')
-    {
-        $quote = empty($quoteId) ? $this->cart->getQuote() 
-            : $this->quoteFactory->create()->load($quoteId);
-        
-        $reservedOrderId = $quote->getReservedOrderId();
-        
-        if (!$reservedOrderId) {
-            $quote->reserveOrderId()->save();
-            $reservedOrderId = $quote->getReservedOrderId();
-        }
-        
-        return $reservedOrderId;
-    }
-
-    /**
      * Get default country code.
      *
      * @return string
@@ -696,18 +675,6 @@ class Config
     }
     
     /**
-     * Get currency code from the Quote. This must be same as the Magento store Visual currency.
-     *
-     * @return string
-     * 
-     * @deprecated since version 3.1.9
-     */
-    public function getQuoteVisualCurrency()
-    {
-        return $this->cart->getQuote()->getQuoteCurrencyCode();
-    }
-    
-    /**
      * Get store currency code. Use this when Quote is not available.
      *
      * @return string
@@ -729,18 +696,6 @@ class Config
             : $this->quoteFactory->create()->load($quoteId);
         
         return (string) number_format((float) $quote->getBaseGrandTotal(), 2, '.', '');
-    }
-    
-    /**
-     * Get quote visual.
-     *
-     * @return string
-     * 
-     * @deprecated since version 3.1.9
-     */
-    public function getQuoteVisualTotal()
-    {
-        return (string) number_format($this->cart->getQuote()->getGrandTotal(), 2, '.', '');
     }
     
     /**

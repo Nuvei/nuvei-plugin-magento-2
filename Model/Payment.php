@@ -141,8 +141,6 @@ class Payment implements MethodInterface
         ModuleConfig $moduleConfig,
         Order $orderResourceModel,
         ReaderWriter $readerWriter,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        \Nuvei\Checkout\Model\ReaderWriter $readerWriter,
         ManagerInterface $eventManager,
         PaymentDataObjectFactory $paymentDataObjectFactory,
         ?CommandManagerInterface $commandExecutor = null,

@@ -51,9 +51,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
             $this->apiRequest->getBodyParams()
         ]);
         
-        //        $result = $this->jsonResultFactory->create()
-        //            ->setHttpResponseCode(\Magento\Framework\Webapi\Response::HTTP_OK);
-        
         // check for errors
         if (!$this->moduleConfig->getConfigValue('active')) {
             $msg = 'Mudule is not active.';
@@ -280,15 +277,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
             'nuveiCheckoutParams'   => $this->configProvider->getConfig('checkout'),
         ];
         
-        //        if ($isPaymentPlan) {
-//            $sdk_data['nuveiCheckoutParams']['pmBlacklist'] = null;
-//            $sdk_data['nuveiCheckoutParams']['pmWhitelist'] = ['cc_card'];
-//        }
-//        
-//        if (in_array($save_pm, [true, 'always'])) {
-//            $sdk_data['nuveiCheckoutParams']['userTokenId'] = $sdk_data['nuveiCheckoutParams']['email'];
-//        }
-        
         return $sdk_data;
     }
     
@@ -377,7 +365,6 @@ class GetCheckoutData implements GetCheckoutDataInterface
         $request    = $this->requestFactory->create(AbstractRequest::OPEN_ORDER_METHOD);
         $ooResp     = $request
             ->setIsUserLogged($isUserLogged)
-//            ->setQuoteId($quoteId)
             ->setEntityId($quoteId) // this ID is actualy the Entity ID
             ->setCallerSdk($callerSdk)
             ->process();

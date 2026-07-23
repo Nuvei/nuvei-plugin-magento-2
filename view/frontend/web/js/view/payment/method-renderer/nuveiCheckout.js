@@ -14,6 +14,47 @@ var nuveiIsSimplyFormValid		= false;
 var nuveiSelectedPaymentMethod	= '';
 
 /**
+ * Common function to show error messages.
+ * 
+ * Shared by both the Luma checkout renderer (this file) and the Hyva
+ * checkout entry, so it must live at module top-level.
+ * 
+ * @param {string} msg
+ * @returns {void}
+ */
+function nuveiShowGeneralError(msg) {
+    jQuery('#nuvei_general_error .message div').html(jQuery.mage.__(msg));
+    jQuery('#nuvei_general_error').show();
+    document.getElementById("nuvei_general_error").scrollIntoView({behavior: 'smooth'});
+}
+
+function nuveiShowLoader() {
+    console.log('nuveiShowLoader');
+    
+    if (jQuery('body').find('.loading-mask').length > 0) {
+        jQuery('body').trigger('processStart');
+        return;
+    }
+    
+    if (jQuery('.nuvei-loading-mask')) {
+        jQuery('.nuvei-loading-mask').css('display', 'block');
+    }
+}
+
+function nuveiHideLoader() {
+    console.log('nuveiHideLoader');
+    
+    if (jQuery('body').find('.loading-mask').length > 0) {
+        jQuery('body').trigger('processStop');
+        return;
+    }
+    
+    if (jQuery('.nuvei-loading-mask')) {
+        jQuery('.nuvei-loading-mask').css('display', 'none');
+    }
+}
+
+/**
  * Checks if the SDK form is valid and set it to a global variable.
  * 
  * @param {object} params
