@@ -273,7 +273,7 @@ class Dmn extends Action implements CsrfAwareActionInterface
         }
         
         // the saved Additional Info for the transactions
-        $ord_trans_addit_info = $this->orderPayment->getAdditionalInformation(NuveiNuveiPayment::ORDER_TRANSACTIONS_DATA);
+        $ord_trans_addit_info = $this->orderPayment->getAdditionalInformation(NuveiPayment::ORDER_TRANSACTIONS_DATA);
 
         if (empty($ord_trans_addit_info) || !is_array($ord_trans_addit_info)) {
             $ord_trans_addit_info = [];

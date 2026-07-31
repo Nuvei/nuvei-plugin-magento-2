@@ -18,15 +18,14 @@ function yourCustomJSMethod(conf) {
  * @returns void
  */
 function nuveiAfterSdkResponse(resp) {
-    console.log('nuveiAfterSdkResponse()', resp);
+    console.log('nuveiAfterSdkResponse()', resp?.result, resp?.transactionId);
 
     let allParams = JSON.parse(
-        document.getElementById('nuvei_checkout').dataset.config
+        document.getElementById('nuvei_data').dataset.config
     );
 
     // on Approved or Pending
-    if (resp.result == 'APPROVED' || resp.result == 'PENDING') {
-        console.log('APPROVED');
+    if (resp?.result == 'APPROVED' || resp?.result == 'PENDING') {
         nuveiPlaceOrder();
         return;
     }
@@ -119,11 +118,12 @@ function nuveiUpdateOrder(isPrepayment = false) {
                 reject();
             }
 
+            console.log('Error.');
             return false;
         }
 
         let allParams = JSON.parse(
-            document.getElementById('nuvei_checkout').dataset.config
+            document.getElementById('nuvei_data').dataset.config
         );
 
         const paramsStr = '?nuveiAction=hyvaPrePayment&isPrepayment=' + isPrepayment;
@@ -131,10 +131,12 @@ function nuveiUpdateOrder(isPrepayment = false) {
 
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-                console.log('Request response', xmlhttp.response);
+                console.log('We have response.');
 
                 // successful request
                 if (xmlhttp.status == 200) {
+                    console.log('200');
+                    
                     var resp = JSON.parse(xmlhttp.response);
 
                     // successful response
@@ -157,11 +159,13 @@ function nuveiUpdateOrder(isPrepayment = false) {
                         }
 
                         // if we just do an order update, reload Simply Connect
-                        document.getElementById('nuvei_checkout').dataset.config = xmlhttp.response;
+                        document.getElementById('nuvei_data').dataset.config = xmlhttp.response;
                         resolve(); // just to be clean
                         nuveiLoadSimplyConnect();
                         return true;
                     }
+                    
+                    console.log('missing nuveiCheckoutParams');
                 }
 
                 // error in any other case
@@ -219,7 +223,7 @@ function nuveiLoadSimplyConnect() {
 
     let nuveiData = document.getElementById('nuvei_data').dataset.config;
 
-    console.log(nuveiData);
+//    console.log(nuveiData);
 
     if (nuveiLastData === nuveiData && document.querySelector('#nuvei_checkout #sfc-main')) {
         console.log('nuvei data is same.');
@@ -264,13 +268,14 @@ function nuveiLoadSimplyConnect() {
 
     let simplyParams = allParams.nuveiCheckoutParams;
 
-    console.log('simplyParams', simplyParams);
+//    console.log('simplyParams', simplyParams);
 
-    simplyParams.renderTo           = '#nuvei_checkout';
-    simplyParams.payButton          = 'noButton';
-    simplyParams.prePayment         = nuveiPrePayment;
-    simplyParams.onFormValidated    = nuveiIsSdkFormValid;
-    simplyParams.onResult           = nuveiAfterSdkResponse;
+    simplyParams.renderTo               = '#nuvei_checkout';
+    simplyParams.payButton              = 'noButton';
+    simplyParams.prePayment             = nuveiPrePayment;
+    simplyParams.onFormValidated        = nuveiIsSdkFormValid;
+    simplyParams.onResult               = nuveiAfterSdkResponse;
+    simplyParams.crossBrowserApplePay   = true;
 
     document.getElementById('nuvei_checkout').style.display = 'block';
     simplyConnect(simplyParams);

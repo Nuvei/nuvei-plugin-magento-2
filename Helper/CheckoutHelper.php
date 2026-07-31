@@ -83,9 +83,15 @@ class CheckoutHelper extends AbstractHelper
         if ($total == 0) {
             $useDCC = 'false';
         }
+        
+        $applePaySettings = array(
+            'locale'            => $locale,
+            'buttonLocation'    => 'gallery',
+        );
 
         $googlePaySettings = [
-            'locale' => $locale
+            'locale'            => $locale,
+            'buttonLocation'    => 'gallery',
         ];
 
         if (!empty($gMerchantId = trim((string) $this->moduleConfig->getConfigValue('gpay_merchant_id')))) {
@@ -144,9 +150,7 @@ class CheckoutHelper extends AbstractHelper
                         'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
                         'apmConfig'                 => [
                             'googlePay' => $googlePaySettings,
-                            'applePay'  => array(
-                                'locale'    => $locale,
-                            ),
+                            'applePay'  => $applePaySettings,
                         ],
                         'sourceApplication'         => $this->moduleConfig->getSourceApplication(),
                         'fieldStyle'				=> json_decode($sdkStyle, true),

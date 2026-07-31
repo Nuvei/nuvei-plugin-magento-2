@@ -18,4 +18,23 @@
             </argument>
         </arguments>
     </type>
+    <!--
+        Self-register with Hyvä's CompatModuleFallback registry so that this module's
+        Hyvä checkout templates (view/frontend/templates/hyva_checkout/) are automatically
+        picked up by "bin/magento hyva:config:generate" on every merchant install.
+
+        This type only gets instantiated if hyva-themes/magento2-compat-module-fallback
+        (Hyva_CompatModuleFallback) is present and enabled, so it is safe to declare
+        unconditionally even on stores that do not use Hyvä at all.
+    -->
+    <type name="Hyva\CompatModuleFallback\Model\CompatModuleRegistry">
+        <arguments>
+            <argument name="compatModules" xsi:type="array">
+                <item name="hyva-nuvei-checkout" xsi:type="array">
+                    <item name="original_module" xsi:type="string">Magento_Checkout</item>
+                    <item name="compat_module" xsi:type="string">Nuvei_Checkout</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
 </config>
