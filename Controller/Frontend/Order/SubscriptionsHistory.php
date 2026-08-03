@@ -127,6 +127,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
 
             $this->readerWriter->createLog($params, 'SubscriptionsHistory $params');
             
+            // error
             if (empty($params)
                 || empty($params['prodId'])
                 || !is_numeric($params['prodId'])
@@ -143,9 +144,8 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
                 $hash_params = $params['params'];
             }
             
-            if (empty($hash_params)
-                || !is_array($hash_params)
-            ) {
+            // error
+            if (empty($hash_params) || !is_array($hash_params) ) {
                 $this->readerWriter->createLog($hash_params, 'Hash Params are empty');
                 return [];
             }
@@ -171,6 +171,7 @@ class SubscriptionsHistory extends \Magento\Framework\App\Action\Action implemen
                 $prod_options[$attributeId] = $val;
             }
             
+            // error
             if (empty($prod_options)) {
                 $this->readerWriter->createLog($prod_options, 'Product options are empty');
                 return [];

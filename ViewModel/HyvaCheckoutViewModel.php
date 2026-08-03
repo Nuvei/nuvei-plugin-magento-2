@@ -46,7 +46,7 @@ class HyvaCheckoutViewModel implements ArgumentInterface
     public function getFormattedData($isPrePayment = false)
     {
         $this->logger->createLog($isPrePayment, 'getFormattedData, isPrePayment');
-        
+
         // for the prePayment we no need the Checkout params
         if (!$isPrePayment) {
             // get basic checkout params

@@ -1,0 +1,94 @@
+<?php
+/**
+ * Hyvä partial for the Nuvei plan details table (Tailwind-styled).
+ * Loaded by product_plan_details.phtml when the Hyvä theme is active.
+ *
+ * @var $block \Nuvei\Checkout\Block\Frontend\Product\NuveiPlanDetails
+ */
+$nuvei_texts = $block->getTexts();
+?>
+
+<div
+    id="nuvei_plan_details"
+    class="nuvei-plan-details mb-6 max-w-md rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm"
+    style="display: none;"
+>
+    <h4 class="nuvei-plan-details__title mb-3 text-base font-semibold text-gray-900">
+        <?php echo $block->escapeHtml($nuvei_texts['table_title']); ?>
+    </h4>
+    <table class="nuvei-plan-details__table w-full border-collapse text-sm">
+        <tbody>
+            <tr class="nuvei-plan-details__row border-b border-gray-200 last:border-b-0">
+                <td class="nuvei-plan-details__label w-1/2 py-1.5 pr-4 font-medium text-gray-600">
+                    <?php echo $block->escapeHtml($nuvei_texts['rec_length']); ?>
+                </td>
+                <td id="nuvei_rec_length" class="nuvei-plan-details__value py-1.5 text-gray-900">&nbsp;</td>
+            </tr>
+            <tr class="nuvei-plan-details__row border-b border-gray-200 last:border-b-0">
+                <td class="nuvei-plan-details__label w-1/2 py-1.5 pr-4 font-medium text-gray-600">
+                    <?php echo $block->escapeHtml($nuvei_texts['rec_period']); ?>
+                </td>
+                <td id="nuvei_rec_period" class="nuvei-plan-details__value py-1.5 text-gray-900">&nbsp;</td>
+            </tr>
+            <tr class="nuvei-plan-details__row border-b border-gray-200 last:border-b-0">
+                <td class="nuvei-plan-details__label w-1/2 py-1.5 pr-4 font-medium text-gray-600">
+                    <?php echo $block->escapeHtml($nuvei_texts['rec_amount']); ?>
+                </td>
+                <td id="nuvei_rec_amount" class="nuvei-plan-details__value py-1.5 font-semibold text-gray-900">&nbsp;</td>
+            </tr>
+            <tr class="nuvei-plan-details__row last:border-b-0">
+                <td class="nuvei-plan-details__label w-1/2 py-1.5 pr-4 font-medium text-gray-600">
+                    <?php echo $block->escapeHtml($nuvei_texts['trial_period']); ?>
+                </td>
+                <td id="nuvei_trial_period" class="nuvei-plan-details__value py-1.5 text-gray-900">&nbsp;</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    (function() {
+        var ajaxUrl  = '<?php echo $block->escapeJs($nuvei_texts['nuvei_ajax_url']); ?>';
+        var prodId   = '<?php echo $block->escapeJs($nuvei_texts['nuvei_prod_id']); ?>';
+        var attrId   = '<?php echo $block->escapeJs($nuvei_texts['nuvei_attr_id']); ?>';
+
+        function nuveiHyvaFetch(params) {
+            fetch(ajaxUrl + '?' + new URLSearchParams({ prodId: prodId, params: params }), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(resp) {
+                var el = document.getElementById('nuvei_plan_details');
+
+                if (resp && resp.rec_amount) {
+                    document.getElementById('nuvei_rec_length').textContent   = resp.rec_len      || '';
+                    document.getElementById('nuvei_rec_period').textContent   = resp.rec_period   || '';
+                    document.getElementById('nuvei_rec_amount').textContent   = resp.rec_amount    || '';
+                    document.getElementById('nuvei_trial_period').textContent = resp.trial_period  || '';
+                    el.style.display = 'block';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('configurable-selection-changed', function(e) {
+            var detail = e.detail || {};
+
+            if (String(detail.optionId) === String(attrId) && detail.value) {
+                nuveiHyvaFetch(detail.optionId + '=' + detail.value);
+            } else {
+                document.getElementById('nuvei_plan_details').style.display = 'none';
+            }
+        });
+
+        // on load check for a pre-selected option from the URL hash
+        document.addEventListener('DOMContentLoaded', function() {
+            var hash = window.location.hash.replace('#', '');
+
+            if (hash) {
+                nuveiHyvaFetch(hash);
+            }
+        });
+    })();
+</script>

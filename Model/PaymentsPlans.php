@@ -79,11 +79,8 @@ class PaymentsPlans
      */
     public function getProductPlanDataById($product_id, array $params)
     {
-//        $items_data = [];
         $plan_data  = [];
         $return_arr = [];
-//        $quote      = empty($this->quoteId) ? $this->checkoutSession->getQuote() 
-//            : $this->cartRepo->get($this->quoteId);
         
         $this->readerWriter->createLog(
             [
@@ -148,7 +145,8 @@ class PaymentsPlans
             }
 
             return $return_arr;
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             $this->readerWriter->createLog($e->getMessage(), 'getProductPlanData() Exception:');
             return [];
         }

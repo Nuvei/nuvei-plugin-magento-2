@@ -9,7 +9,7 @@ class ApmsWindowType extends \Magento\Eav\Model\Entity\Attribute\Source\Abstract
         $this->_options = [
             [
                 'label' => __('Popup'),
-                'value' => ''
+                'value' => 'popup'
             ],
             [
                 'label' => __('New tab'),

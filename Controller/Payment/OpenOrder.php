@@ -116,7 +116,6 @@ class OpenOrder extends Action
             }
             
             if ($this->getRequest()->getParam('nuveiAction') == 'hyvaPrePayment') {
-                $this->readerWriter->createLog('call hyvaPrePayment');
                 return $this->hyvaPrePayment();
             }
             

@@ -256,7 +256,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
         }
         
         // in this case pass again the endpoints
-        $apmWindowType = $this->config->getConfigValue('apm_window_type', 'checkout');
+        $apmWindowType = $this->config->getConfigValue('apm_window_type');
         
         if (empty($order_data['apmWindowType'])
             || $apmWindowType != $order_data['apmWindowType']
@@ -600,7 +600,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             $params['userTokenId'] = $params['billingAddress']['email'];
         }
         
-        if ('redirect' != $this->config->getConfigValue('apm_window_type', 'checkout')) {
+        if ('redirect' != $this->config->getConfigValue('apm_window_type')) {
             $params['urlDetails']['successUrl'] = $params['urlDetails']['pendingUrl']
                                                 = $params['urlDetails']['failureUrl']
                                                 = Config::NUVEI_SDK_AUTOCLOSE_URL;
@@ -836,7 +836,7 @@ class OpenOrder extends AbstractRequest implements RequestInterface
             'clientRequestId'   => $req_resp['clientRequestId'],
             'orderId'           => $req_resp['orderId'],
             'itemsBaseInfoHash' => hash('md5', $this->serializer->serialize($items_base_data)),
-            'apmWindowType'     => $this->config->getConfigValue('apm_window_type', 'checkout'),
+            'apmWindowType'     => $this->config->getConfigValue('apm_window_type'),
             'totalAmount'       => $order_total,
             'userDataHash'      => hash('md5', $this->serializer->serialize([
                 'shippingAddress'   => isset($this->requestParams['shippingAddress']) 

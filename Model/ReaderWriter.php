@@ -59,6 +59,11 @@ class ReaderWriter
         $d          = $data;
         $string     = '';
         
+        // clean possible objects inside array
+        if (is_object($data)) {
+            $data = json_decode(json_encode($data), true);
+        }
+        
         if (is_bool($data)) {
             $d = $data ? 'true' : 'false';
         }
@@ -68,10 +73,7 @@ class ReaderWriter
         elseif ('' === $data) {
             $d = 'Data is Empty.';
         }
-        elseif (is_array($data) || is_object($data)) {
-            // clean possible objects inside array
-            $data = json_decode(json_encode($data), true);
-            
+        elseif (is_array($data)) {
             if ((int) $this->config->getConfigValue('mask_user_details') == 1
                 && !empty($data)
             ) {

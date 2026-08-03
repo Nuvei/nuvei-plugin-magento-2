@@ -147,7 +147,7 @@ class CheckoutHelper extends AbstractHelper
                         'maskCvv'                   => true,
                         'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
                         'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
-                        'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type', 'checkout'),
+                        'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type'),
                         'apmConfig'                 => [
                             'googlePay' => $googlePaySettings,
                             'applePay'  => $applePaySettings,
@@ -196,7 +196,7 @@ class CheckoutHelper extends AbstractHelper
     private function getBlockedCards()
     {
         $blocked_cards     = [];
-        $blocked_cards_str = $this->moduleConfig->getConfigValue('block_cards', 'advanced');
+        $blocked_cards_str = $this->moduleConfig->getConfigValue('block_cards', 'checkout');
 
         // clean the string from brakets and quotes
         if (!empty($blocked_cards_str)) {

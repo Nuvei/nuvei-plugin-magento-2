@@ -1,0 +1,122 @@
+<?php
+/**
+ * Luma partial for the Nuvei plan details table.
+ * Loaded by product_plan_details.phtml when the Hyvä theme is not active.
+ *
+ * @var $block \Nuvei\Checkout\Block\Frontend\Product\NuveiPlanDetails
+ */
+$nuvei_texts = $block->getTexts();
+?>
+
+<div id="nuvei_plan_details" style="display: none;">
+    <h4><?php echo $block->escapeHtml($nuvei_texts['table_title']); ?></h4>
+    <table border="1">
+        <tr>
+            <td><?php echo $block->escapeHtml($nuvei_texts['rec_length']); ?></td>
+            <td id="nuvei_rec_length">&nbsp;</td>
+        </tr>
+        <tr>
+            <td><?php echo $block->escapeHtml($nuvei_texts['rec_period']); ?></td>
+            <td id="nuvei_rec_period">&nbsp;</td>
+        </tr>
+        <tr>
+            <td><?php echo $block->escapeHtml($nuvei_texts['rec_amount']); ?></td>
+            <td id="nuvei_rec_amount">&nbsp;</td>
+        </tr>
+        <tr>
+            <td><?php echo $block->escapeHtml($nuvei_texts['trial_period']); ?></td>
+            <td id="nuvei_trial_period">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+
+<script>
+    require([
+        'jquery'
+    ], function($) {
+        
+        function nuveiShowPlanDetails(params) {
+            console.log('nuveiShowPlanDetails', params);
+            var strParams = '';
+            
+            if(typeof params != 'undefined' && '' != params) {
+                console.log('nuveiShowPlanDetails params', params);
+                strParams = params;
+            }
+            else {
+                strParams = window.location.hash.replace('#', '');
+            }
+            
+            $.ajax({
+                dataType: "json",
+                type: 'get',
+                url: '<?php echo $block->escapeUrl($nuvei_texts['nuvei_ajax_url']); ?>',
+                data: {
+                    prodId: '<?php echo $block->escapeUrl($nuvei_texts['nuvei_prod_id']); ?>',
+                    params: strParams
+                },
+                cache: false,
+                showLoader: true
+            })
+                .done(function(resp){
+                    console.log(resp);
+
+                    if(typeof resp == 'object') {
+                        if(!resp.hasOwnProperty('rec_amount')) {
+                            $('#nuvei_plan_details').css('display', 'none');
+                            return;
+                        }
+
+                        if(resp.hasOwnProperty('rec_len')) {
+                            $('#nuvei_rec_length').html(resp.rec_len);
+                        }
+                        if(resp.hasOwnProperty('rec_period')) {
+                            $('#nuvei_rec_period').html(resp.rec_period);
+                        }
+                        if(resp.hasOwnProperty('rec_amount')) {
+                            $('#nuvei_rec_amount').html(resp.rec_amount);
+                        }
+                        if(resp.hasOwnProperty('trial_period')) {
+                            $('#nuvei_trial_period').html(resp.trial_period);
+                        }
+
+                        $('#nuvei_plan_details').css('display', 'block');
+                    }
+                });
+        }
+        
+        function nuveiCheckForSelectedPlanOnLoad() {
+            console.log('nuveiCheckForSelectedPlanOnLoad');
+        
+            if('' != window.location.hash) {
+                nuveiShowPlanDetails(window.location.hash.replace('#', ''));
+            }
+        }
+        
+        $(function() {
+            console.log('nuvei script');
+            
+            // on load check if some attribute was selected
+            nuveiCheckForSelectedPlanOnLoad();
+        
+            // on change of the attribute
+            $('select.super-attribute-select').on('change', function() {
+                console.log('change select.super-attribute-select');
+                
+                var _self           = $(this);
+                var attrId          = _self.attr('id').replace('attribute', '');
+                var nuveiAttrVal    = _self.val();
+                var nuveiAttrId     = '<?php echo $block->escapeHtml($nuvei_texts['nuvei_attr_id']); ?>';
+                
+                console.log('nuvei change option', [attrId, nuveiAttrVal, nuveiAttrId]);
+                
+                if(nuveiAttrId == attrId && '' != nuveiAttrVal) {
+                    nuveiShowPlanDetails(attrId + '=' + nuveiAttrVal);
+                }
+                else {
+                    $('#nuvei_plan_details').css('display', 'none');
+                }
+            });
+        });
+    });
+</script>

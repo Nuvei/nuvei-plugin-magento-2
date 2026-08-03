@@ -239,7 +239,7 @@ class GetCheckoutData implements GetCheckoutDataInterface
         
         // blocked_cards
         $blocked_cards     = [];
-        $blocked_cards_str = $this->moduleConfig->getConfigValue('block_cards', 'advanced');
+        $blocked_cards_str = $this->moduleConfig->getConfigValue('block_cards', 'checkout');
         
         // clean the string from brakets and quotes
         if (!empty($blocked_cards_str)) {

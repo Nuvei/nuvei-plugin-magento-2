@@ -436,6 +436,7 @@
 						   canRestore="0">
 						<label>APMs Window Type</label>
 						<source_model>Nuvei\Checkout\Model\Adminhtml\Source\ApmsWindowType</source_model>
+                        <config_path>payment/nuvei/apm_window_type</config_path>
 					</field>
                     
 					<field id="checkout_log_level"

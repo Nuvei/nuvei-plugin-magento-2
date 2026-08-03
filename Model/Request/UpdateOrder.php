@@ -231,8 +231,6 @@ class UpdateOrder extends AbstractRequest implements RequestInterface
         }
         // Case 2 - when we have Quote
         elseif (!empty ($this->quoteId)) {
-            $this->readerWriter->createLog($this->quoteId, '$quoteId');
-            
             if (null === $this->cart || empty($this->cart)) {
                 $this->readerWriter->createLog('UpdateOrder Error - There is no Cart data.');
 

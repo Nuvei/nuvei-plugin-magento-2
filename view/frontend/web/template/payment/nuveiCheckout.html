@@ -16,6 +16,11 @@
         display: inline;
         top: -3px;
     }
+    
+    #hyva-checkout-container .sfc-main-container input[type="checkbox"]::before {
+        top: -2px !important;
+        left: -2px !important;
+    }
 </style>
 
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">

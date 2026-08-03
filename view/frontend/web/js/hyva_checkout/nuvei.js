@@ -400,6 +400,10 @@ function nuveiHideLoader() {
     document.addEventListener('magewire:load', () => {
         console.log('magewire:load');
 
+        // tracks the previous billingAsShipping value, so we only react to an
+        // actual user change and not to the component's initial mount/hydration
+        let nuveiBillingAsShippingPrev = undefined;
+
         Magewire.hook('message.processed', (message, component) => {
             // we force this to refresh when the billing address is changed
             if (component.name.includes('checkout.payment.methods')) {
@@ -417,7 +421,9 @@ function nuveiHideLoader() {
 
             // on billing details change
             if (component.name.includes('billing-details')) {
-                console.log('billingAsShipping', component.serverMemo.data.billingAsShipping);
+                const billingAsShipping = component?.serverMemo?.data?.billingAsShipping;
+
+                console.log('billingAsShipping', billingAsShipping);
 
                 /**
                  * We have the following cases here:
@@ -426,14 +432,26 @@ function nuveiHideLoader() {
                  * 3. undefined - the user changed the billing address from the dropdown
                  *
                  * so there is no real change only in case of false
+                 *
+                 * Skip the component's initial mount (nuveiBillingAsShippingPrev is still
+                 * undefined) and only refresh when the value actually changed - otherwise
+                 * we trigger a needless extra openOrder call right after page load, which
+                 * overwrites the order/session already loaded into SimplyConnect.
                  */
-                if (false !== component?.serverMemo?.data?.billingAsShipping) {
+                if (undefined !== nuveiBillingAsShippingPrev
+                    && billingAsShipping !== nuveiBillingAsShippingPrev
+                    && false !== billingAsShipping
+                ) {
+                    console.log(nuveiBillingAsShippingPrev, billingAsShipping);
+            
                     // refresh the payment methods on billing address change
                     Magewire.find('checkout.payment.methods')?.$refresh();
 //                    nuveiUpdateOrder();
 //                    nuveiLoadSimplyConnect();
 //                    return;
                 }
+
+                nuveiBillingAsShippingPrev = billingAsShipping;
             }
 
         });
