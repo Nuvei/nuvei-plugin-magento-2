@@ -109,4 +109,8 @@ class HyvaCheckoutViewModel implements ArgumentInterface
         return $resp;
     }
     
+    public function getSimplyConnectUrl(): string
+    {
+        return $this->config->getSimplyConnectUrl();
+    }
 }

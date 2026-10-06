@@ -7,8 +7,6 @@
  * @package  Nuvei_Checkout
  */
 
-// set here some variables and function common for web and checkout SDKs
-
 /**
  * Get the code of the module.
  * 
@@ -17,21 +15,6 @@
 function nuveiGetCode() {
 	return 'nuvei';
 };
-
-/**
- * Just check if the plugin is used on the QA site.
- * 
- * @returns boolean
- */
-function nuveiIsQaSite() {
-    if ('magentoautomation.sccdev-qa.com' === window.location.host
-        || 'oldmagentoautomation.gw-4u.com' === window.location.host
-    ) {
-        return true;
-    }
-    
-    return false;
-}
 
 define(
     [
@@ -52,13 +35,8 @@ define(
             }
         });
         
-        let simplyConectUrl = 'https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js';
+        let simplyConectUrl = window.checkoutConfig.payment[nuveiGetCode()].simplyUrl;
 
-        // set Tag URLs for QA sites
-        if (nuveiIsQaSite()) {
-            simplyConectUrl = 'https://devmobile.sccdev-qa.com/checkoutNext/simplyConnect.js';
-        }
-        
         // load SimplyConnect SDK
         rendererList.push({
             type: 'nuvei',

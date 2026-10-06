@@ -93,6 +93,7 @@ class ConfigProvider implements ConfigProviderInterface
                 $config = $this->checkoutHelper->getCheckoutSdkConfig($returnSdkBlockOnly);
                 break;
 
+            // deprecated
             case 'web':
                 $config = $this->getWebSdkConfig($returnSdkBlockOnly);
                 break;
@@ -103,7 +104,8 @@ class ConfigProvider implements ConfigProviderInterface
             $config['payment'][Payment::METHOD_CODE]['sdk']         = ucfirst($usedSdk);
             $config['payment'][Payment::METHOD_CODE]['isTestMode']  = $this->moduleConfig->isTestModeEnabled();
             $config['payment'][Payment::METHOD_CODE]['countryId']   = $this->moduleConfig->getQuoteCountryCode();
-            $config['payment'][Payment::METHOD_CODE]['loadingImg']  = $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif");
+            $config['payment'][Payment::METHOD_CODE]['loadingImg']  
+                = $this->assetRepo->getUrl("Nuvei_Checkout::images/loader-2.gif");
         }
         
         $this->readerWriter->createLog([$usedSdk, $config], 'get front end config');

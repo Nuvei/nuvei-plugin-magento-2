@@ -571,10 +571,6 @@ define(
                 self.checkoutSdkParams.onResult					= nuveiAfterSdkResponse;
 				self.checkoutSdkParams.onSelectPaymentMethod	= nuveiPmChange;
                 self.checkoutSdkParams.crossBrowserApplePay		= true;
-                
-                if (nuveiIsQaSite()) {
-                    self.checkoutSdkParams.webSdkEnv = 'devmobile';
-                }
             },
 			
             // event function

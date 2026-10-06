@@ -4,6 +4,8 @@ namespace Nuvei\Checkout\Model;
 
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem\Driver\File;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\UrlInterface;
@@ -133,6 +135,7 @@ class Config
     private $cookie;
     private $quoteFactory;
     private $cart;
+    private $envConfig;
 
     /**
      * Object initialization.
@@ -166,7 +169,9 @@ class Config
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Stdlib\CookieManagerInterface $cookie,
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
-        \Magento\Checkout\Model\Cart $cart
+        \Magento\Checkout\Model\Cart $cart,
+        DirectoryList $directoryList,
+        File $fileDriver
     ) {
         $this->scopeConfig          = $scopeConfig;
         $this->storeManager         = $storeManager;
@@ -187,6 +192,19 @@ class Config
         
         if (!empty($git_version)) {
             $this->versionNum = (int) str_replace('.', '', $git_version);
+        }
+        
+        // search for custom config file
+        $filePath = $directoryList->getPath(DirectoryList::APP) . '/code/Nuvei/nuvei.config.local.php';
+
+        if ( $fileDriver->isExists($filePath) ) {
+            // 1. load the file
+            include_once $filePath;
+
+            // 2. attach the content to custom variable
+            if (defined('NUVEI_LOCAL_CONF') && is_array(NUVEI_LOCAL_CONF)) {
+                $this->envConfig = NUVEI_LOCAL_CONF;
+            }
         }
     }
 
@@ -575,10 +593,10 @@ class Config
      *
      * @return string
      */
-    public function getCallbackDmnUrl($incrementId = null, $storeId = null, $url_params = [], $quoteId = '')
+    public function getCallbackDmnUrl($incrementId = null, $storeId = null)
     {
-        if (defined('NUVEI_CUSTOM_DMN_URL') && !empty(NUVEI_CUSTOM_DMN_URL)) {
-            return NUVEI_CUSTOM_DMN_URL;
+        if (!empty($this->envConfig['dmn_url'])) {
+            return $this->envConfig['dmn_url'];
         }
         
         $url = $this->getStoreManager()
@@ -609,6 +627,33 @@ class Config
         }
 
         return $this->urlBuilder->getUrl('checkout/cart', $urlParams);
+    }
+    
+    public function getSimplyConnectUrl()
+    {
+        if (!empty($this->envConfig['simply_url'])) {
+            return $this->envConfig['simply_url'];
+        }
+        
+        return "https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js";
+    }
+    
+    public function getSimplyConnectEnv()
+    {
+        if (!empty($this->envConfig['simply_env'])) {
+            return $this->envConfig['simply_env'];
+        }
+        
+        return $this->isTestModeEnabled() ? 'test' : 'prod';
+    }
+    
+    public function getWebSdkEnv()
+    {
+        if (!empty($this->envConfig['webSdk_env'])) {
+            return $this->envConfig['webSdk_env'];
+        }
+        
+        return '';
     }
     
     public function canPerformCommand($commandCode)
@@ -825,6 +870,11 @@ class Config
         
         if ($this->isTestModeEnabled() === true) {
             $endpoint = self::SANDBOX_ENDPOINT;
+        }
+        
+        if (!empty($this->envConfig['endpoint_base'])) {
+            // expected format: https://host/ppp/api/
+            $endpoint = preg_replace('#api/$#', '', $this->envConfig['endpoint_base']);
         }
         
         if ($isRest) {

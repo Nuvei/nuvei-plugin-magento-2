@@ -120,7 +120,7 @@ class CheckoutHelper extends AbstractHelper
 
                     // we will set some of the parameters in the JS file
                     'nuveiCheckoutParams' => [
-                        'env'                       => $this->moduleConfig->isTestModeEnabled() ? 'test' : 'prod',
+                        'env'                       => $this->moduleConfig->getSimplyConnectEnv(),
                         'merchantId'                => $this->moduleConfig->getMerchantId(),
                         'merchantSiteId'            => $this->moduleConfig->getMerchantSiteId(),
                         'country'                   => $billing_address['country'],
@@ -183,6 +183,15 @@ class CheckoutHelper extends AbstractHelper
 
         if ($returnSdkBlockOnly) {
             return $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams'];
+        }
+        
+        $config['payment'][Payment::METHOD_CODE]['simplyUrl'] = $this->moduleConfig->getSimplyConnectUrl();
+        
+        // set webSdkEnv if need to
+        $webSdkEnv = $this->moduleConfig->getWebSdkEnv();
+            
+        if (!empty($webSdkEnv)) {
+            $config['payment'][Payment::METHOD_CODE]['nuveiCheckoutParams']['webSdkEnv'] = $webSdkEnv;
         }
 
         return $config;

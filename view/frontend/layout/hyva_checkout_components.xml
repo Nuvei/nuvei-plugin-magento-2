@@ -23,5 +23,11 @@
                    template="Nuvei_Checkout::hyva_checkout/payment/js/api/v1/nuvei_app.phtml">
             </block>
         </referenceContainer>
+        
+        <block name="hyva.checkout.payment.method.js.api.v1.nuvei_app" template="...nuvei_app.phtml">
+            <arguments>
+                <argument name="view_model" xsi:type="object">Nuvei\Checkout\ViewModel\HyvaCheckoutViewModel</argument>
+            </arguments>
+        </block>
     </body>
 </page>

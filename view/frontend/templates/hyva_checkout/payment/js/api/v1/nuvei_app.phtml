@@ -5,9 +5,11 @@
     if (!isset($hyvaCsp)) {
         $hyvaCsp = $viewModels->get(\Hyva\Theme\ViewModel\Csp::class);
     }
+    
+    $viewModel = $block->getData('view_model');
 ?>
 
-<script src="https://cdn.safecharge.com/safecharge_resources/v1/checkout/simplyConnect.js"
+<script src="<?= $block->escapeUrl($viewModel->getSimplyConnectUrl()) ?>"
         id="nuvei-simply-connect-script"
         async
         defer></script>

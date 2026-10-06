@@ -234,9 +234,7 @@ class Redirect extends Action
             (string) $this->moduleConfig->getMerchantSecretKey() . implode( '', $cashierParams )
         );
 
-        $payLink = $this->moduleConfig->isTestModeEnabled()
-            ? ModuleConfig::SANDBOX_ENDPOINT : ModuleConfig::PROD_ENDPOINT;
-        $payLink .= 'purchase.do?' . http_build_query( $cashierParams );
+        $payLink = $this->moduleConfig->getRequestEndpoint('purchase', false) . '?' . http_build_query( $cashierParams );
 
         $this->readerWriter->createLog($payLink, '$payLink', 'DEBUG');
 
