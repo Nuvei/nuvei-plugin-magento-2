@@ -5,12 +5,6 @@ let nuveiHyvaLastPm             = '';
 let nuveiResolvePaymentPromise;
 let nuveiPlaceOrder;
 
-
-function yourCustomJSMethod(conf) {
-    console.log(conf);
-    alert('test');
-}
-
 /**
  * Here we receive the response from the Checkout SDK Order.
  *

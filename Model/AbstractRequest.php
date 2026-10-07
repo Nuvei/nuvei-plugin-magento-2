@@ -244,16 +244,18 @@ abstract class AbstractRequest
         $this->initRequest();
         $this->readerWriter->createLog('getParams()');
         
-        $params = [
+        $webMasterId    = $this->config->getSourcePlatformField();
+        $params         = [
             'merchantId'        => $this->config->getMerchantId(),
             'merchantSiteId'    => $this->config->getMerchantSiteId(),
             'clientRequestId'   => (string) $this->getRequestId(),
             'timeStamp'         => date('YmdHis'),
-            'webMasterId'       => $this->config->getSourcePlatformField(),
+            'webMasterId'       => $webMasterId,
             'sourceApplication' => $this->config->getSourceApplication(),
             // some of them are set in the child classes
             'merchantDetails'   => [
-                'customField4' => time(),
+                'customField4'  => time(),
+                'customField15' => $webMasterId,
             ],
             'customData'        => [
                 'sender'    => 'store',
