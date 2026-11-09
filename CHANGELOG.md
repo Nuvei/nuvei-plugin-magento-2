@@ -5,6 +5,7 @@
 ```
     * Added support to Hyva Checkout.
     * Removed the webSDK as payment integration.
+    * Fix for dynamically created parameters in Payment Complete class.
 ```
 
 # 3.4.1

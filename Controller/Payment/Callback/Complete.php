@@ -37,15 +37,11 @@ class Complete extends Action implements CsrfAwareActionInterface
     
     private $readerWriter;
     private $orderFactory;
-//    private $order;
-//    private $orderPayment;
+    private $order;
     private $cart;
     private $moduleConfig;
     private $orderCollectionFactory;
-//    private $scopeConfig;
-//    private $getPaymentStatus;
-//    private $params;
-//    private $quoteRepository;
+    private $params;
     
     /**
      * Object constructor.
@@ -84,9 +80,6 @@ class Complete extends Action implements CsrfAwareActionInterface
         $this->cart                     = $cart;
         $this->moduleConfig             = $moduleConfig;
         $this->orderCollectionFactory   = $orderCollectionFactory;
-//        $this->scopeConfig              = $scopeConfig;
-//        $this->getPaymentStatus         = $getPaymentStatus;
-//        $this->quoteRepository          = $quoteRepository;
     }
     
     /**
@@ -225,7 +218,6 @@ class Complete extends Action implements CsrfAwareActionInterface
              */
 //            $this->onepageCheckout->getCheckoutMethod();
             
-//            $orderId = $this->cartManagement->placeOrder($this->getQuoteId());
             $orderId = $this->cartManagement->placeOrder($this->moduleConfig->getQuoteId());
             
             $result
