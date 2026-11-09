@@ -103,7 +103,14 @@ class CheckoutHelper extends AbstractHelper
         if (!empty($gButtonType = $this->moduleConfig->getConfigValue('gpay_button_type'))) {
             $googlePaySettings['buttonType'] = $gButtonType;
         }
-
+        
+        // check for deprecated option
+        $apmWindowType = $this->moduleConfig->getConfigValue('apm_window_type');
+        
+        if ('redirect' == $apmWindowType) {
+            $apmWindowType = 'newTab';
+        }
+        
         $config = [
             'payment' => [
                 Payment::METHOD_CODE => [
@@ -147,7 +154,7 @@ class CheckoutHelper extends AbstractHelper
                         'maskCvv'                   => true,
                         'i18n'                      => $this->moduleConfig->getCheckoutTransl(),
                         'theme'                     => $this->moduleConfig->getConfigValue('sdk_theme', 'checkout'),
-                        'apmWindowType'             => $this->moduleConfig->getConfigValue('apm_window_type'),
+                        'apmWindowType'             => $apmWindowType,
                         'apmConfig'                 => [
                             'googlePay' => $googlePaySettings,
                             'applePay'  => $applePaySettings,

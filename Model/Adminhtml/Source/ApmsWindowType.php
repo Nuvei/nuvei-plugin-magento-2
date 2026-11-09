@@ -15,10 +15,10 @@ class ApmsWindowType extends \Magento\Eav\Model\Entity\Attribute\Source\Abstract
                 'label' => __('New tab'),
                 'value' => 'newTab'
             ],
-            [
-                'label' => __('Redirect'),
-                'value' => 'redirect'
-            ],
+//            [
+//                'label' => __('Redirect'),
+//                'value' => 'redirect'
+//            ],
          ];
         
         return $this->_options;

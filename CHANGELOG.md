@@ -6,6 +6,7 @@
     * Added support to Hyva Checkout.
     * Removed the webSDK as payment integration.
     * Fix for dynamically created parameters in Payment Complete class.
+    * Removed the option to open the APM page as redirect. Fallback to newTab.
 ```
 
 # 3.4.1
