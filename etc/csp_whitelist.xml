@@ -20,6 +20,7 @@
                 <value id="safecharge-ppp-int" type="host">https://ppp-test.safecharge.com</value>
                 <value id="nuvei-ppp-int" type="host">https://ppp-test.nuvei.com</value>
                 <value id="safecharge-ppp" type="host">https://secure.safecharge.com</value>
+                <value id="safecharge-ppp-tag" type="host">https://srv-bsf-devppptag.gw-4u.com</value>
                 <value id="gpay-connect" type="host">https://pay.google.com</value>
                 <value id="connect-safecharge-checkout-sdk" type="host">https://cdn.safecharge.com</value>
                 <value id="connect-safecharge-checkout-sdk-tag" type="host">https://devmobile.sccdev-qa.com</value>
