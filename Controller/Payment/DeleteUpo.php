@@ -5,6 +5,10 @@ namespace Nuvei\Checkout\Controller\Payment;
 use Magento\Framework\App\Action\Action;
 use Nuvei\Checkout\Model\AbstractRequest;
 
+/**
+ * @deprecated since version 3.5.0
+ */
+
 class DeleteUpo extends Action
 {
     /**

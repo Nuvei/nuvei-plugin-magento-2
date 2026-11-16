@@ -12,7 +12,7 @@ let nuveiPlaceOrder;
  * @returns void
  */
 function nuveiAfterSdkResponse(resp) {
-    console.log('nuveiAfterSdkResponse()', resp?.result, resp?.transactionId);
+    console.log('[Nuvei Module]: nuveiAfterSdkResponse()', resp?.result, resp?.transactionId);
 
     let allParams = JSON.parse(
         document.getElementById('nuvei_data').dataset.config
@@ -90,7 +90,7 @@ function nuveiIsSdkFormValid(params) {
 }
 
 function nuveiPrePayment(paymentDetails) {
-    console.log('nuveiPrePayment');
+    console.log('[Nuvei Module]: nuveiPrePayment');
 
     return nuveiUpdateOrder(true); // we will return the Promise here
 }
@@ -102,7 +102,7 @@ function nuveiPrePayment(paymentDetails) {
  * @returns Promise
  */
 function nuveiUpdateOrder(isPrepayment = false) {
-    console.log('nuveiUpdateOrder, isPrepayment', isPrepayment);
+    console.log('[Nuvei Module]: nuveiUpdateOrder, isPrepayment', isPrepayment);
 
     nuveiShowLoader();
 
@@ -112,7 +112,7 @@ function nuveiUpdateOrder(isPrepayment = false) {
                 reject();
             }
 
-            console.log('Error.');
+            console.log('[Nuvei Module]: Error.');
             return false;
         }
 
@@ -125,11 +125,11 @@ function nuveiUpdateOrder(isPrepayment = false) {
 
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-                console.log('We have response.');
+                console.log('[Nuvei Module]: We have response.');
 
                 // successful request
                 if (xmlhttp.status == 200) {
-                    console.log('200');
+                    console.log('[Nuvei Module]: 200');
                     
                     var resp = JSON.parse(xmlhttp.response);
 
@@ -139,7 +139,7 @@ function nuveiUpdateOrder(isPrepayment = false) {
                         && '' != resp.nuveiCheckoutParams.sessionToken
                     ) {
                         console.log(
-                            'success',
+                            '[Nuvei Module]: success',
                             allParams.nuveiCheckoutParams.sessionToken,
                             resp.nuveiCheckoutParams.sessionToken,
                             isPrepayment
@@ -159,7 +159,7 @@ function nuveiUpdateOrder(isPrepayment = false) {
                         return true;
                     }
                     
-                    console.log('missing nuveiCheckoutParams');
+                    console.log('[Nuvei Module]: missing nuveiCheckoutParams');
                 }
 
                 // error in any other case
@@ -196,18 +196,13 @@ function nuveiUpdateOrder(isPrepayment = false) {
 }
 
 function nuveiLoadSimplyConnect() {
-    console.log('nuveiLoadSimplyConnect');
+    console.log('[Nuvei Module]: nuveiLoadSimplyConnect');
 
     // error
     if (!document.getElementById('nuvei_checkout')) {
-        console.log('nuvei_checkout is missing');
+        console.log('[Nuvei Module]: nuvei_checkout is missing');
         return;
     }
-
-//    if (document.querySelector('#nuvei_checkout #sfc-main')) {
-//        console.log('nuvei_checkout is already loaded.');
-//        return;
-//    }
 
     // error
     if (!document.getElementById('nuvei_data')) {
@@ -220,12 +215,12 @@ function nuveiLoadSimplyConnect() {
 //    console.log(nuveiData);
 
     if (nuveiLastData === nuveiData && document.querySelector('#nuvei_checkout #sfc-main')) {
-        console.log('nuvei data is same.');
+        console.log('[Nuvei Module]: nuvei data is same.');
         return;
     }
     
     if (nuveiIsSimplyLoading) {
-        console.log('Simply is already loading.');
+        console.log('[Nuvei Module]: Simply is already loading.');
         return;
     }
     
@@ -260,17 +255,17 @@ function nuveiLoadSimplyConnect() {
         return;
     }
 
-    let simplyParams = allParams.nuveiCheckoutParams;
-
-//    console.log('simplyParams', simplyParams);
-
+    let simplyParams                    = allParams.nuveiCheckoutParams;
     simplyParams.renderTo               = '#nuvei_checkout';
     simplyParams.payButton              = 'noButton';
-    simplyParams.prePayment             = nuveiPrePayment;
-    simplyParams.onFormValidated        = nuveiIsSdkFormValid;
-    simplyParams.onResult               = nuveiAfterSdkResponse;
     simplyParams.crossBrowserApplePay   = true;
-
+    
+    console.log('[Nuvei Module]: simplyParams', simplyParams);
+    
+    simplyParams.prePayment         = nuveiPrePayment;
+    simplyParams.onFormValidated    = nuveiIsSdkFormValid;
+    simplyParams.onResult           = nuveiAfterSdkResponse;
+    
     document.getElementById('nuvei_checkout').style.display = 'block';
     simplyConnect(simplyParams);
 
@@ -281,7 +276,7 @@ function nuveiLoadSimplyConnect() {
 }
 
 function nuveiShowLoader() {
-    console.log('nuveiShowLoader');
+    console.log('[Nuvei Module]: nuveiShowLoader');
 
     if (document.querySelector('.nuvei-loading-mask')) {
         document.querySelector('.nuvei-loading-mask').style.display = 'block';
@@ -289,7 +284,7 @@ function nuveiShowLoader() {
 }
 
 function nuveiHideLoader() {
-    console.log('nuveiHideLoader');
+    console.log('[Nuvei Module]: nuveiHideLoader');
 
     if (document.querySelector('.nuvei-loading-mask')) {
         document.querySelector('.nuvei-loading-mask').style.display = 'none';
@@ -307,7 +302,7 @@ function nuveiHideLoader() {
     // if Simply connect is loaded run our logic
     if (nuveiSimplyConnectScript) {
         nuveiSimplyConnectScript.addEventListener('load', () => {
-            console.log('simply is loaded...', typeof simplyConnect);
+            console.log('[Nuvei Module]: simply is loaded...', typeof simplyConnect);
 
             try {
                 if ('nuvei' == methodCode) {
@@ -326,7 +321,7 @@ function nuveiHideLoader() {
         code: 'nuvei',
         method: {
             placeOrder: async function({ fallback }) {
-                console.log('Place Order clicked. Waiting for SDK...');
+                console.log('[Nuvei Module]: Place Order clicked. Waiting for SDK...');
 
                 // make the fallback global
                 nuveiPlaceOrder = fallback;
@@ -343,23 +338,29 @@ function nuveiHideLoader() {
         }
     });
 
-    // Wait for Hyva Checkout to be ready
-//    window.addEventListener('hyva-checkout-loaded', () => {
-//        console.log('Hyva Checkout is ready, initializing My_App SDK...');
-//
-//        // You can now access the SDK or register
-//        // listeners to the Hyva Checkout Events
-//        // Example: window.myAppSdk.init();
-//    });
-
     // detect when arrived at the Payment page from Shipping
     window.addEventListener('checkout:step:loaded', (event) => {
         const stepName      = event.detail.route; // 'shipping' or 'payment'
         const isNavigation  = event.detail.subsequent; // true if the user clicked 'Next'
 
-        if (stepName === 'payment' && isNavigation) {
-            console.log('User just arrived at the Payment page from Shipping.');
-            nuveiLoadSimplyConnect();
+        if (stepName === 'payment') {
+            // register on every Payment load, Hyva clears tasks after each navigation
+            hyvaCheckout.navigation.addTask(async () => {
+                console.log('[Nuvei Module]: User is going back to Shipping from Payment.');
+
+                if (typeof simplyConnect != 'undefined') {
+                    simplyConnect.destroy();
+                }
+            }, {
+                name: 'nuvei-before-back-to-shipping',
+                navigationDirections: ['backwards']
+            });
+
+            if (isNavigation) {
+                console.log('[Nuvei Module]: User just arrived at the Payment page from Shipping.');
+
+                nuveiLoadSimplyConnect();
+            }
         }
     });
 
@@ -368,11 +369,11 @@ function nuveiHideLoader() {
         // Access the selected payment method code
         nuveiHyvaLastPm = methodCode = event.detail.method;
 
-        console.log("Payment Method Changed to", methodCode);
+        console.log("[Nuvei Module]: Payment Method Changed to", methodCode);
 
         try {
             if ('nuvei' == methodCode && typeof simplyConnect != 'undefined') {
-                console.log('nuvei is selected and simplyConnect is loaded');
+                console.log('[Nuvei Module]: nuvei is selected and simplyConnect is loaded');
                 document.getElementById('nuvei_checkout').style.display = 'block';
             }
             else {
@@ -384,15 +385,9 @@ function nuveiHideLoader() {
         }
     });
     
-    // Alpine is ready
-//    document.addEventListener('alpine:init', () => {
-//        console.log('Alpine is loaded');
-//
-//    });
-
     // listent for total and address changes
     document.addEventListener('magewire:load', () => {
-        console.log('magewire:load');
+        console.log('[Nuvei Module]: magewire:load');
 
         // tracks the previous billingAsShipping value, so we only react to an
         // actual user change and not to the component's initial mount/hydration
@@ -401,14 +396,14 @@ function nuveiHideLoader() {
         Magewire.hook('message.processed', (message, component) => {
             // we force this to refresh when the billing address is changed
             if (component.name.includes('checkout.payment.methods')) {
-                console.log('checkout.payment.methods re-render finished');
+                console.log('[Nuvei Module]: checkout.payment.methods re-render finished');
                 nuveiLoadSimplyConnect();
                 return;
             }
 
             // on total change
 //            if ('price-summary.total-segments' === component.name) {
-//                console.log('total-segments');
+//                console.log('[Nuvei Module]: total-segments');
 //                nuveiLoadSimplyConnect();
 //                return;
 //            }
@@ -417,7 +412,7 @@ function nuveiHideLoader() {
             if (component.name.includes('billing-details')) {
                 const billingAsShipping = component?.serverMemo?.data?.billingAsShipping;
 
-                console.log('billingAsShipping', billingAsShipping);
+                console.log('[Nuvei Module]: billingAsShipping', billingAsShipping);
 
                 /**
                  * We have the following cases here:
@@ -436,13 +431,10 @@ function nuveiHideLoader() {
                     && billingAsShipping !== nuveiBillingAsShippingPrev
                     && false !== billingAsShipping
                 ) {
-                    console.log(nuveiBillingAsShippingPrev, billingAsShipping);
+                    console.log('[Nuvei Module]: ', nuveiBillingAsShippingPrev, billingAsShipping);
             
                     // refresh the payment methods on billing address change
                     Magewire.find('checkout.payment.methods')?.$refresh();
-//                    nuveiUpdateOrder();
-//                    nuveiLoadSimplyConnect();
-//                    return;
                 }
 
                 nuveiBillingAsShippingPrev = billingAsShipping;
@@ -450,15 +442,6 @@ function nuveiHideLoader() {
 
         });
         
-        // when Magwite is initialized
-//        Magewire.hook('component.initialized', (component) => {
-//            if (component.name.includes('billing-details')) {
-//                console.log('first activeAddressEntity:',
-//                    component.serverMemo.data.activeAddressEntity
-//                );
-//            }
-//        });
-
     });
 
 })();

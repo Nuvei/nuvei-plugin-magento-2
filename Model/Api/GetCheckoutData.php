@@ -112,6 +112,8 @@ class GetCheckoutData implements GetCheckoutDataInterface
      * 
      * @param  int $quoteId
      * @return array
+     * 
+     * @deprecated since version 3.5.0
      */
     private function getWebSdkData($quoteId)
     {

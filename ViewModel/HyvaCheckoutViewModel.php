@@ -102,11 +102,11 @@ class HyvaCheckoutViewModel implements ArgumentInterface
     
     public function getJsonConfig()
     {
-        $resp = $this->json->serialize($this->getFormattedData());
+        $resp = $this->getFormattedData();
         
         $this->logger->createLog($resp, '$checkoutParams json');
         
-        return $resp;
+        return $this->json->serialize($resp);
     }
     
     public function getSimplyConnectUrl(): string
