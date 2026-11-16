@@ -3,6 +3,13 @@
     x-ignore disable Alpine to mess with our container 
     wire:ignore disable our container to be reloaded/whipped on events like total change, so we can manually reload Simply Connect.
 -->
+<style type="text/css">
+    #hyva-checkout-container .sfc-main-container input[type="checkbox"]::before {
+        top: -2px !important;
+        left: -2px !important;
+    }
+</style>
+
 <div wire:ignore x-ignore>
 
     <div id="nuvei_checkout" 
