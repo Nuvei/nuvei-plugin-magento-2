@@ -1,9 +1,9 @@
 <?php
     /** @var \Nuvei\Checkout\Model\ConfigProvider $viewModel */
-    /** @var \Hyva\Theme\ViewModel\Csp $hyvaCsp */
+    /** @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp */
 
     if (!isset($hyvaCsp)) {
-        $hyvaCsp = $viewModels->get(\Hyva\Theme\ViewModel\Csp::class);
+        $hyvaCsp = $viewModels->get(\Hyva\Theme\ViewModel\HyvaCsp::class);
     }
     
     $viewModel = $block->getData('view_model');

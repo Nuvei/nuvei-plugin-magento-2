@@ -98,25 +98,22 @@
             $(document).ready(function(){
                 console.log('doc ready')
                 
+                // Do not populate on load, or the saved custom values will be overwritten.
                 $do.get('select[name="product[nuvei_payment_plans]"]', function(elem){
                     nuveiDropdownPlanVal = elem.value;
+                });
+                
+                $('body').on('change', 'select[name="product[nuvei_payment_plans]"]', function(){
+                    console.log('payment plan select change')
                     
-                    console.log('do event')
+                    nuveiDropdownPlanVal = $(this).val();
                     
-                    nuveiPopulateData(nuveiDropdownPlanVal);
-                    
-                    $('body').on('change', 'select[name="product[nuvei_payment_plans]"]', function(){
-                        console.log('payment plan select change')
-                        
-                        nuveiDropdownPlanVal = $(this).val();
-                        
-                        if(!nuveiPaymentPlans.hasOwnProperty(nuveiDropdownPlanVal)) {
-                            console.log('There is no Nuvei plan with ID ' + nuveiDropdownPlanVal);
-                            return;
-                        }
+                    if(!nuveiPaymentPlans.hasOwnProperty(nuveiDropdownPlanVal)) {
+                        console.log('There is no Nuvei plan with ID ' + nuveiDropdownPlanVal);
+                        return;
+                    }
 
-                        nuveiPopulateData(nuveiDropdownPlanVal);
-                    });
+                    nuveiPopulateData(nuveiDropdownPlanVal);
                 });
             });
         });
